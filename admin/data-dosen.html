@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Dosen — SIAKAD Ditz University</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="stylesheet" href="../assets/css/mobile-table.css">
+</head>
+<body>
+<div class="app-layout">
+  <div id="admin-sidebar-placeholder"></div>
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title">Data Dosen</span>
+      <div class="topbar-actions">
+        <button class="topbar-btn" data-theme-toggle><i class="fa-solid fa-moon"></i></button>
+        <button class="topbar-btn" data-notif-toggle><i class="fa-solid fa-bell"></i><span class="topbar-badge"></span></button>
+      </div>
+    </header>
+    <main class="page-content">
+      <div class="page-header">
+        <div class="page-header-top">
+          <div><h1>Data Dosen</h1><p>Kelola data seluruh dosen universitas</p></div>
+          <button class="btn btn-primary" data-modal-target="modal-tambah-dosen"><i class="fa-solid fa-plus"></i> Tambah Dosen</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body" style="padding-bottom:0">
+          <div class="filter-bar">
+            <div class="input-group" style="max-width:260px">
+              <i class="input-icon fa-solid fa-magnifying-glass"></i>
+              <input type="text" class="form-control" id="search-dosen" placeholder="Cari nama atau NIP...">
+            </div>
+            <select class="form-control" id="filter-prodi-d" style="width:auto">
+              <option value="">Semua Prodi</option>
+              <option>Teknik Informatika</option><option>Sistem Informasi</option><option>Manajemen Informatika</option>
+            </select>
+            <button class="btn btn-ghost btn-sm" onclick="resetFilterDosen()"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead><tr><th>No.</th><th>NIP</th><th>Nama Lengkap</th><th>Program Studi</th><th>Jabatan Fungsional</th><th style="text-align:center">Kelas Diampu</th><th>Status</th><th>Aksi</th></tr></thead>
+            <tbody id="tbody-dosen"></tbody>
+          </table>
+        </div>
+        <div class="card-footer"><span style="font-size:0.8125rem;color:var(--text-muted)" id="dosen-info">Menampilkan 0 data</span></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Modal Tambah Dosen -->
+<div class="modal-backdrop" id="modal-tambah-dosen">
+  <div class="modal modal-lg">
+    <div class="modal-header"><h3><i class="fa-solid fa-plus" style="color:var(--navy);margin-right:8px"></i>Tambah Dosen Baru</h3><button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <div class="form-grid form-grid-2">
+        <div class="form-group"><label class="form-label">NIP <span class="required">*</span></label><input type="text" class="form-control" id="d-nip" placeholder="18 digit NIP"></div>
+        <div class="form-group"><label class="form-label">Nama Lengkap <span class="required">*</span></label><input type="text" class="form-control" id="d-nama" placeholder="Nama + gelar"></div>
+        <div class="form-group"><label class="form-label">Program Studi <span class="required">*</span></label>
+          <select class="form-control" id="d-prodi"><option value="">— Pilih prodi —</option><option>Teknik Informatika</option><option>Sistem Informasi</option><option>Manajemen Informatika</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">Jabatan Fungsional</label>
+          <select class="form-control" id="d-jabatan"><option>Tenaga Pengajar</option><option>Asisten Ahli</option><option>Lektor</option><option>Lektor Kepala</option><option>Guru Besar</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">Email Akademik <span class="required">*</span></label><input type="email" class="form-control" id="d-email" placeholder="nama@dosen.ditz.ac.id"></div>
+        <div class="form-group"><label class="form-label">Nomor HP</label><input type="tel" class="form-control" id="d-hp" placeholder="08xxxxxxxxxx"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal-close>Batal</button>
+      <button class="btn btn-primary btn-sm" onclick="tambahDosen()"><i class="fa-solid fa-save"></i> Simpan</button>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav"><div class="bottom-nav-inner">
+  <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+  <a class="bottom-nav-item" href="data-mahasiswa.html"><i class="fa-solid fa-user-graduate"></i><span>Mahasiswa</span></a>
+  <a class="bottom-nav-item" href="surat.html"><i class="fa-solid fa-envelope"></i><span>Surat</span></a>
+  <a class="bottom-nav-item" href="laporan.html"><i class="fa-solid fa-chart-pie"></i><span>Laporan</span></a>
+  <a class="bottom-nav-item" href="semester.html"><i class="fa-solid fa-calendar"></i><span>Semester</span></a>
+</div></nav>
+<div class="toast-container"></div>
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/admin-integration.js"></script>
+
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/admin-sidebar.js"></script>
+<script>
+
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'admin') window.location.href = '../auth/login.html';
+
+let allDosen = [];
+
+async function loadDosen() {
+  const q     = document.getElementById('search-dosen').value;
+  const prodi = document.getElementById('filter-prodi-d').value;
+  const params = { per_page: 50 };
+  if (q)     params.search = q;
+  if (prodi) params.program_studi_id = prodi;
+  const res = await AdminAPI.dosen(params);
+  if (!res || !res.ok) { showToast('danger','Error','Gagal memuat data dosen'); return; }
+  allDosen = res.data.data?.data || res.data.data || [];
+  renderTabel(allDosen);
+}
+
+function renderTabel(list) {
+  document.getElementById('dosen-info').textContent = `Menampilkan ${list.length} data`;
+  if (list.length === 0) {
+    document.getElementById('tbody-dosen').innerHTML = `<tr><td colspan="99"><div class="empty-state"><h3 class="empty-state-title">Tidak ada data dosen</h3></div></td></tr>`;
+    return;
+  }
+  document.getElementById('tbody-dosen').innerHTML = list.map((d,i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td><span class="font-mono" style="font-size:0.75rem">${d.nip}</span></td>
+      <td><strong>${escHTML(d.nama)}</strong></td>
+      <td style="font-size:0.8375rem">${escHTML(d.program_studi?.nama || '—')}</td>
+      <td><span class="badge badge-primary">${d.jabatan}</span></td>
+      <td style="text-align:center">—</td>
+      <td><span class="badge ${d.is_active ? 'badge-success' : 'badge-danger'}">${d.is_active ? 'Aktif' : 'Nonaktif'}</span></td>
+      <td>
+        <div class="table-actions">
+          <button class="btn btn-ghost btn-icon btn-sm" title="Edit" onclick="editDosen(${d.id})"><i class="fa-solid fa-pen"></i></button>
+          <button class="btn btn-outline-danger btn-icon btn-sm" title="Hapus" onclick="hapusDosen(${d.id})"><i class="fa-solid fa-user-slash"></i></button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+async function hapusDosen(id) {
+  konfirmasi('Yakin ingin menghapus dosen ini?', async () => {
+    const res = await AdminAPI.hapusDosen(id);
+    if (res && res.ok) { showToast('success','Dihapus','Dosen berhasil dihapus'); loadDosen(); }
+    else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+  });
+}
+
+async function tambahDosen() {
+  const nip    = document.getElementById('d-nip').value.trim();
+  const nama   = document.getElementById('d-nama').value.trim();
+  const email  = document.getElementById('d-email').value.trim();
+  const hp     = document.getElementById('d-hp').value.trim();
+  const jabatan= document.getElementById('d-jabatan').value;
+  if (!nip||!nama||!email) { showToast('warning','Validasi','Lengkapi field wajib'); return; }
+  const res = await AdminAPI.tambahDosen({
+    username: nip, email, password: nip, nip, nama,
+    program_studi_id: 1, fakultas: 'Fakultas Teknik',
+    jabatan, no_hp: hp,
+  });
+  if (res && res.ok) {
+    hideModal('modal-tambah-dosen');
+    showToast('success','Berhasil','Dosen baru berhasil ditambahkan');
+    loadDosen();
+  } else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+}
+
+const debS = debounce(() => loadDosen(), 300);
+document.getElementById('search-dosen').addEventListener('input', debS);
+document.getElementById('filter-prodi-d').addEventListener('change', loadDosen);
+function resetFilterDosen() {
+  document.getElementById('search-dosen').value = '';
+  document.getElementById('filter-prodi-d').value = '';
+  loadDosen();
+}
+loadDosen();
+
+
+// ── EDIT DOSEN ──────────────────────────────────────────────────
+async function editDosen(id) {
+  const res = await AdminAPI.dosen({ per_page: 100 });
+  if (!res || !res.ok) return;
+  const list = res.data.data?.data || res.data.data || [];
+  const d = list.find(x => x.id == id);
+  if (!d) { showToast('danger','Error','Data tidak ditemukan'); return; }
+  document.getElementById('edit-dosen-id').value      = d.id;
+  document.getElementById('edit-dosen-nama').value    = d.nama || '';
+  document.getElementById('edit-dosen-jabatan').value = d.jabatan || 'Tenaga Pengajar';
+  document.getElementById('edit-dosen-gol').value     = d.golongan || '';
+  document.getElementById('edit-dosen-email').value   = d.email_akademik || '';
+  document.getElementById('edit-dosen-hp').value      = d.no_hp || '';
+  document.getElementById('edit-dosen-aktif').value   = d.is_active ? '1' : '0';
+  showModal('modal-edit-dosen');
+}
+
+async function simpanEditDosen() {
+  const id = document.getElementById('edit-dosen-id').value;
+  const data = {
+    nama:            document.getElementById('edit-dosen-nama').value.trim(),
+    jabatan:         document.getElementById('edit-dosen-jabatan').value,
+    golongan:        document.getElementById('edit-dosen-gol').value.trim(),
+    email_akademik:  document.getElementById('edit-dosen-email').value.trim(),
+    no_hp:           document.getElementById('edit-dosen-hp').value.trim(),
+    is_active:       document.getElementById('edit-dosen-aktif').value === '1',
+  };
+  if (!data.nama) { showToast('warning','Validasi','Nama wajib diisi'); return; }
+  const res = await AdminAPI.updateDosen(id, data);
+  if (res && res.ok) {
+    hideModal('modal-edit-dosen');
+    showToast('success','Berhasil','Data dosen berhasil diperbarui');
+    loadDosen();
+  } else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+}
+</script>
+
+
+<!-- Modal Edit Dosen -->
+<div class="modal-backdrop" id="modal-edit-dosen">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-user-pen" style="color:var(--navy);margin-right:8px"></i>Edit Data Dosen</h3>
+      <button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-dosen-id">
+      <div class="form-grid form-grid-2">
+        <div class="form-group"><label class="form-label">Nama Lengkap</label><input type="text" class="form-control" id="edit-dosen-nama"></div>
+        <div class="form-group"><label class="form-label">Jabatan Fungsional</label>
+          <select class="form-control" id="edit-dosen-jabatan">
+            <option value="Tenaga Pengajar">Tenaga Pengajar</option>
+            <option value="Asisten Ahli">Asisten Ahli</option>
+            <option value="Lektor">Lektor</option>
+            <option value="Lektor Kepala">Lektor Kepala</option>
+            <option value="Guru Besar">Guru Besar</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Golongan</label><input type="text" class="form-control" id="edit-dosen-gol" placeholder="Contoh: III/c"></div>
+        <div class="form-group"><label class="form-label">Email Akademik</label><input type="email" class="form-control" id="edit-dosen-email"></div>
+        <div class="form-group"><label class="form-label">No. HP</label><input type="tel" class="form-control" id="edit-dosen-hp"></div>
+        <div class="form-group"><label class="form-label">Status</label>
+          <select class="form-control" id="edit-dosen-aktif">
+            <option value="1">Aktif</option>
+            <option value="0">Nonaktif</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal-close>Batal</button>
+      <button class="btn btn-primary btn-sm" onclick="simpanEditDosen()"><i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

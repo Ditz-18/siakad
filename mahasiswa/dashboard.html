@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — SIAKAD STAI DILWA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="icon" type="image/png" href="../assets/img/icon.png">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <link rel="stylesheet" href="../assets/css/print.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="stylesheet" href="../assets/css/mobile-table.css">
+  <!-- Di <head> -->
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#1B3A6B">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SIAKAD">
+<link rel="apple-touch-icon" href="../assets/img/icon.png">
+  <style>
+    /* ── Banner UTS/UAS ── */
+    .uts-banner {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+      border-radius: var(--border-radius-lg);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .uts-banner::before {
+      content: '';
+      position: absolute;
+      right: -40px; top: -40px;
+      width: 180px; height: 180px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.05);
+    }
+    .uts-banner::after {
+      content: '';
+      position: absolute;
+      right: 40px; bottom: -60px;
+      width: 120px; height: 120px;
+      border-radius: 50%;
+      background: rgba(212,160,23,0.12);
+    }
+    .uts-banner-left { position: relative; z-index: 1; }
+    .uts-banner-left .eyebrow {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gold-light);
+      margin-bottom: 6px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .uts-banner-left h3 {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      color: #fff;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .uts-banner-left p { font-size: 0.8125rem; color: rgba(255,255,255,0.7); }
+    .uts-badge {
+      background: var(--gold);
+      color: var(--navy-dark);
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 6px 14px;
+      border-radius: 20px;
+      white-space: nowrap;
+      position: relative; z-index: 1;
+      flex-shrink: 0;
+    }
+
+    /* ── Welcome card ── */
+    .welcome-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius-lg);
+      padding: 24px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .welcome-avatar {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: var(--navy);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      color: white;
+      flex-shrink: 0;
+      border: 3px solid rgba(27,58,107,0.15);
+    }
+    .welcome-text h2 {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 3px;
+    }
+    .welcome-text p { font-size: 0.875rem; color: var(--text-secondary); }
+    .welcome-right {
+      margin-left: auto;
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .welcome-right .semester-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(27,58,107,0.08);
+      color: var(--navy);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    /* ── Progress studi ── */
+    .progress-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius-lg);
+      padding: 20px 24px;
+    }
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+    }
+    .progress-info h4 {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .progress-info span {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--navy);
+    }
+    .progress-sub {
+      font-size: 0.775rem;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+
+    /* ── Jadwal hari ini ── */
+    .jadwal-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .jadwal-item:last-child { border-bottom: none; }
+    .jadwal-time {
+      text-align: center;
+      flex-shrink: 0;
+      width: 60px;
+    }
+    .jadwal-time .jam {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      line-height: 1.3;
+    }
+    .jadwal-color {
+      width: 4px;
+      border-radius: 2px;
+      align-self: stretch;
+      min-height: 40px;
+      flex-shrink: 0;
+    }
+    .jadwal-info { flex: 1; min-width: 0; }
+    .jadwal-info h4 {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .jadwal-info p {
+      font-size: 0.775rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .jadwal-ruang {
+      font-size: 0.775rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: var(--bg-tertiary);
+      padding: 3px 9px;
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
+
+    /* ── Pengumuman ── */
+    .pengumuman-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 13px 0;
+      border-bottom: 1px solid var(--border-light);
+      cursor: pointer;
+      transition: opacity var(--transition-fast);
+    }
+    .pengumuman-item:hover { opacity: 0.8; }
+    .pengumuman-item:last-child { border-bottom: none; }
+    .pengumuman-icon {
+      width: 38px; height: 38px;
+      border-radius: var(--border-radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+    .pengumuman-content { flex: 1; min-width: 0; }
+    .pengumuman-title {
+      font-size: 0.8375rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .pengumuman-meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+    .dot-new {
+      width: 7px; height: 7px;
+      background: var(--danger);
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: inline-block;
+    }
+
+    /* ── Quick links ── */
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    /* ── Notif dropdown khusus ── */
+    .notif-item-icon.navy { background: rgba(27,58,107,0.1); color: var(--navy); }
+    .notif-item-icon.warning { background: var(--warning-bg); color: var(--warning); }
+    .notif-item-icon.success { background: var(--success-bg); color: var(--success); }
+    .notif-item-icon.info { background: var(--info-bg); color: var(--info); }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- ══ SIDEBAR ══ -->
+  <div id="mahasiswa-sidebar-placeholder"></div>
+
+  <!-- ══ MAIN CONTENT ══ -->
+  <div class="main-content">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title">Dashboard</span>
+      <div class="topbar-actions">
+        <button class="topbar-btn" data-theme-toggle title="Ganti Tema"><i class="fa-solid fa-moon"></i></button>
+        <button class="topbar-btn" data-notif-toggle title="Notifikasi">
+          <i class="fa-solid fa-bell"></i>
+          <span class="topbar-badge"></span>
+        </button>
+        <a href="profil.html" class="topbar-btn" title="Profil"><i class="fa-solid fa-user-circle"></i></a>
+      </div>
+    </header>
+
+    <!-- Notif Dropdown -->
+    <div class="notif-dropdown" id="notif-dropdown">
+      <div class="notif-header">
+        <h4>Notifikasi</h4>
+        <span class="badge badge-danger" style="font-size:0.65rem">4 Baru</span>
+      </div>
+      <div id="notif-list"></div>
+    </div>
+
+    <!-- Page Content -->
+    <main class="page-content">
+
+      <!-- UTS Banner -->
+      <div class="uts-banner">
+        <div class="uts-banner-left">
+          <div class="eyebrow"><i class="fa-solid fa-triangle-exclamation"></i> Pengingat Akademik</div>
+          <h3>UTS Dimulai 4 November 2024</h3>
+          <p>Persiapkan diri Anda. Pastikan kehadiran minimal 75% untuk setiap mata kuliah.</p>
+        </div>
+        <div class="uts-badge"><i class="fa-solid fa-calendar-check"></i> 7 Hari Lagi</div>
+      </div>
+
+      <!-- Welcome + Progress -->
+      <div class="grid grid-2 mb-24" style="align-items:start">
+        <!-- Welcome card -->
+        <div class="welcome-card">
+          <div class="welcome-avatar"><i class="fa-solid fa-user"></i></div>
+          <div class="welcome-text">
+            <h2>Selamat Datang, Rizki!</h2>
+            <p id="welcome-prodi">Teknik Informatika &middot; Semester 7</p>
+          </div>
+          <div class="welcome-right">
+            <div class="semester-badge">
+              <i class="fa-solid fa-calendar"></i>
+              <span id="welcome-semester">Ganjil 2024/2025</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progres studi -->
+        <div class="progress-card">
+          <div class="progress-info">
+            <h4><i class="fa-solid fa-chart-line" style="color:var(--navy);margin-right:6px"></i>Progres Studi</h4>
+            <span id="progress-persen">75%</span>
+          </div>
+          <div class="progress">
+            <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+          </div>
+          <div class="progress-sub" id="progress-sub">108 SKS lulus dari 144 SKS wajib kelulusan</div>
+        </div>
+      </div>
+
+      <!-- Stat cards -->
+      <div class="grid grid-4 mb-24" id="stat-cards">
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div>
+              <div class="stat-card-value" id="stat-ipk">—</div>
+              <div class="stat-card-label">IPK Kumulatif</div>
+            </div>
+            <div class="stat-card-icon stat-icon-navy"><i class="fa-solid fa-star"></i></div>
+          </div>
+          <div class="stat-card-sub">Dari skala 4.00</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div>
+              <div class="stat-card-value" id="stat-ips">—</div>
+              <div class="stat-card-label">IPS Semester Ini</div>
+            </div>
+            <div class="stat-card-icon stat-icon-gold"><i class="fa-solid fa-medal"></i></div>
+          </div>
+          <div class="stat-card-sub">Semester 6 terakhir</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div>
+              <div class="stat-card-value" id="stat-sks-lulus">—</div>
+              <div class="stat-card-label">SKS Lulus</div>
+            </div>
+            <div class="stat-card-icon stat-icon-success"><i class="fa-solid fa-circle-check"></i></div>
+          </div>
+          <div class="stat-card-sub">Dari 144 SKS wajib</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div>
+              <div class="stat-card-value" id="stat-sks-ambil">—</div>
+              <div class="stat-card-label">SKS Diambil</div>
+            </div>
+            <div class="stat-card-icon stat-icon-info"><i class="fa-solid fa-book-open"></i></div>
+          </div>
+          <div class="stat-card-sub">Semester ini</div>
+        </div>
+      </div>
+
+      <!-- Row: Jadwal + Pengumuman -->
+      <div class="grid grid-2 mb-24">
+
+        <!-- Jadwal Hari Ini -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-clock" style="color:var(--navy);margin-right:8px"></i>Jadwal Hari Ini</h3>
+            <a href="jadwal.html" class="btn btn-ghost btn-sm"><i class="fa-solid fa-arrow-right"></i></a>
+          </div>
+          <div class="card-body" id="jadwal-container" style="padding-top:8px;padding-bottom:8px"></div>
+        </div>
+
+        <!-- Pengumuman Terbaru -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-bullhorn" style="color:var(--navy);margin-right:8px"></i>Pengumuman Terbaru</h3>
+            <a href="pengumuman.html" class="btn btn-ghost btn-sm"><i class="fa-solid fa-arrow-right"></i></a>
+          </div>
+          <div class="card-body" id="pengumuman-container" style="padding-top:8px;padding-bottom:8px"></div>
+        </div>
+
+      </div>
+
+      <!-- Quick Links -->
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fa-solid fa-bolt" style="color:var(--gold-dark);margin-right:8px"></i>Akses Cepat</h3>
+        </div>
+        <div class="card-body">
+          <div class="quick-grid">
+            <a class="quick-link-card" href="krs.html">
+              <div class="quick-link-icon" style="background:rgba(27,58,107,0.1);color:var(--navy)"><i class="fa-solid fa-file-pen"></i></div>
+              <span class="quick-link-label">KRS</span>
+            </a>
+            <a class="quick-link-card" href="khs.html">
+              <div class="quick-link-icon" style="background:rgba(212,160,23,0.1);color:var(--gold-dark)"><i class="fa-solid fa-chart-bar"></i></div>
+              <span class="quick-link-label">KHS</span>
+            </a>
+            <a class="quick-link-card" href="ujian.html">
+              <div class="quick-link-icon" style="background:var(--danger-bg);color:var(--danger)"><i class="fa-solid fa-pencil"></i></div>
+              <span class="quick-link-label">Ujian Online</span>
+            </a>
+            <a class="quick-link-card" href="absensi.html">
+              <div class="quick-link-icon" style="background:var(--success-bg);color:var(--success)"><i class="fa-solid fa-clipboard-check"></i></div>
+              <span class="quick-link-label">Absensi</span>
+            </a>
+            <a class="quick-link-card" href="ktm.html">
+              <div class="quick-link-icon" style="background:var(--info-bg);color:var(--info)"><i class="fa-solid fa-id-card"></i></div>
+              <span class="quick-link-label">KTM</span>
+            </a>
+            <a class="quick-link-card" href="pembayaran.html">
+              <div class="quick-link-icon" style="background:rgba(108,59,154,0.1);color:#6C3B9A"><i class="fa-solid fa-credit-card"></i></div>
+              <span class="quick-link-label">Pembayaran</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div><!-- /main-content -->
+</div><!-- /app-layout -->
+
+<div class="more-menu-overlay" id="more-menu-overlay"></div>
+<div class="more-menu-sheet" id="more-menu-sheet">
+  <div class="more-menu-handle"></div>
+  <div class="more-menu-title">Menu Lainnya</div>
+  <div class="more-menu-grid">
+    <a class="more-menu-item" href="khs.html"><i class="fa-solid fa-chart-bar"></i>KHS</a>
+    <a class="more-menu-item" href="transkrip.html"><i class="fa-solid fa-scroll"></i>Transkrip</a>
+    <a class="more-menu-item" href="jadwal.html"><i class="fa-solid fa-calendar-days"></i>Jadwal</a>
+    <a class="more-menu-item" href="pembayaran.html"><i class="fa-solid fa-credit-card"></i>Pembayaran</a>
+    <a class="more-menu-item" href="dokumen.html"><i class="fa-solid fa-folder-open"></i>Dokumen</a>
+    <a class="more-menu-item" href="ktm.html"><i class="fa-solid fa-id-card"></i>KTM</a>
+    <a class="more-menu-item" href="pengumuman.html"><i class="fa-solid fa-bullhorn"></i>Pengumuman</a>
+    <a class="more-menu-item" href="profil.html"><i class="fa-solid fa-user"></i>Profil</a>
+  </div>
+</div>
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <a class="bottom-nav-item active" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+    <a class="bottom-nav-item" href="krs.html"><i class="fa-solid fa-file-pen"></i><span>KRS</span></a>
+    <a class="bottom-nav-item" href="ujian.html"><i class="fa-solid fa-pencil"></i><span>Ujian</span></a>
+    <a class="bottom-nav-item" href="absensi.html"><i class="fa-solid fa-clipboard-check"></i><span>Absensi</span></a>
+    <button class="bottom-nav-more" id="btn-more-menu"><i class="fa-solid fa-plus"></i><span>Lainnya</span></button>
+  </div>
+</nav>
+
+<!-- Toast container -->
+<div class="toast-container"></div>
+
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/mahasiswa-integration.js"></script>
+<script src="../assets/js/mahasiswa-sidebar.js"></script>
+<script src="../assets/js/main.js"></script>
+
+<script>
+
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'mahasiswa') window.location.href = '../auth/login.html';
+
+async function loadDashboard() {
+  const res = await MahasiswaAPI.dashboard();
+  if (!res || !res.ok) { showToast('danger','Error','Gagal memuat dashboard'); return; }
+  const d = res.data.data;
+  const m = d.mahasiswa || {};
+
+  // Update sidebar & hero
+  const nameEl = document.querySelector('.sidebar-profile-info strong');
+  const subEl  = document.querySelector('.sidebar-profile-info small');
+  if (nameEl) nameEl.textContent = m.nama || _s.username || '';
+  if (subEl)  subEl.textContent  = m.nim || '';
+
+  // Update hero stats
+  const heroNama = document.getElementById('hero-nama') || document.querySelector('.hero-nama');
+  if (heroNama) heroNama.textContent = m.nama || '';
+  const heroProdi = document.getElementById('hero-prodi') || document.querySelector('.hero-prodi');
+  if (heroProdi) heroProdi.textContent = (m.program_studi?.nama || '') + ' · Semester ' + (m.semester || '');
+  const heroSem = document.getElementById('hero-semester');
+  if (heroSem && d.semester_aktif) heroSem.textContent = d.semester_aktif.nama || '';
+
+  // Update stat values
+  const statCards = document.querySelectorAll('.stat-card .stat-card-value');
+  if (statCards[0]) statCards[0].textContent = d.total_sks ?? '0';
+  if (statCards[1]) statCards[1].textContent = d.ipk ?? '0.00';
+
+  // Pembayaran status
+  const bayarEl = document.getElementById('status-pembayaran') || document.querySelector('[id*="pembayaran"]');
+  if (bayarEl && d.pembayaran) {
+    bayarEl.innerHTML = d.pembayaran.status === 'Lunas'
+      ? '<span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Lunas</span>'
+      : '<span class="badge badge-danger"><i class="fa-solid fa-triangle-exclamation"></i> Menunggak</span>';
+  }
+
+  // Pengumuman terbaru
+  const pengEl = document.getElementById('pengumuman-list');
+  if (pengEl && d.pengumuman?.length) {
+    pengEl.innerHTML = d.pengumuman.slice(0,3).map(p => `
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light)">
+        <div style="width:8px;height:8px;border-radius:50%;background:${p.penting?'var(--danger)':'var(--navy)'};margin-top:5px;flex-shrink:0"></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:0.8375rem;font-weight:600;color:var(--text-primary)">${escHTML(p.judul)}</div>
+          <div style="font-size:0.75rem;color:var(--text-muted)">${formatTanggal(p.created_at,'pendek')}</div>
+        </div>
+        ${p.penting ? '<span class="badge badge-warning" style="font-size:0.6rem">Penting</span>' : ''}
+      </div>`).join('');
+  }
+}
+
+loadDashboard();
+
+</script>
+</body>
+</html>

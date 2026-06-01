@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pengumuman — SIAKAD STAI DILWA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="icon" type="image/png" href="../assets/img/icon.png">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <link rel="stylesheet" href="../assets/css/print.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="stylesheet" href="../assets/css/mobile-table.css">
+  <!-- Di <head> -->
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#1B3A6B">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SIAKAD">
+<link rel="apple-touch-icon" href="../assets/img/icon.png">
+  <style>
+    .peng-card {
+      background: var(--bg-card); border: 1px solid var(--border-color);
+      border-radius: var(--border-radius-lg); padding: 18px 20px;
+      cursor: pointer; transition: all var(--transition-base);
+      display: flex; align-items: flex-start; gap: 14px;
+    }
+    .peng-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .peng-icon { width: 42px; height: 42px; border-radius: var(--border-radius-sm); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+    .peng-content { flex: 1; min-width: 0; }
+    .peng-title { font-size: 0.9375rem; font-weight: 700; color: var(--text-primary); margin-bottom: 5px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; line-height: 1.4; }
+    .peng-excerpt { font-size: 0.8125rem; color: var(--text-secondary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-overflow: hidden; overflow: hidden; margin-bottom: 8px; line-height: 1.5; }
+    .peng-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .dot-new-inline { width: 7px; height: 7px; background: var(--danger); border-radius: 50%; display: inline-block; flex-shrink: 0; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <div id="mahasiswa-sidebar-placeholder"></div>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title">Pengumuman</span>
+      <div class="topbar-actions">
+        <button class="topbar-btn" data-theme-toggle><i class="fa-solid fa-moon"></i></button>
+        <button class="topbar-btn" data-notif-toggle><i class="fa-solid fa-bell"></i><span class="topbar-badge"></span></button>
+      </div>
+    </header>
+
+    <main class="page-content">
+      <div class="page-header">
+        <h1>Pengumuman</h1>
+        <p>Informasi terbaru dari STAI DILWA</p>
+      </div>
+
+      <!-- Filter -->
+      <div class="filter-bar mb-20">
+        <button class="filter-btn active" data-filter="Semua" onclick="setFilter('Semua',this)">Semua</button>
+        <button class="filter-btn" data-filter="Akademik" onclick="setFilter('Akademik',this)"><i class="fa-solid fa-graduation-cap"></i> Akademik</button>
+        <button class="filter-btn" data-filter="Keuangan" onclick="setFilter('Keuangan',this)"><i class="fa-solid fa-money-bill"></i> Keuangan</button>
+        <button class="filter-btn" data-filter="Umum" onclick="setFilter('Umum',this)"><i class="fa-solid fa-bullhorn"></i> Umum</button>
+      </div>
+
+      <div id="peng-list" style="display:flex;flex-direction:column;gap:12px"></div>
+    </main>
+  </div>
+</div>
+
+<!-- Modal Detail -->
+<div class="modal-backdrop" id="modal-detail-peng">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3 id="modal-peng-judul" style="font-family:var(--font-display)">—</h3>
+      <button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px" id="modal-peng-meta"></div>
+      <p id="modal-peng-isi" style="color:var(--text-secondary);line-height:1.8;font-size:0.9375rem"></p>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost btn-sm" data-modal-close>Tutup</button></div>
+  </div>
+</div>
+
+<div class="more-menu-overlay" id="more-menu-overlay"></div>
+<div class="more-menu-sheet" id="more-menu-sheet">
+  <div class="more-menu-handle"></div>
+  <div class="more-menu-title">Menu Lainnya</div>
+  <div class="more-menu-grid">
+    <a class="more-menu-item" href="khs.html"><i class="fa-solid fa-chart-bar"></i>KHS</a>
+    <a class="more-menu-item" href="transkrip.html"><i class="fa-solid fa-scroll"></i>Transkrip</a>
+    <a class="more-menu-item" href="jadwal.html"><i class="fa-solid fa-calendar-days"></i>Jadwal</a>
+    <a class="more-menu-item" href="pembayaran.html"><i class="fa-solid fa-credit-card"></i>Pembayaran</a>
+    <a class="more-menu-item" href="dokumen.html"><i class="fa-solid fa-folder-open"></i>Dokumen</a>
+    <a class="more-menu-item" href="ktm.html"><i class="fa-solid fa-id-card"></i>KTM</a>
+    <a class="more-menu-item active" href="pengumuman.html"><i class="fa-solid fa-bullhorn"></i>Pengumuman</a>
+    <a class="more-menu-item" href="profil.html"><i class="fa-solid fa-user"></i>Profil</a>
+  </div>
+</div>
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+    <a class="bottom-nav-item" href="krs.html"><i class="fa-solid fa-file-pen"></i><span>KRS</span></a>
+    <a class="bottom-nav-item" href="ujian.html"><i class="fa-solid fa-pencil"></i><span>Ujian</span></a>
+    <a class="bottom-nav-item" href="absensi.html"><i class="fa-solid fa-clipboard-check"></i><span>Absensi</span></a>
+    <button class="bottom-nav-more active" id="btn-more-menu"><i class="fa-solid fa-plus"></i><span>Lainnya</span></button>
+  </div>
+</nav>
+<div class="toast-container"></div>
+
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/mahasiswa-integration.js"></script>
+<script src="../assets/js/mahasiswa-sidebar.js"></script>
+<script src="../assets/js/main.js"></script>
+
+<script>
+
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'mahasiswa') window.location.href = '../auth/login.html';
+
+const iconMap  = { Akademik:'fa-graduation-cap', Keuangan:'fa-money-bill', Umum:'fa-bullhorn' };
+const bgMap    = { Akademik:'var(--info-bg)', Keuangan:'var(--warning-bg)', Umum:'var(--bg-tertiary)' };
+const colorMap = { Akademik:'color:var(--info)', Keuangan:'color:var(--warning)', Umum:'color:var(--text-muted)' };
+const badgeMap = { Akademik:'badge-info', Keuangan:'badge-warning', Umum:'badge-muted' };
+
+let pengList = [];
+let currentFilter = 'Semua';
+
+async function loadPengumuman() {
+  const params = currentFilter !== 'Semua' ? currentFilter : null;
+  const res = await MahasiswaAPI.pengumuman(params);
+  if (!res || !res.ok) { showToast('danger','Error','Gagal memuat pengumuman'); return; }
+  pengList = res.data.data?.data || res.data.data || [];
+  renderList();
+}
+
+function setFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  loadPengumuman();
+}
+
+function renderList() {
+  const container = document.getElementById('peng-list');
+  if (!container) return;
+  if (!pengList.length) {
+    container.innerHTML = `<div class="empty-state"><h3>Tidak ada pengumuman</h3></div>`;
+    return;
+  }
+  container.innerHTML = pengList.map(p => `
+    <div class="peng-card" onclick="bukaDetail(${p.id})">
+      <div class="peng-icon" style="background:${bgMap[p.kategori]}">
+        <i class="fa-solid ${iconMap[p.kategori]||'fa-bullhorn'}" style="${colorMap[p.kategori]}"></i>
+      </div>
+      <div class="peng-content">
+        <div class="peng-title">
+          ${p.baru?'<span class="dot-new-inline"></span>':''}
+          ${escHTML(p.judul)}
+          ${p.penting?'<span class="badge badge-warning" style="font-size:0.62rem">Penting</span>':''}
+        </div>
+        <div class="peng-excerpt">${escHTML(p.isi)}</div>
+        <div class="peng-meta">
+          <span class="badge ${badgeMap[p.kategori]||'badge-muted'}" style="font-size:0.65rem">${p.kategori}</span>
+          <span style="font-size:0.775rem;color:var(--text-muted)">${formatTanggal(p.created_at,'pendek')}</span>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+async function bukaDetail(id) {
+  const res = await MahasiswaAPI.detailPengumuman(id);
+  if (!res || !res.ok) return;
+  const p = res.data.data;
+  document.getElementById('modal-peng-judul').textContent = p.judul;
+  document.getElementById('modal-peng-isi').textContent   = p.isi;
+  document.getElementById('modal-peng-meta').innerHTML    = `
+    <span class="badge ${badgeMap[p.kategori]||'badge-muted'}">${p.kategori}</span>
+    ${p.penting?'<span class="badge badge-warning">Penting</span>':''}
+    <span style="font-size:0.8rem;color:var(--text-muted)">${formatTanggal(p.created_at,'panjang')}</span>`;
+  showModal('modal-detail-peng');
+  // Update lokal baru=false
+  const local = pengList.find(x=>x.id===id);
+  if (local) local.baru = false;
+}
+
+loadPengumuman();
+
+</script>
+</body>
+</html>

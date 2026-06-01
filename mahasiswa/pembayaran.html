@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Pembayaran UKT — SIAKAD STAI DILWA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="icon" type="image/png" href="../assets/img/icon.png">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="stylesheet" href="../assets/css/mobile-table.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <link rel="stylesheet" href="../assets/css/print.css">
+  <!-- Di <head> -->
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#1A5C2A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SIAKAD">
+<link rel="apple-touch-icon" href="../assets/img/icon.png">
+  <style>
+    .tagihan-card {
+      background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy-light) 100%);
+      border-radius: var(--border-radius-xl);
+      padding: 28px;
+      color: white;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .tagihan-card::before {
+      content: '';
+      position: absolute;
+      right: -60px; top: -60px;
+      width: 220px; height: 220px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.05);
+    }
+    .tagihan-card::after {
+      content: '';
+      position: absolute;
+      right: 60px; bottom: -80px;
+      width: 160px; height: 160px;
+      border-radius: 50%;
+      background: rgba(200,146,42,0.1);
+    }
+    .tagihan-label { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 6px; }
+    .tagihan-nominal { font-family: var(--font-display); font-size: 2rem; font-weight: 700; color: #fff; margin-bottom: 8px; position: relative; z-index: 1; }
+    .tagihan-semester { font-size: 0.875rem; color: rgba(255,255,255,0.7); margin-bottom: 16px; }
+    .tagihan-bottom { display: flex; align-items: center; justify-content: space-between; flex-wrap: gap; position: relative; z-index: 1; flex-wrap: wrap; gap: 12px; }
+    .tagihan-due { font-size: 0.8125rem; color: rgba(255,255,255,0.6); display: flex; align-items: center; gap: 6px; }
+    .badge-lunas { background: rgba(26,122,66,0.25); color: #7AE5A0; border: 1px solid rgba(26,122,66,0.3); padding: 5px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; display: flex; align-items: center; gap: 5px; }
+    .badge-menunggak { background: rgba(190,51,40,0.25); color: #FF9999; border: 1px solid rgba(190,51,40,0.3); padding: 5px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; display: flex; align-items: center; gap: 5px; }
+
+    /* Kwitansi */
+    .kwitansi {
+      border: 2px dashed var(--border-color);
+      border-radius: var(--border-radius-lg);
+      padding: 20px;
+      background: var(--bg-secondary);
+    }
+    .kwitansi-header { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px dashed var(--border-color); }
+    .kwitansi-logo { width: 40px; height: 40px; background: var(--navy); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1rem; }
+    .kwitansi-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border-light); font-size: 0.875rem; }
+    .kwitansi-row:last-child { border-bottom: none; }
+    .kwitansi-row label { color: var(--text-muted); }
+    .kwitansi-row strong { color: var(--text-primary); text-align: right; }
+    .kwitansi-total { display: flex; justify-content: space-between; align-items: center; padding: 12px 0 0; margin-top: 8px; border-top: 2px solid var(--border-color); }
+    .kwitansi-total label { font-weight: 700; color: var(--text-primary); }
+    .kwitansi-total strong { font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; color: var(--navy); }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <div id="mahasiswa-sidebar-placeholder"></div>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title">Pembayaran UKT</span>
+      <div class="topbar-actions">
+        <button class="topbar-btn" data-theme-toggle><i class="fa-solid fa-moon"></i></button>
+        <button class="topbar-btn" data-notif-toggle><i class="fa-solid fa-bell"></i><span class="topbar-badge"></span></button>
+      </div>
+    </header>
+
+    <main class="page-content">
+      <div class="page-header">
+        <div class="page-header-top">
+          <div><h1>Pembayaran UKT</h1><p>Uang Kuliah Tunggal — STAI DILWA</p></div>
+          <div class="flex gap-8">
+            <button class="btn btn-outline btn-sm" onclick="eksporRiwayatCSV()"><i class="fa-solid fa-file-csv"></i> CSV</button>
+            <button class="btn btn-primary btn-sm" onclick="eksporRiwayatPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tagihan card -->
+      <div class="tagihan-card">
+        <div class="tagihan-label">Tagihan Semester Aktif</div>
+        <div class="tagihan-nominal" id="tagihan-nominal">—</div>
+        <div class="tagihan-semester" id="tagihan-semester">—</div>
+        <div class="tagihan-bottom">
+          <div class="tagihan-due" id="tagihan-due"><i class="fa-solid fa-calendar-xmark"></i> —</div>
+          <span id="tagihan-status-badge"></span>
+          <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.2)" onclick="bukaBukti()">
+            <i class="fa-solid fa-receipt"></i> Lihat Bukti
+          </button>
+        </div>
+      </div>
+
+      <!-- Riwayat pembayaran -->
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fa-solid fa-clock-rotate-left" style="color:var(--navy);margin-right:8px"></i>Riwayat Pembayaran</h3>
+        </div>
+                <div class="table-scroll-hint"><i class="fa-solid fa-arrows-left-right"></i> Geser untuk lihat selengkapnya</div>
+        <div class="table-wrapper-outer">
+  <div class="table-wrapper">
+            <table class="table">
+              <thead>
+                <tr><th>No. Invoice</th><th>Semester</th><th>Nominal</th><th>Tanggal Bayar</th><th>Status</th><th>Aksi</th></tr>
+              </thead>
+              <tbody id="tbody-riwayat"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Modal Bukti Pembayaran -->
+<div class="modal-backdrop" id="modal-bukti">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-receipt" style="color:var(--navy);margin-right:8px"></i>Bukti Pembayaran</h3>
+      <button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="kwitansi" id="kwitansi-content"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal-close>Tutup</button>
+      <button class="btn btn-primary btn-sm" onclick="unduhBukti()"><i class="fa-solid fa-download"></i> Unduh Bukti</button>
+    </div>
+  </div>
+</div>
+
+<div class="more-menu-overlay" id="more-menu-overlay"></div>
+<div class="more-menu-sheet" id="more-menu-sheet">
+  <div class="more-menu-handle"></div>
+  <div class="more-menu-title">Menu Lainnya</div>
+  <div class="more-menu-grid">
+    <a class="more-menu-item" href="khs.html"><i class="fa-solid fa-chart-bar"></i>KHS</a>
+    <a class="more-menu-item" href="transkrip.html"><i class="fa-solid fa-scroll"></i>Transkrip</a>
+    <a class="more-menu-item" href="jadwal.html"><i class="fa-solid fa-calendar-days"></i>Jadwal</a>
+    <a class="more-menu-item active" href="pembayaran.html"><i class="fa-solid fa-credit-card"></i>Pembayaran</a>
+    <a class="more-menu-item" href="dokumen.html"><i class="fa-solid fa-folder-open"></i>Dokumen</a>
+    <a class="more-menu-item" href="ktm.html"><i class="fa-solid fa-id-card"></i>KTM</a>
+    <a class="more-menu-item" href="pengumuman.html"><i class="fa-solid fa-bullhorn"></i>Pengumuman</a>
+    <a class="more-menu-item" href="profil.html"><i class="fa-solid fa-user"></i>Profil</a>
+  </div>
+</div>
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+    <a class="bottom-nav-item" href="krs.html"><i class="fa-solid fa-file-pen"></i><span>KRS</span></a>
+    <a class="bottom-nav-item" href="ujian.html"><i class="fa-solid fa-pencil"></i><span>Ujian</span></a>
+    <a class="bottom-nav-item" href="absensi.html"><i class="fa-solid fa-clipboard-check"></i><span>Absensi</span></a>
+    <button class="bottom-nav-more active" id="btn-more-menu"><i class="fa-solid fa-plus"></i><span>Lainnya</span></button>
+  </div>
+</nav>
+<div class="toast-container"></div>
+
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/mahasiswa-integration.js"></script>
+<script src="../assets/js/mahasiswa-sidebar.js"></script>
+<script src="../assets/js/main.js"></script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
+</script>
+
+<script>
+
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'mahasiswa') window.location.href = '../auth/login.html';
+
+let pembayaranList = [];
+
+async function loadPembayaran() {
+  const res = await MahasiswaAPI.pembayaran();
+  if (!res || !res.ok) { showToast('danger','Error','Gagal memuat data pembayaran'); return; }
+  pembayaranList = res.data.data || [];
+  renderPembayaran(pembayaranList);
+  updateStats(pembayaranList);
+}
+
+function updateStats(list) {
+  const aktif = list.find(p => p.semester?.status === 'Aktif');
+  if (aktif) {
+    const statusEl = document.getElementById('status-bayar') || document.querySelector('[id*="status"]');
+    if (statusEl) statusEl.innerHTML = aktif.status === 'Lunas'
+      ? '<span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Lunas</span>'
+      : '<span class="badge badge-danger"><i class="fa-solid fa-triangle-exclamation"></i> Menunggak</span>';
+    const nominalEl = document.getElementById('nominal-bayar') || document.querySelector('[id*="nominal"]');
+    if (nominalEl) nominalEl.textContent = formatRupiah(aktif.nominal);
+  }
+}
+
+function renderPembayaran(list) {
+  const tbody = document.getElementById('tbody-pembayaran') || document.querySelector('tbody');
+  if (!tbody) return;
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="99"><div class="empty-state"><h3 class="empty-state-title">Belum ada data pembayaran</h3></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(p => `
+    <tr>
+      <td>${escHTML(p.semester?.nama || '—')}</td>
+      <td><strong>${formatRupiah(p.nominal)}</strong></td>
+      <td><span class="badge ${p.status==='Lunas'?'badge-success':'badge-danger'}">${p.status}</span></td>
+      <td>${p.tanggal_bayar ? formatTanggal(p.tanggal_bayar,'pendek') : '—'}</td>
+      <td>${p.no_referensi || '—'}</td>
+      <td>
+        ${p.status === 'Lunas'
+          ? `<button class="btn btn-outline btn-sm" onclick="showToast('info','Kwitansi','Fitur unduh kwitansi segera tersedia')"><i class="fa-solid fa-download"></i> Kwitansi</button>`
+          : `<button class="btn btn-primary btn-sm" data-modal-target="modal-bayar" onclick="prepBayar(${p.id})"><i class="fa-solid fa-credit-card"></i> Bayar</button>`}
+      </td>
+    </tr>`).join('');
+}
+
+let bayarId = null;
+function prepBayar(id) {
+  bayarId = id;
+  showModal('modal-bayar');
+}
+
+async function submitBayar() {
+  const nominal  = document.getElementById('input-nominal')?.value;
+  const noRef    = document.getElementById('input-referensi')?.value.trim();
+  if (!nominal || !noRef) { showToast('warning','Validasi','Lengkapi semua field'); return; }
+  const res = await MahasiswaAPI.bayar(parseInt(nominal), noRef);
+  if (res && res.ok) {
+    hideModal('modal-bayar');
+    showToast('success','Terkirim','Bukti pembayaran berhasil dikirim. Menunggu konfirmasi admin.');
+    loadPembayaran();
+  } else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+}
+
+loadPembayaran();
+
+</script>
+</body>
+</html>

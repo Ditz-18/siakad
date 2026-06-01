@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mata Kuliah — SIAKAD Ditz University</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="stylesheet" href="../assets/css/mobile-table.css">
+</head>
+<body>
+<div class="app-layout">
+  <div id="admin-sidebar-placeholder"></div>
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title">Mata Kuliah</span>
+      <div class="topbar-actions">
+        <button class="topbar-btn" data-theme-toggle><i class="fa-solid fa-moon"></i></button>
+        <button class="topbar-btn" data-notif-toggle><i class="fa-solid fa-bell"></i><span class="topbar-badge"></span></button>
+      </div>
+    </header>
+    <main class="page-content">
+      <div class="page-header">
+        <div class="page-header-top">
+          <div><h1>Mata Kuliah</h1><p>Kelola kurikulum dan kelas per mata kuliah</p></div>
+          <button class="btn btn-primary" data-modal-target="modal-tambah-mk"><i class="fa-solid fa-plus"></i> Tambah MK</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body" style="padding-bottom:0">
+          <div class="filter-bar">
+            <div class="input-group" style="max-width:260px">
+              <i class="input-icon fa-solid fa-magnifying-glass"></i>
+              <input type="text" class="form-control" id="search-mk" placeholder="Cari kode atau nama MK...">
+            </div>
+            <select class="form-control" id="filter-mk-prodi" style="width:auto">
+              <option value="">Semua Prodi</option>
+              <option>Teknik Informatika</option><option>Sistem Informasi</option>
+            </select>
+            <button class="btn btn-ghost btn-sm" onclick="resetFilterMK()"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead><tr><th>Kode MK</th><th>Nama Mata Kuliah</th><th style="text-align:center">SKS</th><th>Program Studi</th><th style="text-align:center">Sem. Anjuran</th><th>Status</th><th>Aksi</th></tr></thead>
+            <tbody id="tbody-mk"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Modal Tambah MK -->
+<div class="modal-backdrop" id="modal-tambah-mk">
+  <div class="modal">
+    <div class="modal-header"><h3>Tambah Mata Kuliah</h3><button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Kode MK <span class="required">*</span></label><input type="text" class="form-control" id="mk-kode" placeholder="Contoh: IF701"></div>
+      <div class="form-group"><label class="form-label">Nama Mata Kuliah <span class="required">*</span></label><input type="text" class="form-control" id="mk-nama"></div>
+      <div class="form-grid form-grid-2">
+        <div class="form-group"><label class="form-label">SKS</label>
+          <select class="form-control" id="mk-sks"><option>1</option><option>2</option><option selected>3</option><option>4</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">Semester Anjuran</label>
+          <select class="form-control" id="mk-sem">${[1,2,3,4,5,6,7,8].map(n=>`<option>${n}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div class="form-group mb-0"><label class="form-label">Program Studi</label>
+        <select class="form-control" id="mk-prodi"><option>Teknik Informatika</option><option>Sistem Informasi</option><option>Manajemen Informatika</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal-close>Batal</button>
+      <button class="btn btn-primary btn-sm" onclick="tambahMK()"><i class="fa-solid fa-save"></i> Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Kelola Kelas -->
+<div class="modal-backdrop" id="modal-kelas-mk">
+  <div class="modal modal-xl">
+    <div class="modal-header"><h3 id="modal-kelas-judul">Kelas MK</h3><button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <div class="table-wrapper mb-16">
+        <table class="table"><thead><tr><th>Kode Kelas</th><th>Dosen Pengampu</th><th>Jadwal</th><th>Ruangan</th><th style="text-align:center">Kuota</th><th style="text-align:center">Terisi</th><th>Aksi</th></tr></thead>
+        <tbody id="modal-kelas-tbody"></tbody></table>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="showToast('info','Tambah Kelas','Form tambah kelas akan muncul')"><i class="fa-solid fa-plus"></i> Tambah Kelas Baru</button>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost btn-sm" data-modal-close>Tutup</button></div>
+  </div>
+</div>
+
+<nav class="bottom-nav"><div class="bottom-nav-inner">
+  <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+  <a class="bottom-nav-item" href="data-mahasiswa.html"><i class="fa-solid fa-user-graduate"></i><span>Mahasiswa</span></a>
+  <a class="bottom-nav-item" href="surat.html"><i class="fa-solid fa-envelope"></i><span>Surat</span></a>
+  <a class="bottom-nav-item" href="laporan.html"><i class="fa-solid fa-chart-pie"></i><span>Laporan</span></a>
+  <a class="bottom-nav-item" href="semester.html"><i class="fa-solid fa-calendar"></i><span>Semester</span></a>
+</div></nav>
+<div class="toast-container"></div>
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/admin-integration.js"></script>
+
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/admin-sidebar.js"></script>
+<script>
+
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'admin') window.location.href = '../auth/login.html';
+
+let mkList = [];
+
+async function loadMataKuliah() {
+  const q     = document.getElementById('search-mk').value;
+  const prodi = document.getElementById('filter-mk-prodi').value;
+  const params = { per_page: 50 };
+  if (q)     params.search = q;
+  if (prodi) params.program_studi_id = prodi;
+  const res = await AdminAPI.mataKuliah(params);
+  if (!res || !res.ok) { showToast('danger','Error','Gagal memuat mata kuliah'); return; }
+  mkList = res.data.data?.data || res.data.data || [];
+  renderMK(mkList);
+}
+
+function renderMK(list) {
+  if (list.length === 0) {
+    document.getElementById('tbody-mk').innerHTML = `<tr><td colspan="99"><div class="empty-state"><h3 class="empty-state-title">Tidak ada mata kuliah</h3></div></td></tr>`;
+    return;
+  }
+  document.getElementById('tbody-mk').innerHTML = list.map(mk => `
+    <tr>
+      <td><span class="font-mono" style="font-size:0.85rem;font-weight:700">${mk.kode}</span></td>
+      <td><strong>${escHTML(mk.nama)}</strong></td>
+      <td style="text-align:center"><strong>${mk.sks} SKS</strong></td>
+      <td style="font-size:0.8375rem">${escHTML(mk.program_studi?.nama || '—')}</td>
+      <td style="text-align:center">Semester ${mk.semester_anjuran}</td>
+      <td><span class="badge badge-success">${mk.status}</span></td>
+      <td>
+        <div class="table-actions">
+          <button class="btn btn-outline btn-sm" onclick="bukaKelasMK('${mk.kode}','${escHTML(mk.nama)}')"><i class="fa-solid fa-chalkboard"></i> Kelas</button>
+          <button class="btn btn-ghost btn-icon btn-sm" title="Edit" onclick="editMK(${mk.id})"><i class="fa-solid fa-pen"></i></button>
+          <button class="btn btn-outline-danger btn-icon btn-sm" title="Hapus" onclick="hapusMK(${mk.id})"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function bukaKelasMK(kode, nama) {
+  document.getElementById('modal-kelas-judul').textContent = `Kelas — ${nama} (${kode})`;
+  document.getElementById('modal-kelas-tbody').innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted)">Data kelas tersedia di semester aktif</td></tr>`;
+  showModal('modal-kelas-mk');
+}
+
+async function hapusMK(id) {
+  konfirmasi('Yakin ingin menghapus mata kuliah ini?', async () => {
+    const res = await AdminAPI.hapusMataKuliah(id);
+    if (res && res.ok) { showToast('success','Dihapus','Mata kuliah berhasil dihapus'); loadMataKuliah(); }
+    else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+  });
+}
+
+async function tambahMK() {
+  const kode = document.getElementById('mk-kode').value.trim();
+  const nama = document.getElementById('mk-nama').value.trim();
+  const sks  = parseInt(document.getElementById('mk-sks').value);
+  const sem  = parseInt(document.getElementById('mk-sem').value);
+  if (!kode||!nama) { showToast('warning','Validasi','Kode dan nama MK wajib diisi'); return; }
+  const res = await AdminAPI.tambahMataKuliah({ kode, nama, sks, semester_anjuran: sem, program_studi_id: 1, status:'Aktif' });
+  if (res && res.ok) {
+    hideModal('modal-tambah-mk');
+    showToast('success','Berhasil','Mata kuliah berhasil ditambahkan');
+    loadMataKuliah();
+  } else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+}
+
+const debS = debounce(() => loadMataKuliah(), 300);
+document.getElementById('search-mk').addEventListener('input', debS);
+document.getElementById('filter-mk-prodi').addEventListener('change', loadMataKuliah);
+function resetFilterMK() {
+  document.getElementById('search-mk').value = '';
+  document.getElementById('filter-mk-prodi').value = '';
+  loadMataKuliah();
+}
+loadMataKuliah();
+
+
+// ── EDIT MATA KULIAH ────────────────────────────────────────────
+function editMK(id) {
+  const mk = mkList.find(x => x.id == id);
+  if (!mk) { showToast('danger','Error','Data tidak ditemukan'); return; }
+  document.getElementById('edit-mk-id').value     = mk.id;
+  document.getElementById('edit-mk-kode').value   = mk.kode || '';
+  document.getElementById('edit-mk-nama').value   = mk.nama || '';
+  document.getElementById('edit-mk-sks').value    = mk.sks || 3;
+  document.getElementById('edit-mk-sem').value    = mk.semester_anjuran || 1;
+  document.getElementById('edit-mk-status').value = mk.status || 'Aktif';
+  showModal('modal-edit-mk');
+}
+
+async function simpanEditMK() {
+  const id = document.getElementById('edit-mk-id').value;
+  const data = {
+    kode:             document.getElementById('edit-mk-kode').value.trim(),
+    nama:             document.getElementById('edit-mk-nama').value.trim(),
+    sks:              parseInt(document.getElementById('edit-mk-sks').value),
+    semester_anjuran: parseInt(document.getElementById('edit-mk-sem').value),
+    status:           document.getElementById('edit-mk-status').value,
+  };
+  if (!data.kode || !data.nama) { showToast('warning','Validasi','Kode dan nama wajib diisi'); return; }
+  const res = await AdminAPI.updateMataKuliah(id, data);
+  if (res && res.ok) {
+    hideModal('modal-edit-mk');
+    showToast('success','Berhasil','Mata kuliah berhasil diperbarui');
+    loadMataKuliah();
+  } else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+}
+</script>
+
+
+<!-- Modal Edit Mata Kuliah -->
+<div class="modal-backdrop" id="modal-edit-mk">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-book-open" style="color:var(--navy);margin-right:8px"></i>Edit Mata Kuliah</h3>
+      <button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-mk-id">
+      <div class="form-group"><label class="form-label">Kode MK</label><input type="text" class="form-control" id="edit-mk-kode"></div>
+      <div class="form-group"><label class="form-label">Nama Mata Kuliah</label><input type="text" class="form-control" id="edit-mk-nama"></div>
+      <div class="form-grid form-grid-2">
+        <div class="form-group"><label class="form-label">SKS</label>
+          <select class="form-control" id="edit-mk-sks">
+            <option value="1">1 SKS</option><option value="2">2 SKS</option>
+            <option value="3">3 SKS</option><option value="4">4 SKS</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Semester Anjuran</label>
+          <select class="form-control" id="edit-mk-sem">
+            ${[1,2,3,4,5,6,7,8].map(n=>`<option value="${n}">Semester ${n}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-group mb-0"><label class="form-label">Status</label>
+        <select class="form-control" id="edit-mk-status">
+          <option value="Aktif">Aktif</option>
+          <option value="Nonaktif">Nonaktif</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal-close>Batal</button>
+      <button class="btn btn-primary btn-sm" onclick="simpanEditMK()"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

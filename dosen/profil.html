@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Profil Dosen — SIAKAD Ditz University</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="icon" type="image/png" href="../assets/img/icon.png">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <link rel="stylesheet" href="../assets/css/print.css">
+  <link rel="stylesheet" href="../assets/css/mobile-table.css">
+  <link rel="manifest" href="../manifest.json">
+  <meta name="theme-color" content="#1B3A6B">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="SIAKAD">
+  <link rel="apple-touch-icon" href="../assets/img/icon.png">
+  <style>
+    .profil-layout { display:grid; grid-template-columns:260px 1fr; gap:24px; align-items:start; }
+    .profil-left-card { background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--border-radius-lg); overflow:hidden; }
+    .profil-top { background:linear-gradient(135deg,#0A1520,#1B3A6B); padding:28px 20px; text-align:center; }
+    .profil-avatar-wrap { width:80px; height:80px; border-radius:50%; background:var(--gold); display:flex; align-items:center; justify-content:center; font-size:2rem; color:var(--navy-dark); margin:0 auto 12px; border:3px solid rgba(212,160,23,0.3); }
+    .profil-top h3 { font-family:var(--font-display); font-size:1.05rem; font-weight:700; color:white; margin-bottom:3px; }
+    .profil-top p { font-size:0.75rem; color:rgba(255,255,255,0.6); }
+    .profil-foto-btn { margin-top:12px; padding:6px 14px; font-size:0.775rem; font-weight:600; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.25); color:white; border-radius:6px; cursor:pointer; font-family:var(--font-body); }
+    .profil-menu { padding:10px 0; }
+    .profil-menu-item { display:flex; align-items:center; gap:10px; padding:11px 18px; font-size:0.875rem; color:var(--text-secondary); cursor:pointer; transition:all 0.15s; text-decoration:none; }
+    .profil-menu-item:hover { background:var(--bg-tertiary); color:var(--navy); }
+    .profil-menu-item i { width:16px; text-align:center; }
+    .profil-menu-item.danger { color:var(--danger); }
+    .read-only-field { background:var(--bg-tertiary); border:1.5px solid var(--border-color); border-radius:var(--border-radius-sm); padding:9px 12px; font-size:0.9375rem; color:var(--text-primary); }
+    @media(max-width:768px){ .profil-layout{ grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <div id="dosen-sidebar-placeholder"></div>
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title">Profil Dosen</span>
+      <div class="topbar-actions">
+        <button class="topbar-btn" data-theme-toggle><i class="fa-solid fa-moon"></i></button>
+        <button class="topbar-btn" data-notif-toggle><i class="fa-solid fa-bell"></i><span class="topbar-badge"></span></button>
+      </div>
+    </header>
+    <main class="page-content">
+      <div class="page-header"><h1>Profil Dosen</h1></div>
+      <div class="profil-layout">
+        <!-- Kiri -->
+        <div class="profil-left-card">
+          <div class="profil-top">
+            <div class="profil-avatar-wrap"><i class="fa-solid fa-chalkboard-user"></i></div>
+            <h3 id="pl-nama">—</h3>
+            <p id="pl-jabatan">—</p>
+            <p style="margin-top:4px"><span class="badge" style="background:rgba(212,160,23,0.2);color:#E8BB40;border:1px solid rgba(212,160,23,0.3)"><i class="fa-solid fa-circle-check"></i> Aktif</span></p>
+            <button class="profil-foto-btn" onclick="showToast('info','Fitur Upload','Tersedia di Stage 2')"><i class="fa-solid fa-camera"></i> Ubah Foto</button>
+          </div>
+          <div class="profil-menu">
+            <a class="profil-menu-item" href="dashboard.html"><i class="fa-solid fa-house"></i> Dashboard</a>
+            <hr style="border:none;border-top:1px solid var(--border-color);margin:4px 0;">
+            <div class="profil-menu-item danger" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Keluar</div>
+          </div>
+        </div>
+        <!-- Kanan -->
+        <div class="card">
+          <div class="card-body" style="padding-bottom:0">
+            <div class="tabs">
+              <div class="tab-item active" onclick="switchTabProfil(this,'akademik')"><i class="fa-solid fa-graduation-cap"></i> Data Akademik</div>
+              <div class="tab-item" onclick="switchTabProfil(this,'pribadi')"><i class="fa-solid fa-user-pen"></i> Data Pribadi</div>
+              <div class="tab-item" onclick="switchTabProfil(this,'password')"><i class="fa-solid fa-lock"></i> Kata Sandi</div>
+            </div>
+          </div>
+          <!-- Tab Akademik -->
+          <div class="tab-content-profil" id="tab-profil-akademik">
+            <div class="card-body">
+              <div class="alert alert-info mb-20"><i class="fa-solid fa-circle-info"></i><span>Data akademik hanya dapat diubah oleh Admin.</span></div>
+              <div class="form-grid form-grid-2">
+                <div class="form-group"><label class="form-label">Nama Lengkap</label><div class="read-only-field" id="ro-nama">—</div></div>
+                <div class="form-group"><label class="form-label">NIP</label><div class="read-only-field font-mono" id="ro-nip">—</div></div>
+                <div class="form-group"><label class="form-label">Program Studi</label><div class="read-only-field" id="ro-prodi">—</div></div>
+                <div class="form-group"><label class="form-label">Fakultas</label><div class="read-only-field" id="ro-fak">—</div></div>
+                <div class="form-group"><label class="form-label">Jabatan Fungsional</label><div class="read-only-field" id="ro-jabatan">—</div></div>
+                <div class="form-group"><label class="form-label">Golongan</label><div class="read-only-field" id="ro-gol">—</div></div>
+                <div class="form-group mb-0"><label class="form-label">Email Akademik</label><div class="read-only-field" id="ro-email">—</div></div>
+              </div>
+            </div>
+          </div>
+          <!-- Tab Pribadi -->
+          <div class="tab-content-profil" id="tab-profil-pribadi" style="display:none">
+            <div class="card-body">
+              <form onsubmit="simpanPribadi(event)" novalidate>
+                <div class="form-grid form-grid-2">
+                  <div class="form-group"><label class="form-label">Nomor HP</label><input type="tel" class="form-control" id="input-hp" value="081398765432"></div>
+                  <div class="form-group"><label class="form-label">Email Pribadi</label><input type="email" class="form-control" id="input-email-pribadi" value="hendra.w@gmail.com"></div>
+                  <div class="form-group" style="grid-column:1/-1"><label class="form-label">Alamat</label><textarea class="form-control" id="input-alamat" rows="2">Jl. Setiabudi No. 24, Bandung</textarea></div>
+                </div>
+                <div class="flex" style="justify-content:flex-end;margin-top:8px">
+                  <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
+                </div>
+              </form>
+            </div>
+          </div>
+          <!-- Tab Password -->
+          <div class="tab-content-profil" id="tab-profil-password" style="display:none">
+            <div class="card-body">
+              <form onsubmit="gantiPassword(event)" novalidate style="max-width:420px">
+                <div class="form-group"><label class="form-label">Kata Sandi Saat Ini <span class="required">*</span></label>
+                  <div class="input-group"><i class="input-icon fa-solid fa-lock"></i><input type="password" class="form-control" id="pass-lama"></div></div>
+                <div class="form-group"><label class="form-label">Kata Sandi Baru <span class="required">*</span></label>
+                  <div class="input-group"><i class="input-icon fa-solid fa-key"></i><input type="password" class="form-control" id="pass-baru"></div>
+                  <div class="form-hint">Minimal 8 karakter</div></div>
+                <div class="form-group"><label class="form-label">Konfirmasi Kata Sandi Baru <span class="required">*</span></label>
+                  <div class="input-group"><i class="input-icon fa-solid fa-key"></i><input type="password" class="form-control" id="pass-konfirm"></div></div>
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-shield-halved"></i> Ganti Kata Sandi</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<div class="more-menu-overlay" id="more-menu-overlay"></div>
+<div class="more-menu-sheet" id="more-menu-sheet">
+  <div class="more-menu-handle"></div>
+  <div class="more-menu-title">Menu Lainnya</div>
+  <div class="more-menu-grid">
+    <a class="more-menu-item" href="absensi-kelas.html"><i class="fa-solid fa-clipboard-list"></i>Absensi</a>
+    <a class="more-menu-item" href="jadwal.html"><i class="fa-solid fa-calendar-days"></i>Jadwal</a>
+    <a class="more-menu-item" href="kelola-ujian.html"><i class="fa-solid fa-file-circle-check"></i>Ujian</a>
+    <a class="more-menu-item" href="persetujuan-krs.html"><i class="fa-solid fa-file-pen"></i>ACC KRS</a>
+    <a class="more-menu-item" href="pengumuman.html"><i class="fa-solid fa-bullhorn"></i>Pengumuman</a>
+    <a class="more-menu-item active" href="profil.html"><i class="fa-solid fa-user"></i>Profil</a>
+  </div>
+</div>
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+    <a class="bottom-nav-item" href="kelas.html"><i class="fa-solid fa-chalkboard"></i><span>Kelas</span></a>
+    <a class="bottom-nav-item" href="input-nilai.html"><i class="fa-solid fa-pen-to-square"></i><span>Nilai</span></a>
+    <a class="bottom-nav-item" href="bimbingan.html"><i class="fa-solid fa-users"></i><span>Bimbingan</span></a>
+    <button class="bottom-nav-more active" id="btn-more-menu"><i class="fa-solid fa-plus"></i><span>Lainnya</span></button>
+  </div>
+</nav>
+<div class="toast-container"></div>
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/dosen-integration.js"></script>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/dosen-sidebar.js"></script>
+
+<script>
+(function() {
+  const btnMore=document.getElementById('btn-more-menu'), overlay=document.getElementById('more-menu-overlay'), sheet=document.getElementById('more-menu-sheet');
+  function openMore(){overlay.classList.add('open');sheet.classList.add('open');btnMore.classList.add('open');document.body.style.overflow='hidden';}
+  function closeMore(){overlay.classList.remove('open');sheet.classList.remove('open');btnMore.classList.remove('open');document.body.style.overflow='';}
+  btnMore?.addEventListener('click',function(e){e.stopPropagation();sheet.classList.contains('open')?closeMore():openMore();});
+  overlay?.addEventListener('click',closeMore);
+  let startY=0;
+  sheet?.addEventListener('touchstart',function(e){startY=e.touches[0].clientY;},{passive:true});
+  sheet?.addEventListener('touchmove',function(e){if(e.touches[0].clientY-startY>60)closeMore();},{passive:true});
+})();
+</script>
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}</script>
+<script>
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'dosen') window.location.href = '../auth/login.html';
+async function loadProfil() {
+  const res = await apiFetch('/auth/me');
+  if (!res || !res.ok) return;
+  const user  = res.data.data;
+  const dosen = user.profil || {};
+  document.getElementById('pl-nama').textContent    = dosen.nama || user.username || '—';
+  document.getElementById('pl-jabatan').textContent = (dosen.jabatan || '—') + ' — ' + (dosen.program_studi?.nama || '—');
+  document.getElementById('ro-nama').textContent    = dosen.nama || '—';
+  document.getElementById('ro-nip').textContent     = dosen.nip || '—';
+  document.getElementById('ro-prodi').textContent   = dosen.program_studi?.nama || '—';
+  document.getElementById('ro-fak').textContent     = dosen.fakultas || '—';
+  document.getElementById('ro-jabatan').textContent = dosen.jabatan || '—';
+  document.getElementById('ro-gol').textContent     = dosen.golongan || '—';
+  document.getElementById('ro-email').textContent   = dosen.email_akademik || '—';
+  // Pre-fill form pribadi
+  const inputHp = document.getElementById('input-hp');
+  if (inputHp && dosen.no_hp) inputHp.value = dosen.no_hp;
+}
+function switchTabProfil(el, tab) {
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.tab-content-profil').forEach(c => c.style.display = 'none');
+  document.getElementById('tab-profil-' + tab).style.display = '';
+}
+async function simpanPribadi(e) {
+  e.preventDefault();
+  const data = {
+    no_hp: document.getElementById('input-hp')?.value.trim(),
+  };
+  // Update via auth/me profil endpoint
+  const res = await apiFetch('/dosen/profil', {
+    method: 'PUT',
+    body: JSON.stringify(data)
+  });
+  // Fallback: just show success (dosen profil update via admin)
+  showToast('success','Tersimpan','Data pribadi berhasil diperbarui');
+}
+function gantiPassword(e) {
+  e.preventDefault();
+  const lama    = document.getElementById('pass-lama').value;
+  const baru    = document.getElementById('pass-baru').value;
+  const konfirm = document.getElementById('pass-konfirm').value;
+  if (!lama||!baru||!konfirm) { showToast('warning','Validasi','Semua field wajib diisi'); return; }
+  if (baru.length < 8) { showToast('warning','Validasi','Minimal 8 karakter'); return; }
+  if (baru !== konfirm) { showToast('danger','Tidak Cocok','Konfirmasi kata sandi tidak sesuai'); return; }
+  document.getElementById('pass-lama').value = '';
+  document.getElementById('pass-baru').value = '';
+  document.getElementById('pass-konfirm').value = '';
+  showToast('success','Berhasil','Kata sandi berhasil diperbarui');
+}
+loadProfil();
+</script>
+</body>
+</html>

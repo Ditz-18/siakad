@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Dokumen & Surat — SIAKAD STAI DILWA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="icon" type="image/png" href="../assets/img/icon.png">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="stylesheet" href="../assets/css/mobile-table.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <link rel="stylesheet" href="../assets/css/print.css">
+  <!-- Di <head> -->
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#1A5C2A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SIAKAD">
+<link rel="apple-touch-icon" href="../assets/img/icon.png">
+  <style>
+    .doc-shortcut-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .doc-card {
+      background: var(--bg-card); border: 1px solid var(--border-color);
+      border-radius: var(--border-radius-lg); padding: 18px 14px;
+      text-align: center; cursor: pointer; text-decoration: none;
+      transition: all var(--transition-base);
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+    }
+    .doc-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--navy); }
+    .doc-card-icon { width: 48px; height: 48px; border-radius: var(--border-radius-md); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+    .doc-card-label { font-size: 0.8125rem; font-weight: 600; color: var(--text-primary); line-height: 1.3; }
+    .doc-card-desc { font-size: 0.72rem; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <div id="mahasiswa-sidebar-placeholder"></div>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title">Dokumen & Surat</span>
+      <div class="topbar-actions">
+        <button class="topbar-btn" data-theme-toggle><i class="fa-solid fa-moon"></i></button>
+        <button class="topbar-btn" data-notif-toggle><i class="fa-solid fa-bell"></i><span class="topbar-badge"></span></button>
+      </div>
+    </header>
+
+    <main class="page-content">
+      <div class="page-header">
+        <div class="page-header-top">
+          <div><h1>Dokumen & Surat</h1><p>Akses dan pengajuan dokumen akademik</p></div>
+          <button class="btn btn-primary" data-modal-target="modal-ajukan-surat">
+            <i class="fa-solid fa-envelope-open-text"></i> Ajukan Surat
+          </button>
+        </div>
+      </div>
+
+      <!-- Shortcut dokumen -->
+      <div class="card mb-24">
+        <div class="card-header"><h3><i class="fa-solid fa-folder" style="color:var(--gold-dark);margin-right:8px"></i>Akses Cepat Dokumen</h3></div>
+        <div class="card-body">
+          <div class="doc-shortcut-grid">
+            <a class="doc-card" href="ktm.html">
+              <div class="doc-card-icon" style="background:var(--info-bg);color:var(--info)"><i class="fa-solid fa-id-card"></i></div>
+              <div class="doc-card-label">KTM Digital</div>
+              <div class="doc-card-desc">Kartu Tanda Mahasiswa</div>
+            </a>
+            <a class="doc-card" href="khs.html">
+              <div class="doc-card-icon" style="background:rgba(26,92,42,0.1);color:var(--navy)"><i class="fa-solid fa-chart-bar"></i></div>
+              <div class="doc-card-label">KHS</div>
+              <div class="doc-card-desc">Kartu Hasil Studi</div>
+            </a>
+            <a class="doc-card" href="transkrip.html">
+              <div class="doc-card-icon" style="background:var(--success-bg);color:var(--success)"><i class="fa-solid fa-scroll"></i></div>
+              <div class="doc-card-label">Transkrip Nilai</div>
+              <div class="doc-card-desc">Riwayat nilai lengkap</div>
+            </a>
+            <a class="doc-card" href="pembayaran.html">
+              <div class="doc-card-icon" style="background:rgba(108,59,154,0.1);color:#6C3B9A"><i class="fa-solid fa-receipt"></i></div>
+              <div class="doc-card-label">Bukti Pembayaran</div>
+              <div class="doc-card-desc">Kwitansi UKT</div>
+            </a>
+            <a class="doc-card" href="krs.html">
+              <div class="doc-card-icon" style="background:var(--warning-bg);color:var(--warning)"><i class="fa-solid fa-file-pen"></i></div>
+              <div class="doc-card-label">KRS</div>
+              <div class="doc-card-desc">Kartu Rencana Studi</div>
+            </a>
+            <a class="doc-card" href="absensi.html">
+              <div class="doc-card-icon" style="background:var(--danger-bg);color:var(--danger)"><i class="fa-solid fa-clipboard-check"></i></div>
+              <div class="doc-card-label">Rekap Absensi</div>
+              <div class="doc-card-desc">Kehadiran per MK</div>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Riwayat pengajuan surat -->
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fa-solid fa-clock-rotate-left" style="color:var(--navy);margin-right:8px"></i>Riwayat Pengajuan Surat</h3>
+        </div>
+                <div class="table-scroll-hint"><i class="fa-solid fa-arrows-left-right"></i> Geser untuk lihat selengkapnya</div>
+        <div class="table-wrapper-outer">
+  <div class="table-wrapper">
+            <table class="table">
+              <thead><tr><th>No. Pengajuan</th><th>Jenis Surat</th><th>Keperluan</th><th>Tanggal</th><th>Status</th><th>Aksi</th></tr></thead>
+              <tbody id="tbody-surat"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Modal Ajukan Surat -->
+<div class="modal-backdrop" id="modal-ajukan-surat">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-envelope-open-text" style="color:var(--navy);margin-right:8px"></i>Ajukan Surat</h3>
+      <button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Jenis Surat <span class="required">*</span></label>
+        <select class="form-control" id="select-jenis-surat">
+          <option value="">— Pilih jenis surat —</option>
+          <option>Surat Keterangan Mahasiswa Aktif</option>
+          <option>Surat Keterangan Lulus</option>
+          <option>Surat Rekomendasi</option>
+          <option>Surat Cuti Akademik</option>
+          <option>Surat Aktif Kembali</option>
+          <option>Surat Keterangan IPK</option>
+        </select>
+        <div class="form-error" id="err-jenis">Pilih jenis surat terlebih dahulu.</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Keperluan <span class="required">*</span></label>
+        <input type="text" class="form-control" id="input-keperluan" placeholder="Contoh: Pendaftaran Beasiswa, Melamar Kerja">
+        <div class="form-error" id="err-keperluan">Keperluan wajib diisi.</div>
+      </div>
+      <div class="form-group mb-0">
+        <label class="form-label">Keterangan Tambahan <span style="color:var(--text-muted);font-weight:400">(opsional)</span></label>
+        <textarea class="form-control" id="input-keterangan" rows="3" placeholder="Tuliskan keterangan tambahan jika diperlukan..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal-close>Batal</button>
+      <button class="btn btn-primary btn-sm" onclick="ajukanSurat()"><i class="fa-solid fa-paper-plane"></i> Ajukan</button>
+    </div>
+  </div>
+</div>
+
+<div class="more-menu-overlay" id="more-menu-overlay"></div>
+<div class="more-menu-sheet" id="more-menu-sheet">
+  <div class="more-menu-handle"></div>
+  <div class="more-menu-title">Menu Lainnya</div>
+  <div class="more-menu-grid">
+    <a class="more-menu-item" href="khs.html"><i class="fa-solid fa-chart-bar"></i>KHS</a>
+    <a class="more-menu-item" href="transkrip.html"><i class="fa-solid fa-scroll"></i>Transkrip</a>
+    <a class="more-menu-item" href="jadwal.html"><i class="fa-solid fa-calendar-days"></i>Jadwal</a>
+    <a class="more-menu-item" href="pembayaran.html"><i class="fa-solid fa-credit-card"></i>Pembayaran</a>
+    <a class="more-menu-item active" href="dokumen.html"><i class="fa-solid fa-folder-open"></i>Dokumen</a>
+    <a class="more-menu-item" href="ktm.html"><i class="fa-solid fa-id-card"></i>KTM</a>
+    <a class="more-menu-item" href="pengumuman.html"><i class="fa-solid fa-bullhorn"></i>Pengumuman</a>
+    <a class="more-menu-item" href="profil.html"><i class="fa-solid fa-user"></i>Profil</a>
+  </div>
+</div>
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+    <a class="bottom-nav-item" href="krs.html"><i class="fa-solid fa-file-pen"></i><span>KRS</span></a>
+    <a class="bottom-nav-item" href="ujian.html"><i class="fa-solid fa-pencil"></i><span>Ujian</span></a>
+    <a class="bottom-nav-item" href="absensi.html"><i class="fa-solid fa-clipboard-check"></i><span>Absensi</span></a>
+    <button class="bottom-nav-more active" id="btn-more-menu"><i class="fa-solid fa-plus"></i><span>Lainnya</span></button>
+  </div>
+</nav>
+<div class="toast-container"></div>
+
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/mahasiswa-integration.js"></script>
+<script src="../assets/js/mahasiswa-sidebar.js"></script>
+<script src="../assets/js/main.js"></script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
+</script>
+
+<script>
+
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'mahasiswa') window.location.href = '../auth/login.html';
+
+const statusMap = { Menunggu:'badge-warning', Diproses:'badge-info', Selesai:'badge-success', Ditolak:'badge-danger' };
+
+async function loadSurat() {
+  const res = await MahasiswaAPI.dokumen();
+  if (!res || !res.ok) { showToast('danger','Error','Gagal memuat riwayat surat'); return; }
+  const list = res.data.data || [];
+  renderSurat(list);
+}
+
+function renderSurat(list) {
+  const tbody = document.getElementById('tbody-surat') || document.querySelector('tbody');
+  if (!tbody) return;
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="table-empty"><i class="fa-regular fa-envelope"></i><br>Belum ada pengajuan surat</div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(s => `
+    <tr>
+      <td data-label="No. Pengajuan"><span class="font-mono" style="font-size:0.8rem">${s.no_pengajuan}</span></td>
+      <td data-label="Jenis Surat" style="font-size:0.875rem">${escHTML(s.jenis_surat)}</td>
+      <td data-label="Keperluan" style="font-size:0.875rem;color:var(--text-secondary)">${escHTML(s.keperluan)}</td>
+      <td data-label="Tanggal">${formatTanggal(s.created_at,'pendek')}</td>
+      <td data-label="Status"><span class="badge ${statusMap[s.status]||'badge-muted'}">${s.status}</span></td>
+      <td data-label="">
+        ${s.status==='Selesai'
+          ? `<button class="btn btn-success btn-sm" onclick="showToast('success','Mengunduh','File surat sedang diunduh...')"><i class="fa-solid fa-download"></i> Unduh</button>`
+          : `<span style="font-size:0.775rem;color:var(--text-muted)">Menunggu proses</span>`}
+      </td>
+    </tr>`).join('');
+}
+
+async function ajukanSurat() {
+  const jenis     = document.getElementById('select-jenis-surat')?.value;
+  const keperluan = document.getElementById('input-keperluan')?.value.trim();
+  let valid = true;
+  document.getElementById('err-jenis')?.classList.remove('show');
+  document.getElementById('err-keperluan')?.classList.remove('show');
+  document.getElementById('select-jenis-surat')?.classList.remove('error');
+  document.getElementById('input-keperluan')?.classList.remove('error');
+  if (!jenis)     { document.getElementById('err-jenis')?.classList.add('show');     document.getElementById('select-jenis-surat')?.classList.add('error'); valid=false; }
+  if (!keperluan) { document.getElementById('err-keperluan')?.classList.add('show'); document.getElementById('input-keperluan')?.classList.add('error');    valid=false; }
+  if (!valid) return;
+  const res = await MahasiswaAPI.ajukanSurat(jenis, keperluan);
+  if (res && res.ok) {
+    hideModal('modal-ajukan-surat');
+    document.getElementById('select-jenis-surat').value = '';
+    document.getElementById('input-keperluan').value    = '';
+    showToast('success','Berhasil', `${jenis} berhasil diajukan`);
+    loadSurat();
+  } else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+}
+
+loadSurat();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+cd C:\xampp\htdocs\siakad_api
+php artisan serve
+
+-
+link pmb : https://pmb.nurhamim.com
+
+================================================================
+  AKUN DEMO — SIAKAD STAI DILWA
+  (Disimpan saat akun demo dihapus dari halaman login)
+================================================================
+
+MAHASISWA
+  Username : mhs2021001
+  Password : mhs123
+  Redirect : /mahasiswa/dashboard.html
+
+DOSEN
+  Username : dosen01
+  Password : dosen123
+  Redirect : /dosen/dashboard.html
+
+ADMIN
+  Username : admin01
+  Password : admin123
+  Redirect : /admin/dashboard.html
+
+================================================================
+  Catatan: Ganti password ini setelah integrasi API Laravel
+================================================================

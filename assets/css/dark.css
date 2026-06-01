@@ -1,0 +1,113 @@
+/* ================================================================
+   SIAKAD STAI DILWA — dark.css
+   Dark mode override via [data-theme="dark"] pada <html>
+   ================================================================ */
+
+[data-theme="dark"] {
+  /* Semantic UI — Dark */
+  --bg-primary:    #1A1D23;
+  --bg-secondary:  #141720;
+  --bg-tertiary:   #0F1117;
+  --bg-card:       #1F2330;
+  --text-primary:  #E8EAF0;
+  --text-secondary:#A8AEBE;
+  --text-muted:    #6B7280;
+  --text-inverse:  #1A1D23;
+  --border-color:  #2D3348;
+  --border-light:  #252840;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+  --shadow-xl: 0 16px 40px rgba(0,0,0,0.6);
+
+  /* Status — dark adjusted */
+  --success-bg: rgba(26,122,66,0.15);
+  --warning-bg: rgba(196,125,10,0.15);
+  --danger-bg:  rgba(190,51,40,0.15);
+  --info-bg:    rgba(23,96,160,0.15);
+}
+
+/* Sidebar stays dark always */
+[data-theme="dark"] .sidebar { background: #0D1018; }
+[data-theme="dark"] .sidebar-brand { border-color: rgba(255,255,255,0.06); }
+[data-theme="dark"] .sidebar-footer { border-color: rgba(255,255,255,0.06); }
+[data-theme="dark"] .nav-section-label { color: rgba(255,255,255,0.2); }
+
+/* Topbar dark */
+[data-theme="dark"] .topbar {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+}
+[data-theme="dark"] .topbar-badge { border-color: var(--bg-card); }
+
+/* Table dark */
+[data-theme="dark"] .table th { background: var(--bg-tertiary); }
+[data-theme="dark"] .table tbody tr:hover { background: rgba(255,255,255,0.03); }
+
+/* Form dark */
+[data-theme="dark"] .form-control {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+[data-theme="dark"] .form-control:focus {
+  border-color: var(--navy-light);
+  box-shadow: 0 0 0 3px rgba(26,92,42,0.25);
+}
+
+/* Select dark arrow */
+[data-theme="dark"] select.form-control {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+}
+
+/* Modal dark */
+[data-theme="dark"] .modal-backdrop { background: rgba(0,0,0,0.65); }
+[data-theme="dark"] .modal-footer { background: var(--bg-tertiary); }
+
+/* Toast dark */
+[data-theme="dark"] .toast { background: var(--bg-card); border-color: var(--border-color); }
+
+/* Profile dropdown dark */
+[data-theme="dark"] .profile-dropdown { background: var(--bg-card); border-color: var(--border-color); }
+[data-theme="dark"] .profile-dropdown-item:hover { background: var(--bg-tertiary); }
+
+/* Notif dropdown dark */
+[data-theme="dark"] .notif-dropdown { background: var(--bg-card); border-color: var(--border-color); }
+
+/* Accordion dark */
+[data-theme="dark"] .accordion-header { background: var(--bg-tertiary); }
+[data-theme="dark"] .accordion-header:hover { background: rgba(255,255,255,0.04); }
+[data-theme="dark"] .accordion-body { background: var(--bg-card); }
+
+/* Alert dark */
+[data-theme="dark"] .alert-success { background: rgba(26,122,66,0.12);  border-color: rgba(26,122,66,0.3);  color: #6DD49A; }
+[data-theme="dark"] .alert-warning { background: rgba(196,125,10,0.12); border-color: rgba(196,125,10,0.3); color: #F5C842; }
+[data-theme="dark"] .alert-danger  { background: rgba(190,51,40,0.12);  border-color: rgba(190,51,40,0.3);  color: #F08080; }
+[data-theme="dark"] .alert-info    { background: rgba(23,96,160,0.12);  border-color: rgba(23,96,160,0.3);  color: #7EB8F5; }
+
+/* Stat icons dark */
+[data-theme="dark"] .stat-icon-navy    { background: rgba(26,92,42,0.2); }
+[data-theme="dark"] .stat-icon-gold    { background: rgba(200,146,42,0.15); }
+[data-theme="dark"] .stat-icon-success { background: rgba(26,122,66,0.2); }
+[data-theme="dark"] .stat-icon-warning { background: rgba(196,125,10,0.2); }
+[data-theme="dark"] .stat-icon-danger  { background: rgba(190,51,40,0.2); }
+[data-theme="dark"] .stat-icon-info    { background: rgba(23,96,160,0.2); }
+
+/* Badges dark */
+[data-theme="dark"] .badge-primary { background: rgba(26,92,42,0.25);  color: #7DB88A; }
+[data-theme="dark"] .badge-gold    { background: rgba(200,146,42,0.2);  color: var(--gold-light); }
+[data-theme="dark"] .badge-success { background: rgba(26,122,66,0.2);   color: #6DD49A; }
+[data-theme="dark"] .badge-warning { background: rgba(196,125,10,0.2);  color: #F5C842; }
+[data-theme="dark"] .badge-danger  { background: rgba(190,51,40,0.2);   color: #F08080; }
+[data-theme="dark"] .badge-info    { background: rgba(23,96,160,0.2);   color: #7EB8F5; }
+[data-theme="dark"] .badge-muted   { background: rgba(255,255,255,0.08); color: var(--text-muted); }
+
+/* Quick links dark */
+[data-theme="dark"] .quick-link-card:hover { border-color: var(--navy-light); }
+
+/* Bottom nav dark */
+[data-theme="dark"] .bottom-nav { background: var(--bg-card); border-color: var(--border-color); }
+
+/* Sidebar overlay */
+[data-theme="dark"] .sidebar-overlay { background: rgba(0,0,0,0.7); }

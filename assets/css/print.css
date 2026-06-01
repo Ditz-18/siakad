@@ -1,0 +1,103 @@
+/* ================================================================
+   SIAKAD STAI DILWA — print.css
+   Styling khusus saat cetak / export PDF via window.print()
+   ================================================================ */
+
+@media print {
+  /* Sembunyikan elemen UI saat cetak */
+  .sidebar,
+  .topbar,
+  .bottom-nav,
+  .toast-container,
+  .modal-backdrop,
+  .sidebar-overlay,
+  .btn,
+  .filter-bar,
+  .table-actions,
+  .page-header-actions,
+  .notif-dropdown,
+  .profile-dropdown,
+  .topbar-actions,
+  .topbar-hamburger,
+  .nav-badge,
+  .accordion-chevron {
+    display: none !important;
+  }
+
+  /* Reset layout */
+  body {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    font-size: 11pt;
+    font-family: 'Source Sans 3', Arial, sans-serif;
+  }
+
+  .app-layout { display: block; }
+  .main-content { margin-left: 0 !important; }
+  .page-content {
+    margin-top: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Cards tampil bersih */
+  .card, .stat-card {
+    box-shadow: none !important;
+    border: 1px solid #DEE2E6 !important;
+    break-inside: avoid;
+  }
+
+  /* Table print */
+  .table-wrapper { overflow: visible !important; }
+  .table th { background: #1A5C2A !important; color: #FFFFFF !important; -webkit-print-color-adjust: exact; }
+  .table tbody tr:nth-child(even) td { background: #F8F9FA; -webkit-print-color-adjust: exact; }
+  .table tbody tr:hover { background: none !important; }
+
+  /* Page breaks */
+  .page-break-before { page-break-before: always; }
+  .page-break-after  { page-break-after: always; }
+  .no-break { break-inside: avoid; }
+
+  /* ── Print header — kop surat ── */
+  .print-header {
+    display: block !important;
+    width: 100%;
+    margin-bottom: 16pt;
+    padding-bottom: 10pt;
+    border-bottom: 2pt solid #1A5C2A;
+  }
+  .print-header img {
+    width: 100%;
+    height: auto;
+    display: block;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  /* Sembunyikan elemen teks lama jika masih ada di HTML */
+  .print-header-logo,
+  .print-header-sub,
+  .print-header-date { display: none !important; }
+
+  /* Print footer */
+  .print-footer {
+    display: block !important;
+    margin-top: 16pt;
+    padding-top: 8pt;
+    border-top: 1pt solid #DEE2E6;
+    font-size: 8pt;
+    color: #6C757D;
+    text-align: center;
+  }
+
+  /* KTM khusus — kunci ukuran ISO */
+  .ktm-print-area {
+    width: 85.6mm !important;
+    height: 54mm !important;
+    margin: 0 auto !important;
+    overflow: hidden !important;
+    page-break-after: avoid;
+  }
+}
+
+/* Elemen yang hanya tampil saat print */
+.print-header { display: none; }
+.print-footer { display: none; }

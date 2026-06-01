@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ruang Ujian — SIAKAD STAI DILWA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="icon" type="image/png" href="../assets/img/icon.png">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <!-- Di <head> -->
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#1B3A6B">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SIAKAD">
+<link rel="apple-touch-icon" href="../assets/img/icon.png">
+  <style>
+    /* ── Exam layout ── */
+    body { background: var(--bg-secondary); overflow-x: hidden; }
+
+    .exam-header {
+      position: sticky; top: 0; z-index: 80;
+      background: var(--navy-dark);
+      color: white;
+      padding: 12px 20px;
+      display: flex; align-items: center; gap: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+    }
+    .exam-header-info { flex: 1; min-width: 0; }
+    .exam-header-info h2 { font-size: 0.9375rem; font-weight: 700; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .exam-header-info p { font-size: 0.775rem; color: rgba(255,255,255,0.6); }
+    .timer-wrap { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .timer {
+      font-family: var(--font-mono);
+      font-size: 1.4rem; font-weight: 700;
+      color: white; letter-spacing: 0.05em;
+      min-width: 80px; text-align: center;
+    }
+    .timer.warning { color: var(--gold-light); }
+    .timer.danger  { color: #FF6B6B; animation: blink 0.8s ease infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    .btn-tandai {
+      padding: 7px 14px; font-size: 0.8rem; font-weight: 700;
+      background: rgba(212,160,23,0.2); color: var(--gold-light);
+      border: 1.5px solid rgba(212,160,23,0.4); border-radius: 6px;
+      cursor: pointer; font-family: var(--font-body);
+      transition: all 0.15s; display: flex; align-items: center; gap: 6px;
+    }
+    .btn-tandai:hover { background: rgba(212,160,23,0.35); }
+    .btn-tandai.active { background: var(--gold); color: var(--navy-dark); border-color: var(--gold); }
+
+    /* ── Main exam area ── */
+    .exam-body { display: flex; gap: 0; min-height: calc(100vh - 56px); }
+
+    /* ── Nav panel (kiri) ── */
+    .nav-panel {
+      width: 220px; flex-shrink: 0;
+      background: var(--bg-card);
+      border-right: 1px solid var(--border-color);
+      padding: 16px;
+      position: sticky; top: 56px;
+      height: calc(100vh - 56px);
+      overflow-y: auto;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .nav-panel h4 { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .soal-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+    .soal-btn {
+      aspect-ratio: 1;
+      border-radius: 5px;
+      border: 1.5px solid var(--border-color);
+      background: var(--bg-secondary);
+      font-size: 0.75rem; font-weight: 700;
+      color: var(--text-muted);
+      cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-body);
+    }
+    .soal-btn.dijawab { background: var(--navy); color: white; border-color: var(--navy); }
+    .soal-btn.ragu    { background: var(--warning); color: white; border-color: var(--warning); }
+    .soal-btn.aktif   { outline: 2.5px solid var(--gold); outline-offset: 1px; }
+
+    .counter-wrap { display: flex; flex-direction: column; gap: 8px; }
+    .counter-item { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; }
+    .counter-item label { color: var(--text-muted); }
+    .counter-item strong { font-weight: 700; color: var(--text-primary); }
+
+    .btn-kumpulkan-nav {
+      width: 100%; padding: 10px; font-size: 0.875rem; font-weight: 700;
+      background: var(--success); color: white; border: none;
+      border-radius: 8px; cursor: pointer; font-family: var(--font-body);
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      transition: all 0.15s; margin-top: auto;
+    }
+    .btn-kumpulkan-nav:hover { background: #15633A; }
+
+    /* ── Soal area (kanan) ── */
+    .soal-area { flex: 1; padding: 24px; max-width: 720px; margin: 0 auto; }
+    .soal-nomor { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .soal-teks {
+      font-size: 1rem; font-weight: 600; line-height: 1.7;
+      color: var(--text-primary); margin-bottom: 24px;
+    }
+
+    .opsi-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+    .opsi-item {
+      display: flex; align-items: center; gap: 14px;
+      padding: 13px 16px;
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--border-radius-md);
+      cursor: pointer; transition: all 0.15s;
+      background: var(--bg-card);
+    }
+    .opsi-item:hover { border-color: var(--navy); background: rgba(27,58,107,0.04); }
+    .opsi-item.selected { border-color: var(--navy); background: rgba(27,58,107,0.08); }
+    .opsi-item.correct  { border-color: var(--success); background: var(--success-bg); }
+    .opsi-item.wrong    { border-color: var(--danger);  background: var(--danger-bg); }
+
+    .opsi-huruf {
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 2px solid var(--border-color);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.875rem; font-weight: 700; flex-shrink: 0;
+      transition: all 0.15s; color: var(--text-muted);
+    }
+    .opsi-item.selected .opsi-huruf { background: var(--navy); border-color: var(--navy); color: white; }
+    .opsi-item.correct  .opsi-huruf { background: var(--success); border-color: var(--success); color: white; }
+    .opsi-item.wrong    .opsi-huruf { background: var(--danger);  border-color: var(--danger);  color: white; }
+
+    .opsi-teks { font-size: 0.9375rem; color: var(--text-primary); line-height: 1.5; flex: 1; }
+
+    .nav-soal-btns { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .nav-soal-btns .btn { min-width: 110px; }
+
+    /* ── Watermark ── */
+    #watermark {
+      position: fixed; inset: 0;
+      pointer-events: none; user-select: none;
+      z-index: 50; overflow: hidden;
+    }
+    .wm-text {
+      position: absolute;
+      font-size: 0.9rem; font-weight: 700;
+      color: rgba(27,58,107,0.065);
+      transform: rotate(-30deg);
+      white-space: nowrap;
+      pointer-events: none;
+      font-family: var(--font-mono);
+    }
+
+    /* ── Violation overlay ── */
+    #violation-overlay {
+      position: fixed; inset: 0;
+      background: rgba(190,51,40,0.95);
+      z-index: 9999;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 32px;
+      color: white;
+    }
+    #violation-overlay.show { display: flex; }
+    .violation-icon { font-size: 3.5rem; margin-bottom: 16px; animation: shake 0.4s ease; }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+    .violation-title { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; margin-bottom: 12px; }
+    .violation-desc  { font-size: 1rem; opacity: 0.85; margin-bottom: 8px; max-width: 400px; }
+    .violation-count { font-size: 0.875rem; opacity: 0.7; margin-bottom: 28px; }
+    .btn-lanjutkan {
+      padding: 12px 32px; font-size: 1rem; font-weight: 700;
+      background: white; color: var(--danger); border: none;
+      border-radius: 9px; cursor: pointer; font-family: var(--font-body);
+      transition: all 0.15s;
+    }
+    .btn-lanjutkan:hover { background: rgba(255,255,255,0.9); transform: translateY(-1px); }
+
+    /* ── Hasil ── */
+    #hasil-section { display: none; }
+    #hasil-section.show { display: block; }
+    #exam-section.hide { display: none; }
+
+    .skor-lingkaran {
+      width: 120px; height: 120px; border-radius: 50%;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      margin: 0 auto 24px;
+      border: 4px solid;
+    }
+    .skor-lingkaran.lulus { border-color: var(--success); background: var(--success-bg); }
+    .skor-lingkaran.gagal { border-color: var(--danger);  background: var(--danger-bg); }
+    .skor-angka { font-family: var(--font-display); font-size: 2.2rem; font-weight: 700; line-height: 1; }
+    .skor-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 4px; }
+    .skor-lingkaran.lulus .skor-angka,
+    .skor-lingkaran.lulus .skor-label { color: var(--success); }
+    .skor-lingkaran.gagal .skor-angka,
+    .skor-lingkaran.gagal .skor-label { color: var(--danger); }
+
+    /* Review mode */
+    .review-note {
+      display: none;
+      padding: 8px 14px;
+      background: rgba(27,58,107,0.08);
+      border-radius: 6px;
+      font-size: 0.8rem;
+      color: var(--navy);
+      margin-bottom: 16px;
+      align-items: center; gap: 8px;
+    }
+    .review-note.show { display: flex; }
+
+    @media (max-width: 768px) {
+      .nav-panel { display: none; }
+      .soal-area { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Watermark -->
+<div id="watermark"></div>
+
+<!-- Violation overlay -->
+<div id="violation-overlay">
+  <div class="violation-icon"><i class="fa-solid fa-shield-halved"></i></div>
+  <div class="violation-title" id="vio-title">Pelanggaran Terdeteksi!</div>
+  <div class="violation-desc" id="vio-desc">Anda berpindah ke tab atau aplikasi lain.</div>
+  <div class="violation-count" id="vio-count">Pelanggaran 1 dari 3</div>
+  <button class="btn-lanjutkan" id="btn-lanjutkan">Kembali ke Ujian</button>
+</div>
+
+<!-- ── EXAM SECTION ── -->
+<div id="exam-section">
+
+  <!-- Header -->
+  <div class="exam-header">
+    <div class="exam-header-info">
+      <h2 id="exam-judul">Memuat ujian...</h2>
+      <p id="exam-mhs-info">—</p>
+    </div>
+    <div class="timer-wrap">
+      <i class="fa-solid fa-clock" style="color:rgba(255,255,255,0.5);font-size:0.9rem"></i>
+      <div class="timer" id="timer">00:00</div>
+    </div>
+    <button class="btn-tandai" id="btn-tandai-header" onclick="tandaiRagu()">
+      <i class="fa-solid fa-flag"></i> Tandai Ragu
+    </button>
+  </div>
+
+  <div class="exam-body">
+    <!-- Nav panel -->
+    <div class="nav-panel">
+      <div>
+        <h4>Navigasi Soal</h4>
+        <div class="soal-grid" id="soal-grid"></div>
+      </div>
+      <div class="counter-wrap">
+        <div class="counter-item"><label>Dijawab</label><strong id="counter-dijawab">0</strong></div>
+        <div class="counter-item"><label>Ragu-ragu</label><strong id="counter-ragu">0</strong></div>
+        <div class="counter-item"><label>Belum dijawab</label><strong id="counter-belum">0</strong></div>
+      </div>
+      <button class="btn-kumpulkan-nav" onclick="konfirmasiKumpulkan()">
+        <i class="fa-solid fa-paper-plane"></i> Kumpulkan
+      </button>
+    </div>
+
+    <!-- Soal area -->
+    <div class="soal-area">
+      <div class="review-note" id="review-note">
+        <i class="fa-solid fa-eye"></i>
+        <span>Mode Pembahasan — Jawaban benar ditampilkan (soal tidak bisa diubah)</span>
+      </div>
+      <div class="soal-nomor" id="soal-nomor">Soal 1 dari 5</div>
+      <div class="soal-teks" id="soal-teks">Memuat soal...</div>
+      <div class="opsi-list" id="opsi-list"></div>
+      <div class="nav-soal-btns">
+        <button class="btn btn-ghost" id="btn-prev" onclick="navSoal(-1)"><i class="fa-solid fa-arrow-left"></i> Sebelumnya</button>
+        <button class="btn btn-outline btn-sm" onclick="tandaiRagu()" id="btn-tandai-main"><i class="fa-solid fa-flag"></i> Tandai Ragu</button>
+        <button class="btn btn-primary" id="btn-next" onclick="navSoal(1)">Selanjutnya <i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /exam-section -->
+
+<!-- ── HASIL SECTION ── -->
+<div id="hasil-section" style="padding:32px;max-width:600px;margin:0 auto">
+  <div class="card">
+    <div class="card-body" style="text-align:center;padding:32px">
+      <div class="skor-lingkaran" id="skor-lingkaran">
+        <div class="skor-angka" id="skor-angka">—</div>
+        <div class="skor-label" id="skor-status-label">—</div>
+      </div>
+      <h2 style="font-family:var(--font-display);font-size:1.5rem;margin-bottom:8px" id="hasil-title">Ujian Selesai</h2>
+      <p style="color:var(--text-secondary);margin-bottom:24px" id="hasil-sub">—</p>
+
+      <div class="table-wrapper mb-24">
+        <table class="table">
+          <thead><tr><th>Ujian</th><th>Benar/Total</th><th>Nilai</th><th>Status</th></tr></thead>
+          <tbody id="hasil-tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="flex gap-10" style="justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-outline" onclick="lihatPembahasan()"><i class="fa-solid fa-eye"></i> Lihat Pembahasan</button>
+        <a class="btn btn-primary" href="ujian.html"><i class="fa-solid fa-arrow-left"></i> Kembali ke Daftar</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal konfirmasi kumpulkan -->
+<div class="modal-backdrop" id="modal-kumpulkan">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3>Kumpulkan Ujian?</h3>
+      <button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--text-secondary);line-height:1.6" id="kumpulkan-pesan">—</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal-close>Batal</button>
+      <button class="btn btn-success btn-sm" onclick="kumpulkanUjian()"><i class="fa-solid fa-paper-plane"></i> Kumpulkan</button>
+    </div>
+  </div>
+</div>
+<div class="more-menu-overlay" id="more-menu-overlay"></div>
+<div class="more-menu-sheet" id="more-menu-sheet">
+  <div class="more-menu-handle"></div>
+  <div class="more-menu-title">Menu Lainnya</div>
+  <div class="more-menu-grid">
+    <a class="more-menu-item" href="khs.html"><i class="fa-solid fa-chart-bar"></i>KHS</a>
+    <a class="more-menu-item" href="transkrip.html"><i class="fa-solid fa-scroll"></i>Transkrip</a>
+    <a class="more-menu-item" href="jadwal.html"><i class="fa-solid fa-calendar-days"></i>Jadwal</a>
+    <a class="more-menu-item" href="pembayaran.html"><i class="fa-solid fa-credit-card"></i>Pembayaran</a>
+    <a class="more-menu-item" href="dokumen.html"><i class="fa-solid fa-folder-open"></i>Dokumen</a>
+    <a class="more-menu-item" href="ktm.html"><i class="fa-solid fa-id-card"></i>KTM</a>
+    <a class="more-menu-item" href="pengumuman.html"><i class="fa-solid fa-bullhorn"></i>Pengumuman</a>
+    <a class="more-menu-item" href="profil.html"><i class="fa-solid fa-user"></i>Profil</a>
+  </div>
+</div>
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+    <a class="bottom-nav-item" href="krs.html"><i class="fa-solid fa-file-pen"></i><span>KRS</span></a>
+    <a class="bottom-nav-item active" href="ujian.html"><i class="fa-solid fa-pencil"></i><span>Ujian</span></a>
+    <a class="bottom-nav-item" href="absensi.html"><i class="fa-solid fa-clipboard-check"></i><span>Absensi</span></a>
+    <button class="bottom-nav-more" id="btn-more-menu"><i class="fa-solid fa-plus"></i><span>Lainnya</span></button>
+  </div>
+</nav>
+<div class="toast-container"></div>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/mahasiswa-integration.js"></script>
+<script src="../assets/js/main.js"></script>
+
+<script>
+
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'mahasiswa') window.location.href = '../auth/login.html';
+
+// Ujian kerjakan masih menggunakan mode dummy karena butuh soal dari backend
+// yang belum ada di migration — akan diintegrasikan di Batch 2 (Fungsi Edit)
+const ujianId = localStorage.getItem('siakad_ujian_aktif');
+const mode    = new URLSearchParams(window.location.search).get('mode');
+
+// Placeholder: redirect balik jika tidak ada ujian aktif
+if (!ujianId && mode !== 'review') {
+  showToast('warning','Tidak Ada Ujian','Pilih ujian terlebih dahulu');
+  setTimeout(() => window.location.href = 'ujian.html', 1500);
+}
+
+</script>
+</body>
+</html>

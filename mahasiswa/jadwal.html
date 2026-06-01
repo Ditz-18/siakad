@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Jadwal Kuliah — SIAKAD STAI DILWA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="icon" type="image/png" href="../assets/img/icon.png">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="stylesheet" href="../assets/css/mobile-table.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <link rel="stylesheet" href="../assets/css/print.css">
+  <!-- Di <head> -->
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#1A5C2A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SIAKAD">
+<link rel="apple-touch-icon" href="../assets/img/icon.png">
+  <style>
+    /* ── GRID MINGGUAN ── */
+    .jadwal-grid-wrap { overflow-x: auto; }
+    .jadwal-grid {
+      display: grid;
+      grid-template-columns: 60px repeat(6, 1fr);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius-md);
+      overflow: hidden;
+      min-width: 700px;
+    }
+    .grid-header {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      padding: 10px 8px;
+      text-align: center;
+      font-size: 0.775rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .grid-header.today {
+      background: var(--navy);
+      color: white;
+    }
+    .grid-time-col {
+      border-right: 1px solid var(--border-color);
+    }
+    .grid-time-cell {
+      height: 64px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 6px 4px 0;
+      font-size: 0.68rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-light);
+    }
+    .grid-day-col { position: relative; border-right: 1px solid var(--border-light); }
+    .grid-day-col:last-child { border-right: none; }
+    .grid-slot {
+      height: 64px;
+      border-bottom: 1px solid var(--border-light);
+      position: relative;
+    }
+    /* Slot 30 menit (10:30) lebih pendek */
+    .grid-slot.slot-half,
+    .grid-time-cell.slot-half {
+      height: 32px;
+    }
+    .grid-slot:last-child { border-bottom: none; }
+
+    .mk-block {
+      position: absolute;
+      left: 3px; right: 3px;
+      border-radius: 6px;
+      padding: 5px 7px;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      overflow: hidden;
+      z-index: 1;
+    }
+    .mk-block:hover { transform: scale(1.02); box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 2; }
+    .mk-block-nama {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: white;
+      line-height: 1.3;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .mk-block-ruang {
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.8);
+      margin-top: 2px;
+    }
+
+    /* Toggle buttons */
+    .view-toggle {
+      display: flex;
+      gap: 4px;
+      background: var(--bg-tertiary);
+      padding: 3px;
+      border-radius: 8px;
+    }
+    .view-btn {
+      padding: 6px 14px;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: var(--font-body);
+      color: var(--text-muted);
+      background: transparent;
+      display: flex; align-items: center; gap: 6px;
+      transition: all 0.15s;
+    }
+    .view-btn.active {
+      background: var(--bg-card);
+      color: var(--navy);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <div id="mahasiswa-sidebar-placeholder"></div>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title">Jadwal Kuliah</span>
+      <div class="topbar-actions">
+        <button class="topbar-btn" data-theme-toggle><i class="fa-solid fa-moon"></i></button>
+        <button class="topbar-btn" data-notif-toggle><i class="fa-solid fa-bell"></i><span class="topbar-badge"></span></button>
+      </div>
+    </header>
+
+    <main class="page-content">
+      <div class="page-header">
+        <div class="page-header-top">
+          <div><h1>Jadwal Kuliah</h1><p id="jadwal-subtitle">Semester Ganjil 2024/2025</p></div>
+          <div class="flex gap-8 flex-wrap">
+            <div class="view-toggle">
+              <button class="view-btn active" id="btn-grid" onclick="setView('grid')"><i class="fa-solid fa-table-cells"></i> Grid</button>
+              <button class="view-btn" id="btn-list" onclick="setView('list')"><i class="fa-solid fa-list"></i> List</button>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="eksporJadwalPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- View Grid -->
+      <div class="card" id="view-grid">
+        <div class="card-body" style="padding:0">
+          <div class="jadwal-grid-wrap" style="padding:16px">
+            <div class="jadwal-grid" id="jadwal-grid-el"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- View List -->
+      <div class="card" id="view-list" style="display:none">
+                <div class="table-scroll-hint"><i class="fa-solid fa-arrows-left-right"></i> Geser untuk lihat selengkapnya</div>
+        <div class="table-wrapper-outer">
+  <div class="table-wrapper">
+            <table class="table" id="tabel-jadwal-list">
+              <thead>
+                <tr><th>Hari</th><th>Jam</th><th>Nama Mata Kuliah</th><th>SKS</th><th>Dosen</th><th>Ruangan</th></tr>
+              </thead>
+              <tbody id="tbody-jadwal-list"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Modal Detail Jadwal -->
+<div class="modal-backdrop" id="modal-detail-jadwal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3 id="modal-jadwal-nama">Detail Jadwal</h3>
+      <button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="grid" style="grid-template-columns:1fr 1fr;gap:14px" id="modal-jadwal-content"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal-close>Tutup</button>
+    </div>
+  </div>
+</div>
+
+<div class="more-menu-overlay" id="more-menu-overlay"></div>
+<div class="more-menu-sheet" id="more-menu-sheet">
+  <div class="more-menu-handle"></div>
+  <div class="more-menu-title">Menu Lainnya</div>
+  <div class="more-menu-grid">
+    <a class="more-menu-item" href="khs.html"><i class="fa-solid fa-chart-bar"></i>KHS</a>
+    <a class="more-menu-item" href="transkrip.html"><i class="fa-solid fa-scroll"></i>Transkrip</a>
+    <a class="more-menu-item active" href="jadwal.html"><i class="fa-solid fa-calendar-days"></i>Jadwal</a>
+    <a class="more-menu-item" href="pembayaran.html"><i class="fa-solid fa-credit-card"></i>Pembayaran</a>
+    <a class="more-menu-item" href="dokumen.html"><i class="fa-solid fa-folder-open"></i>Dokumen</a>
+    <a class="more-menu-item" href="ktm.html"><i class="fa-solid fa-id-card"></i>KTM</a>
+    <a class="more-menu-item" href="pengumuman.html"><i class="fa-solid fa-bullhorn"></i>Pengumuman</a>
+    <a class="more-menu-item" href="profil.html"><i class="fa-solid fa-user"></i>Profil</a>
+  </div>
+</div>
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+    <a class="bottom-nav-item" href="krs.html"><i class="fa-solid fa-file-pen"></i><span>KRS</span></a>
+    <a class="bottom-nav-item" href="ujian.html"><i class="fa-solid fa-pencil"></i><span>Ujian</span></a>
+    <a class="bottom-nav-item" href="absensi.html"><i class="fa-solid fa-clipboard-check"></i><span>Absensi</span></a>
+    <button class="bottom-nav-more active" id="btn-more-menu"><i class="fa-solid fa-plus"></i><span>Lainnya</span></button>
+  </div>
+</nav>
+<div class="toast-container"></div>
+
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/mahasiswa-integration.js"></script>
+<script src="../assets/js/mahasiswa-sidebar.js"></script>
+<script src="../assets/js/main.js"></script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
+</script>
+
+<script>
+
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'mahasiswa') window.location.href = '../auth/login.html';
+
+const HARI_ORDER = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+const SLOTS      = ['07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00'];
+const hariIniStr = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][new Date().getDay()];
+let jadwalList   = [];
+
+async function loadJadwal() {
+  const res = await MahasiswaAPI.jadwal();
+  if (!res || !res.ok) { showToast('danger','Error','Gagal memuat jadwal'); return; }
+  const d = res.data.data;
+  jadwalList = d.jadwal || [];
+
+  if (d.semester) {
+    const semEl = document.querySelector('.page-header p');
+    if (semEl) semEl.textContent = d.semester.nama || '';
+  }
+
+  if (window.innerWidth < 768) { buildList(); setView('list'); }
+  else buildGrid();
+}
+
+const WARNA = ['#1A5C2A','#1B3A6B','#C8922A','#2E7D32','#1565C0'];
+
+function buildGrid() {
+  const grid = document.getElementById('jadwal-grid-el');
+  if (!grid) return;
+  let html = '<div class="grid-header grid-time-col">Jam</div>';
+  HARI_ORDER.forEach(h => { html += `<div class="grid-header ${h===hariIniStr?'today':''}">${h}</div>`; });
+  SLOTS.forEach(slot => {
+    html += `<div class="grid-time-col"><div class="grid-time-cell">${slot}</div></div>`;
+    HARI_ORDER.forEach(hari => {
+      const mk = jadwalList.find(j => j.hari===hari && j.jam_mulai===slot);
+      if (mk) {
+        const endH=parseInt(mk.jam_selesai.split(':')[0]),startH=parseInt(slot.split(':')[0]),endM=parseInt(mk.jam_selesai.split(':')[1]||0);
+        const dur=(endH-startH)+(endM>0?0.5:0);
+        const h=Math.round(dur*64);
+        const warna = WARNA[jadwalList.indexOf(mk) % WARNA.length];
+        html+=`<div class="grid-slot"><div class="mk-block" style="background:${warna};height:${h-6}px;top:3px" onclick="bukaDetail('${mk.kelas_id}')">
+          <div class="mk-block-nama">${escHTML(mk.mata_kuliah)}</div>
+          <div class="mk-block-info">${mk.kode} &bull; ${mk.ruangan||'—'}</div>
+        </div></div>`;
+      } else html+='<div class="grid-slot"></div>';
+    });
+  });
+  grid.innerHTML = html;
+}
+
+function buildList() {
+  const tbody = document.getElementById('tbody-list');
+  if (!tbody) return;
+  tbody.innerHTML = jadwalList.map(j => `
+    <tr style="cursor:pointer">
+      <td><span class="badge ${j.hari===hariIniStr?'badge-primary':'badge-muted'}">${j.hari}</span></td>
+      <td><span class="font-mono" style="font-size:0.8rem">${j.jam_mulai}–${j.jam_selesai}</span></td>
+      <td><strong>${escHTML(j.mata_kuliah)}</strong></td>
+      <td><span class="font-mono" style="font-size:0.8rem">${j.kode}</span></td>
+      <td style="font-size:0.8rem">${escHTML(j.dosen)}</td>
+      <td><span class="badge badge-muted">${j.ruangan || '—'}</span></td>
+      <td style="text-align:center">${j.sks} SKS</td>
+    </tr>`).join('');
+}
+
+function bukaDetail(kelasId) {
+  const j = jadwalList.find(x => x.kelas_id == kelasId);
+  if (!j) return;
+  const modal = document.getElementById('modal-detail-jadwal');
+  if (!modal) return;
+  document.getElementById('modal-j-nama').textContent = j.mata_kuliah;
+  document.getElementById('modal-j-content').innerHTML = `
+    <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">KODE</label><strong class="font-mono">${j.kode}</strong></div>
+    <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">DOSEN</label><strong>${escHTML(j.dosen)}</strong></div>
+    <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">HARI & JAM</label><strong>${j.hari}, ${j.jam_mulai}–${j.jam_selesai}</strong></div>
+    <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">RUANGAN</label><strong>${j.ruangan || '—'}</strong></div>
+    <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">SKS</label><strong>${j.sks} SKS</strong></div>`;
+  showModal('modal-detail-jadwal');
+}
+
+let gridBuilt=false, listBuilt=false;
+function setView(mode) {
+  const vGrid = document.getElementById('view-grid');
+  const vList = document.getElementById('view-list');
+  const bGrid = document.getElementById('btn-grid');
+  const bList = document.getElementById('btn-list');
+  if(vGrid) vGrid.style.display = mode==='grid'?'':'none';
+  if(vList) vList.style.display = mode==='list'?'':'none';
+  if(bGrid) bGrid.classList.toggle('active',mode==='grid');
+  if(bList) bList.classList.toggle('active',mode==='list');
+  if(mode==='list'&&!listBuilt){buildList();listBuilt=true;}
+  if(mode==='grid'&&!gridBuilt){buildGrid();gridBuilt=true;}
+}
+
+function eksporJadwalPDF() {
+  const rows = jadwalList.map(j=>`<tr><td>${j.hari}</td><td>${j.jam_mulai}–${j.jam_selesai}</td><td>${j.mata_kuliah}</td><td>${j.kode}</td><td>${j.dosen}</td><td>${j.ruangan||'—'}</td></tr>`).join('');
+  eksporPDF('Jadwal Kuliah',`<table><thead><tr><th>Hari</th><th>Jam</th><th>Mata Kuliah</th><th>Kode</th><th>Dosen</th><th>Ruangan</th></tr></thead><tbody>${rows}</tbody></table>`);
+}
+
+loadJadwal();
+
+</script>
+</body>
+</html>

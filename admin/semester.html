@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kelola Semester — SIAKAD Ditz University</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="stylesheet" href="../assets/css/mobile-table.css">
+  <style>
+    .semester-card { background:var(--bg-card); border:1.5px solid var(--border-color); border-radius:var(--border-radius-lg); padding:20px; transition:all var(--transition-base); }
+    .semester-card.aktif { border-color:var(--navy); background:rgba(27,58,107,0.03); }
+    .semester-card-header { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+    .semester-card-header h3 { font-size:1rem; font-weight:700; color:var(--text-primary); flex:1; }
+    .config-row { display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid var(--border-light); font-size:0.8375rem; }
+    .config-row:last-child { border-bottom:none; }
+    .config-row label { color:var(--text-muted); }
+    .config-row strong { color:var(--text-primary); }
+  </style>
+  <link rel="manifest" href="../manifest.json">
+  <meta name="theme-color" content="#1B3A6B">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="SIAKAD">
+  <link rel="apple-touch-icon" href="../assets/img/icon.png">
+</head>
+<body>
+<div class="app-layout">
+  <div id="admin-sidebar-placeholder"></div>
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title">Kelola Semester</span>
+      <div class="topbar-actions">
+        <button class="topbar-btn" data-theme-toggle><i class="fa-solid fa-moon"></i></button>
+        <button class="topbar-btn" data-notif-toggle><i class="fa-solid fa-bell"></i><span class="topbar-badge"></span></button>
+      </div>
+    </header>
+    <main class="page-content">
+      <div class="page-header">
+        <div class="page-header-top">
+          <div><h1>Kelola Semester</h1><p>Pengaturan semester dan konfigurasi akademik</p></div>
+          <button class="btn btn-primary" data-modal-target="modal-buat-semester"><i class="fa-solid fa-plus"></i> Buat Semester Baru</button>
+        </div>
+      </div>
+
+      <div class="grid grid-2" style="gap:20px" id="semester-grid"></div>
+    </main>
+  </div>
+</div>
+
+<!-- Modal Buat Semester -->
+<div class="modal-backdrop" id="modal-buat-semester">
+  <div class="modal modal-lg">
+    <div class="modal-header"><h3><i class="fa-solid fa-calendar-plus" style="color:var(--navy);margin-right:8px"></i>Buat Semester Baru</h3><button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <div class="alert alert-warning mb-16"><i class="fa-solid fa-triangle-exclamation"></i><div>Semester yang sedang aktif akan diarsipkan secara otomatis saat semester baru diaktifkan.</div></div>
+      <div class="form-grid form-grid-2">
+        <div class="form-group"><label class="form-label">Nama Semester <span class="required">*</span></label><input type="text" class="form-control" id="sem-nama" placeholder="Contoh: Genap 2024/2025"></div>
+        <div class="form-group"><label class="form-label">Tahun Akademik <span class="required">*</span></label><input type="text" class="form-control" id="sem-tahun" placeholder="2024/2025"></div>
+        <div class="form-group"><label class="form-label">Tanggal Mulai</label><input type="date" class="form-control" id="sem-mulai"></div>
+        <div class="form-group"><label class="form-label">Tanggal Selesai</label><input type="date" class="form-control" id="sem-selesai"></div>
+        <div class="form-group"><label class="form-label">Buka KRS</label><input type="date" class="form-control" id="sem-krs-buka"></div>
+        <div class="form-group"><label class="form-label">Tutup KRS</label><input type="date" class="form-control" id="sem-krs-tutup"></div>
+        <div class="form-group"><label class="form-label">Buka Input Nilai Dosen</label><input type="date" class="form-control" id="sem-nilai-buka"></div>
+        <div class="form-group"><label class="form-label">Tutup Input Nilai Dosen</label><input type="date" class="form-control" id="sem-nilai-tutup"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal-close>Batal</button>
+      <button class="btn btn-primary btn-sm" onclick="buatSemester()"><i class="fa-solid fa-save"></i> Simpan Semester</button>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav"><div class="bottom-nav-inner">
+  <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+  <a class="bottom-nav-item" href="data-mahasiswa.html"><i class="fa-solid fa-user-graduate"></i><span>Mahasiswa</span></a>
+  <a class="bottom-nav-item" href="surat.html"><i class="fa-solid fa-envelope"></i><span>Surat</span></a>
+  <a class="bottom-nav-item" href="laporan.html"><i class="fa-solid fa-chart-pie"></i><span>Laporan</span></a>
+  <a class="bottom-nav-item active" href="semester.html"><i class="fa-solid fa-calendar"></i><span>Semester</span></a>
+</div></nav>
+<div class="toast-container"></div>
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/admin-integration.js"></script>
+
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/admin-sidebar.js"></script>
+<script>
+
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'admin') window.location.href = '../auth/login.html';
+
+async function loadSemester() {
+  const res = await AdminAPI.semester();
+  if (!res || !res.ok) { showToast('danger','Error','Gagal memuat semester'); return; }
+  const list = res.data.data || [];
+  renderSemester(list);
+}
+
+function renderSemester(list) {
+  document.getElementById('semester-grid').innerHTML = list.map(s => `
+    <div class="semester-card ${s.status==='Aktif'?'aktif':''}">
+      <div class="semester-card-header">
+        <div style="width:38px;height:38px;border-radius:var(--border-radius-sm);background:${s.status==='Aktif'?'var(--navy)':'var(--bg-tertiary)'};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i class="fa-solid fa-calendar" style="color:${s.status==='Aktif'?'white':'var(--text-muted)'}"></i>
+        </div>
+        <div style="flex:1;min-width:0">
+          <h3>${escHTML(s.nama)}</h3>
+          <p style="font-size:0.775rem;color:var(--text-muted)">Tahun Akademik ${s.tahun_akademik}</p>
+        </div>
+        <span class="badge ${s.status==='Aktif'?'badge-success':'badge-muted'}">${s.status}</span>
+      </div>
+      <div class="config-row"><label>Periode</label><strong>${formatTanggal(s.tanggal_mulai,'pendek')} — ${formatTanggal(s.tanggal_selesai,'pendek')}</strong></div>
+      <div class="config-row"><label>KRS</label><strong>${formatTanggal(s.krs_buka,'pendek')} — ${formatTanggal(s.krs_tutup,'pendek')}</strong></div>
+      <div class="config-row"><label>Input Nilai</label><strong>${formatTanggal(s.nilai_buka,'pendek')} — ${formatTanggal(s.nilai_tutup,'pendek')}</strong></div>
+      <div style="margin-top:14px;display:flex;gap:8px">
+        ${s.status==='Arsip'?`<button class="btn btn-primary btn-sm" onclick="aktifkanSemester(${s.id})"><i class="fa-solid fa-circle-check"></i> Aktifkan</button>`:''}
+        <button class="btn btn-ghost btn-sm" onclick="showToast('info','Edit','Segera tersedia')"><i class="fa-solid fa-pen"></i> Edit Tanggal</button>
+      </div>
+    </div>`).join('');
+}
+
+async function aktifkanSemester(id) {
+  konfirmasi('Semester aktif saat ini akan diarsipkan. Lanjutkan?', async () => {
+    const res = await AdminAPI.updateSemester(id, { status: 'Aktif' });
+    if (res && res.ok) { showToast('success','Diaktifkan','Semester berhasil diaktifkan'); loadSemester(); }
+    else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+  });
+}
+
+async function buatSemester() {
+  const nama   = document.getElementById('sem-nama').value.trim();
+  const tahun  = document.getElementById('sem-tahun').value.trim();
+  const mulai  = document.getElementById('sem-mulai').value;
+  const selesai= document.getElementById('sem-selesai').value;
+  const krsBuka= document.getElementById('sem-krs-buka').value;
+  const krsTutup=document.getElementById('sem-krs-tutup').value;
+  const nBuka  = document.getElementById('sem-nilai-buka').value;
+  const nTutup = document.getElementById('sem-nilai-tutup').value;
+  if (!nama||!tahun) { showToast('warning','Validasi','Nama dan tahun akademik wajib diisi'); return; }
+  const res = await AdminAPI.tambahSemester({
+    nama, tahun_akademik: tahun,
+    tipe: nama.toLowerCase().includes('ganjil') ? 'Ganjil' : 'Genap',
+    tanggal_mulai: mulai, tanggal_selesai: selesai,
+    krs_buka: krsBuka, krs_tutup: krsTutup,
+    nilai_buka: nBuka, nilai_tutup: nTutup,
+    status: 'Arsip',
+  });
+  if (res && res.ok) {
+    hideModal('modal-buat-semester');
+    showToast('success','Berhasil','Semester baru berhasil disimpan');
+    loadSemester();
+  } else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+}
+
+loadSemester();
+
+
+// ── EDIT SEMESTER ───────────────────────────────────────────────
+function editSemester(id, list) {
+  const s = list.find(x => x.id == id);
+  if (!s) return;
+  document.getElementById('edit-sem-id').value         = s.id;
+  document.getElementById('edit-sem-nama').value        = s.nama || '';
+  document.getElementById('edit-sem-tahun').value       = s.tahun_akademik || '';
+  document.getElementById('edit-sem-mulai').value       = s.tanggal_mulai?.split('T')[0] || '';
+  document.getElementById('edit-sem-selesai').value     = s.tanggal_selesai?.split('T')[0] || '';
+  document.getElementById('edit-sem-krs-buka').value    = s.krs_buka?.split('T')[0] || '';
+  document.getElementById('edit-sem-krs-tutup').value   = s.krs_tutup?.split('T')[0] || '';
+  document.getElementById('edit-sem-nilai-buka').value  = s.nilai_buka?.split('T')[0] || '';
+  document.getElementById('edit-sem-nilai-tutup').value = s.nilai_tutup?.split('T')[0] || '';
+  showModal('modal-edit-semester');
+}
+
+async function simpanEditSemester() {
+  const id = document.getElementById('edit-sem-id').value;
+  const data = {
+    nama:             document.getElementById('edit-sem-nama').value.trim(),
+    tahun_akademik:   document.getElementById('edit-sem-tahun').value.trim(),
+    tanggal_mulai:    document.getElementById('edit-sem-mulai').value,
+    tanggal_selesai:  document.getElementById('edit-sem-selesai').value,
+    krs_buka:         document.getElementById('edit-sem-krs-buka').value,
+    krs_tutup:        document.getElementById('edit-sem-krs-tutup').value,
+    nilai_buka:       document.getElementById('edit-sem-nilai-buka').value,
+    nilai_tutup:      document.getElementById('edit-sem-nilai-tutup').value,
+  };
+  if (!data.nama) { showToast('warning','Validasi','Nama semester wajib diisi'); return; }
+  const res = await AdminAPI.updateSemester(id, data);
+  if (res && res.ok) {
+    hideModal('modal-edit-semester');
+    showToast('success','Berhasil','Semester berhasil diperbarui');
+    loadSemester();
+  } else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+}
+</script>
+
+
+<!-- Modal Edit Semester -->
+<div class="modal-backdrop" id="modal-edit-semester">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-calendar-pen" style="color:var(--navy);margin-right:8px"></i>Edit Tanggal Semester</h3>
+      <button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-sem-id">
+      <div class="alert alert-info mb-16"><i class="fa-solid fa-circle-info"></i>Perubahan tanggal akan langsung mempengaruhi periode KRS dan input nilai.</div>
+      <div class="form-grid form-grid-2">
+        <div class="form-group"><label class="form-label">Nama Semester</label><input type="text" class="form-control" id="edit-sem-nama"></div>
+        <div class="form-group"><label class="form-label">Tahun Akademik</label><input type="text" class="form-control" id="edit-sem-tahun" placeholder="2024/2025"></div>
+        <div class="form-group"><label class="form-label">Tanggal Mulai</label><input type="date" class="form-control" id="edit-sem-mulai"></div>
+        <div class="form-group"><label class="form-label">Tanggal Selesai</label><input type="date" class="form-control" id="edit-sem-selesai"></div>
+        <div class="form-group"><label class="form-label">Buka KRS</label><input type="date" class="form-control" id="edit-sem-krs-buka"></div>
+        <div class="form-group"><label class="form-label">Tutup KRS</label><input type="date" class="form-control" id="edit-sem-krs-tutup"></div>
+        <div class="form-group"><label class="form-label">Buka Input Nilai</label><input type="date" class="form-control" id="edit-sem-nilai-buka"></div>
+        <div class="form-group mb-0"><label class="form-label">Tutup Input Nilai</label><input type="date" class="form-control" id="edit-sem-nilai-tutup"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal-close>Batal</button>
+      <button class="btn btn-primary btn-sm" onclick="simpanEditSemester()"><i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

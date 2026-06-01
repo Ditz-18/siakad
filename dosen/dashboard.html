@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Dashboard Dosen — SIAKAD Ditz University</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <link rel="stylesheet" href="../assets/css/print.css">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="stylesheet" href="../assets/css/mobile-table.css">
+  <link rel="icon" type="image/png" href="../assets/img/icon.png">  <link rel="manifest" href="../manifest.json">
+  <meta name="theme-color" content="#1A5C2A">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="SIAKAD">
+  <link rel="apple-touch-icon" href="../assets/img/icon.png">
+  <style>
+    .welcome-dosen {
+      background: linear-gradient(135deg, #0D1F3C 0%, var(--navy) 60%, var(--navy-light) 100%);
+      border-radius: var(--border-radius-xl); padding: 28px 32px;
+      color: white; position: relative; overflow: hidden; margin-bottom: 24px;
+    }
+    .welcome-dosen::before { content:''; position:absolute; right:-60px; top:-60px; width:240px; height:240px; border-radius:50%; background:rgba(200,146,42,0.08); }
+    .welcome-dosen::after  { content:''; position:absolute; right:100px; bottom:-80px; width:160px; height:160px; border-radius:50%; background:rgba(255,255,255,0.04); }
+    .welcome-dosen-content { position:relative; z-index:1; }
+    .welcome-dosen h2 { font-family:var(--font-display); font-size:1.5rem; font-weight:700; margin-bottom:5px; }
+    .welcome-dosen p  { font-size:0.875rem; color:rgba(255,255,255,0.65); }
+    .welcome-dosen .semester-tag { display:inline-flex; align-items:center; gap:6px; background:rgba(200,146,42,0.2); border:1px solid rgba(200,146,42,0.35); color:var(--gold-light); padding:5px 12px; border-radius:20px; font-size:0.775rem; font-weight:700; margin-top:12px; }
+    .kelas-item { display:flex; align-items:center; gap:14px; padding:13px 0; border-bottom:1px solid var(--border-light); cursor:pointer; transition:opacity 0.15s; }
+    .kelas-item:hover { opacity:0.8; }
+    .kelas-item:last-child { border-bottom:none; }
+    .kelas-icon { width:40px; height:40px; border-radius:var(--border-radius-sm); display:flex; align-items:center; justify-content:center; font-size:0.9rem; flex-shrink:0; }
+    .kelas-info { flex:1; min-width:0; }
+    .kelas-info h4 { font-size:0.875rem; font-weight:700; color:var(--text-primary); }
+    .kelas-info p  { font-size:0.775rem; color:var(--text-muted); margin-top:2px; }
+    .krs-antrian-item { display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--border-light); }
+    .krs-antrian-item:last-child { border-bottom:none; }
+    .progress-nilai-item { padding:10px 0; border-bottom:1px solid var(--border-light); }
+    .progress-nilai-item:last-child { border-bottom:none; }
+    .progress-nilai-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+    .progress-nilai-top h4 { font-size:0.8375rem; font-weight:600; color:var(--text-primary); }
+    .progress-nilai-top span { font-size:0.775rem; color:var(--text-muted); }
+    @media (max-width:768px) {
+      .welcome-dosen { padding: 20px 18px; }
+      .welcome-dosen h2 { font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <div id="dosen-sidebar-placeholder"></div>
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title">Dashboard Dosen</span>
+      <div class="topbar-actions">
+        <button class="topbar-btn" data-theme-toggle><i class="fa-solid fa-moon"></i></button>
+        <button class="topbar-btn" data-notif-toggle title="Notifikasi"><i class="fa-solid fa-bell"></i><span class="topbar-badge"></span></button>
+        <a href="profil.html" class="topbar-btn" title="Profil"><i class="fa-solid fa-user-circle"></i></a>
+      </div>
+    </header>
+    <div class="notif-dropdown" id="notif-dropdown">
+      <div class="notif-header"><h4>Notifikasi</h4><span class="badge badge-danger" style="font-size:0.65rem">3 Baru</span></div>
+      <div class="notif-item"><div class="notif-item-icon" style="background:var(--warning-bg);color:var(--warning)"><i class="fa-solid fa-triangle-exclamation"></i></div><div class="notif-item-content"><div class="notif-item-title">Batas Input Nilai Mendekati</div><div class="notif-item-desc">Input nilai ditutup 30 Nov 2024</div><div class="notif-item-time">1 hari lalu</div></div></div>
+      <div class="notif-item"><div class="notif-item-icon" style="background:var(--info-bg);color:var(--info)"><i class="fa-solid fa-file-pen"></i></div><div class="notif-item-content"><div class="notif-item-title">3 KRS Menunggu Persetujuan</div><div class="notif-item-desc">Mahasiswa bimbingan Anda menunggu ACC</div><div class="notif-item-time">2 jam lalu</div></div></div>
+      <div class="notif-item"><div class="notif-item-icon" style="background:var(--success-bg);color:var(--success)"><i class="fa-solid fa-bullhorn"></i></div><div class="notif-item-content"><div class="notif-item-title">Pengumuman Jadwal UTS</div><div class="notif-item-desc">Informasi terbaru dari akademik</div><div class="notif-item-time">1 hari lalu</div></div></div>
+    </div>
+    <main class="page-content">
+      <div class="welcome-dosen">
+        <div class="welcome-dosen-content">
+          <h2>Selamat Datang, Dr. Hendra!</h2>
+          <p>NIP 198803152015041001 &mdash; Lektor, Teknik Informatika</p>
+          <div class="semester-tag"><i class="fa-solid fa-calendar"></i> Semester Ganjil 2024/2025</div>
+        </div>
+      </div>
+      <div class="grid grid-4 mb-24">
+        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value">3</div><div class="stat-card-label">Kelas Diampu</div></div><div class="stat-card-icon stat-icon-navy"><i class="fa-solid fa-chalkboard"></i></div></div><div class="stat-card-sub">Semester ini</div></div>
+        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value">75</div><div class="stat-card-label">Total Mahasiswa</div></div><div class="stat-card-icon stat-icon-gold"><i class="fa-solid fa-users"></i></div></div><div class="stat-card-sub">Dari 3 kelas</div></div>
+        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value">6</div><div class="stat-card-label">Mhs. Bimbingan</div></div><div class="stat-card-icon stat-icon-success"><i class="fa-solid fa-user-graduate"></i></div></div><div class="stat-card-sub">PA aktif</div></div>
+        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value" style="color:var(--warning)">3</div><div class="stat-card-label">KRS Menunggu</div></div><div class="stat-card-icon stat-icon-warning"><i class="fa-solid fa-file-pen"></i></div></div><div class="stat-card-sub">Perlu persetujuan</div></div>
+      </div>
+      <div class="grid grid-2 mb-24">
+        <div class="card">
+          <div class="card-header"><h3><i class="fa-solid fa-chalkboard" style="color:var(--navy);margin-right:8px"></i>Kelas Diampu</h3><a href="kelas.html" class="btn btn-ghost btn-sm"><i class="fa-solid fa-arrow-right"></i></a></div>
+          <div class="card-body" style="padding-top:8px;padding-bottom:8px">
+            <div class="kelas-item" onclick="location.href='kelas.html'"><div class="kelas-icon" style="background:rgba(26,92,42,0.1);color:var(--navy)"><i class="fa-solid fa-brain"></i></div><div class="kelas-info"><h4>Kecerdasan Buatan — IF-7A</h4><p><i class="fa-solid fa-users" style="font-size:0.65rem;margin-right:3px"></i>32 mahasiswa &bull; Senin 08:00–10:30 &bull; Lab 301</p></div><span class="badge badge-success">Aktif</span></div>
+            <div class="kelas-item" onclick="location.href='kelas.html'"><div class="kelas-icon" style="background:var(--warning-bg);color:var(--warning)"><i class="fa-solid fa-file-contract"></i></div><div class="kelas-info"><h4>Seminar Proposal Skripsi — IF-7B</h4><p><i class="fa-solid fa-users" style="font-size:0.65rem;margin-right:3px"></i>28 mahasiswa &bull; Jumat 08:00–09:40 &bull; R. 302</p></div><span class="badge badge-success">Aktif</span></div>
+            <div class="kelas-item" onclick="location.href='kelas.html'"><div class="kelas-icon" style="background:var(--success-bg);color:var(--success)"><i class="fa-solid fa-graduation-cap"></i></div><div class="kelas-info"><h4>Skripsi — IF-8A</h4><p><i class="fa-solid fa-users" style="font-size:0.65rem;margin-right:3px"></i>15 mahasiswa &bull; Konsultasi terjadwal</p></div><span class="badge badge-success">Aktif</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3><i class="fa-solid fa-file-pen" style="color:var(--warning);margin-right:8px"></i>Antrian Persetujuan KRS</h3><a href="persetujuan-krs.html" class="btn btn-ghost btn-sm"><i class="fa-solid fa-arrow-right"></i></a></div>
+          <div class="card-body" style="padding-top:8px;padding-bottom:8px" id="krs-antrian-list"></div>
+        </div>
+      </div>
+      <div class="grid grid-2 mb-24">
+        <div class="card">
+          <div class="card-header"><h3><i class="fa-solid fa-pen-to-square" style="color:var(--danger);margin-right:8px"></i>Pengingat Input Nilai</h3><a href="input-nilai.html" class="btn btn-ghost btn-sm"><i class="fa-solid fa-arrow-right"></i></a></div>
+          <div class="card-body" style="padding-top:8px;padding-bottom:8px">
+            <div class="progress-nilai-item"><div class="progress-nilai-top"><h4>Kecerdasan Buatan — IF-7A</h4><span>28/32 dinilai</span></div><div class="progress"><div class="progress-bar warning" style="width:87%"></div></div><div style="display:flex;justify-content:space-between;margin-top:6px"><span style="font-size:0.75rem;color:var(--text-muted)">4 mahasiswa belum dinilai</span><a href="input-nilai.html" class="btn btn-outline btn-sm" style="padding:4px 10px;font-size:0.75rem"><i class="fa-solid fa-pen"></i> Input</a></div></div>
+            <div class="progress-nilai-item"><div class="progress-nilai-top"><h4>Seminar Proposal — IF-7B</h4><span>0/28 dinilai</span></div><div class="progress"><div class="progress-bar danger" style="width:0%"></div></div><div style="display:flex;justify-content:space-between;margin-top:6px"><span style="font-size:0.75rem;color:var(--danger)">Belum ada nilai diinput</span><a href="input-nilai.html" class="btn btn-danger btn-sm" style="padding:4px 10px;font-size:0.75rem"><i class="fa-solid fa-pen"></i> Input Sekarang</a></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3><i class="fa-solid fa-bolt" style="color:var(--gold-dark);margin-right:8px"></i>Akses Cepat</h3></div>
+          <div class="card-body">
+            <div class="grid grid-3 quick-link-grid" style="gap:10px">
+              <a class="quick-link-card" href="kelas.html"><div class="quick-link-icon" style="background:rgba(26,92,42,0.1);color:var(--navy)"><i class="fa-solid fa-chalkboard"></i></div><span class="quick-link-label">Kelas Saya</span></a>
+              <a class="quick-link-card" href="input-nilai.html"><div class="quick-link-icon" style="background:var(--danger-bg);color:var(--danger)"><i class="fa-solid fa-pen-to-square"></i></div><span class="quick-link-label">Input Nilai</span></a>
+              <a class="quick-link-card" href="absensi-kelas.html"><div class="quick-link-icon" style="background:var(--success-bg);color:var(--success)"><i class="fa-solid fa-clipboard-list"></i></div><span class="quick-link-label">Absensi</span></a>
+              <a class="quick-link-card" href="kelola-ujian.html"><div class="quick-link-icon" style="background:var(--warning-bg);color:var(--warning)"><i class="fa-solid fa-file-circle-check"></i></div><span class="quick-link-label">Kelola Ujian</span></a>
+              <a class="quick-link-card" href="bimbingan.html"><div class="quick-link-icon" style="background:rgba(108,59,154,0.1);color:#6C3B9A"><i class="fa-solid fa-user-graduate"></i></div><span class="quick-link-label">Bimbingan</span></a>
+              <a class="quick-link-card" href="persetujuan-krs.html"><div class="quick-link-icon" style="background:var(--info-bg);color:var(--info)"><i class="fa-solid fa-file-pen"></i></div><span class="quick-link-label">ACC KRS</span></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<div class="more-menu-overlay" id="more-menu-overlay"></div>
+<div class="more-menu-sheet" id="more-menu-sheet">
+  <div class="more-menu-handle"></div>
+  <div class="more-menu-title">Menu Lainnya</div>
+  <div class="more-menu-grid">
+    <a class="more-menu-item" href="absensi-kelas.html"><i class="fa-solid fa-clipboard-list"></i>Absensi</a>
+    <a class="more-menu-item" href="jadwal.html"><i class="fa-solid fa-calendar-days"></i>Jadwal</a>
+    <a class="more-menu-item" href="kelola-ujian.html"><i class="fa-solid fa-file-circle-check"></i>Ujian</a>
+    <a class="more-menu-item" href="persetujuan-krs.html"><i class="fa-solid fa-file-pen"></i>ACC KRS</a>
+    <a class="more-menu-item" href="pengumuman.html"><i class="fa-solid fa-bullhorn"></i>Pengumuman</a>
+    <a class="more-menu-item" href="profil.html"><i class="fa-solid fa-user"></i>Profil</a>
+  </div>
+</div>
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <a class="bottom-nav-item active" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+    <a class="bottom-nav-item" href="kelas.html"><i class="fa-solid fa-chalkboard"></i><span>Kelas</span></a>
+    <a class="bottom-nav-item" href="input-nilai.html"><i class="fa-solid fa-pen-to-square"></i><span>Nilai</span></a>
+    <a class="bottom-nav-item" href="bimbingan.html"><i class="fa-solid fa-users"></i><span>Bimbingan</span></a>
+    <button class="bottom-nav-more" id="btn-more-menu"><i class="fa-solid fa-plus"></i><span>Lainnya</span></button>
+  </div>
+</nav>
+<div class="toast-container"></div>
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/dosen-integration.js"></script>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/dosen-sidebar.js"></script>
+
+<script>
+(function() {
+  const btnMore=document.getElementById('btn-more-menu'), overlay=document.getElementById('more-menu-overlay'), sheet=document.getElementById('more-menu-sheet');
+  function openMore(){overlay.classList.add('open');sheet.classList.add('open');btnMore.classList.add('open');document.body.style.overflow='hidden';}
+  function closeMore(){overlay.classList.remove('open');sheet.classList.remove('open');btnMore.classList.remove('open');document.body.style.overflow='';}
+  btnMore?.addEventListener('click',function(e){e.stopPropagation();sheet.classList.contains('open')?closeMore():openMore();});
+  overlay?.addEventListener('click',closeMore);
+  let startY=0;
+  sheet?.addEventListener('touchstart',function(e){startY=e.touches[0].clientY;},{passive:true});
+  sheet?.addEventListener('touchmove',function(e){if(e.touches[0].clientY-startY>60)closeMore();},{passive:true});
+})();
+</script>
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}</script>
+<script>
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'dosen') window.location.href = '../auth/login.html';
+async function loadDashboard() {
+  const res = await DosenAPI.dashboard();
+  if (!res || !res.ok) { showToast('danger','Error','Gagal memuat dashboard'); return; }
+  const d = res.data.data;
+  // Update hero info
+  if (d.dosen) {
+    document.querySelectorAll('[id*="dosen-nama"], .hero-nama').forEach(el => el.textContent = d.dosen.nama || '');
+    document.querySelectorAll('[id*="dosen-nip"], .hero-nip').forEach(el => el.textContent = d.dosen.nip || '');
+  }
+  if (d.semester_aktif) {
+    document.querySelectorAll('.hero-semester, [id*="semester-nama"]').forEach(el => el.textContent = d.semester_aktif.nama || '');
+  }
+  // Update stat cards
+  const cards = document.querySelectorAll('.stat-card .stat-card-value');
+  if (cards[0]) cards[0].textContent = d.total_kelas ?? '0';
+  if (cards[1]) cards[1].textContent = d.total_mahasiswa_bimbingan ?? '0';
+  if (cards[2]) cards[2].textContent = d.total_krs_menunggu ?? '0';
+  if (cards[3]) cards[3].textContent = d.ujian_berlangsung ?? '0';
+  // Update sidebar profil
+  const nameEl = document.querySelector('.sidebar-profile-info strong');
+  const subEl  = document.querySelector('.sidebar-profile-info small');
+  if (nameEl && d.dosen) nameEl.textContent = d.dosen.nama || '';
+  if (subEl && d.dosen)  subEl.textContent  = (d.dosen.jabatan || '') + ' — ' + (d.dosen.program_studi?.nama || '');
+  // Load kelas hari ini
+  const kelasRes = await DosenAPI.kelas();
+  if (kelasRes && kelasRes.ok) {
+    const kelasList = kelasRes.data.data || [];
+    const hariSkrg  = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][new Date().getDay()];
+    const hariIni   = kelasList.filter(k => k.hari === hariSkrg);
+    const listEl    = document.getElementById('kelas-hari-ini') || document.querySelector('[id*="kelas-list"]');
+    if (listEl) {
+      listEl.innerHTML = hariIni.length === 0
+        ? `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:0.875rem"><i class="fa-solid fa-circle-check" style="color:var(--success);margin-right:6px"></i>Tidak ada kelas hari ini</div>`
+        : hariIni.map(k => `
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border-light)">
+            <div style="width:40px;height:40px;border-radius:8px;background:var(--navy-bg);color:var(--navy);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <i class="fa-solid fa-chalkboard" style="font-size:0.9rem"></i>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:0.875rem;font-weight:700;color:var(--text-primary)">${escHTML(k.mata_kuliah?.nama || k.kode_kelas)}</div>
+              <div style="font-size:0.775rem;color:var(--text-muted)">${k.kode_kelas} &bull; ${k.jam_mulai}–${k.jam_selesai} &bull; ${k.ruangan || '—'}</div>
+            </div>
+            <span class="badge badge-success">Aktif</span>
+          </div>`).join('');
+    }
+  }
+  // Load KRS menunggu
+  const krsRes = await DosenAPI.krs('Menunggu');
+  if (krsRes && krsRes.ok) {
+    const krsList = krsRes.data.data || [];
+    const krsEl   = document.getElementById('krs-list') || document.querySelector('[id*="antrian"]');
+    if (krsEl && krsList.length > 0) {
+      krsEl.innerHTML = krsList.slice(0,3).map(k => `
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-light)">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:0.8375rem;font-weight:700">${escHTML(k.mahasiswa?.nama || '—')}</div>
+            <div style="font-size:0.75rem;color:var(--text-muted)">${k.mahasiswa?.nim || '—'}</div>
+          </div>
+          <span class="badge badge-warning">Menunggu</span>
+        </div>`).join('');
+    }
+  }
+}
+loadDashboard();
+</script>
+</body>
+</html>

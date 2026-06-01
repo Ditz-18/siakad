@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pembayaran UKT — SIAKAD Ditz University</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="stylesheet" href="../assets/css/mobile-table.css">
+  <link rel="stylesheet" href="../assets/css/print.css">
+</head>
+<body>
+<div class="app-layout">
+  <div id="admin-sidebar-placeholder"></div>
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title">Pembayaran UKT</span>
+      <div class="topbar-actions">
+        <button class="topbar-btn" data-theme-toggle><i class="fa-solid fa-moon"></i></button>
+        <button class="topbar-btn" data-notif-toggle><i class="fa-solid fa-bell"></i><span class="topbar-badge"></span></button>
+      </div>
+    </header>
+    <main class="page-content">
+      <div class="page-header">
+        <div class="page-header-top">
+          <div><h1>Pembayaran UKT</h1><p>Monitor status pembayaran semester ini</p></div>
+          <div class="flex gap-8">
+            <button class="btn btn-outline btn-sm" onclick="eksporBayarCSV()"><i class="fa-solid fa-file-csv"></i> CSV</button>
+            <button class="btn btn-primary btn-sm" onclick="eksporBayarPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-4 mb-24">
+        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value" style="color:var(--success)">1.085</div><div class="stat-card-label">Sudah Lunas</div></div><div class="stat-card-icon stat-icon-success"><i class="fa-solid fa-circle-check"></i></div></div></div>
+        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value" style="color:var(--danger)">162</div><div class="stat-card-label">Menunggak</div></div><div class="stat-card-icon stat-icon-danger"><i class="fa-solid fa-triangle-exclamation"></i></div></div></div>
+        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value" style="color:var(--success)">87%</div><div class="stat-card-label">Ketercapaian</div></div><div class="stat-card-icon stat-icon-gold"><i class="fa-solid fa-chart-pie"></i></div></div></div>
+        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value">Rp7,05M</div><div class="stat-card-label">Total Terkumpul</div></div><div class="stat-card-icon stat-icon-info"><i class="fa-solid fa-wallet"></i></div></div></div>
+      </div>
+
+      <!-- Progress ketercapaian -->
+      <div class="card mb-24">
+        <div class="card-body">
+          <div class="flex-between mb-8">
+            <span style="font-size:0.875rem;font-weight:600">Ketercapaian UKT Semester Ganjil 2024/2025</span>
+            <span style="font-weight:700;color:var(--success)">87%</span>
+          </div>
+          <div class="progress" style="height:12px;border-radius:6px">
+            <div class="progress-bar success" style="width:87%"></div>
+          </div>
+          <div class="flex-between mt-8" style="font-size:0.775rem;color:var(--text-muted)">
+            <span>1.085 mahasiswa lunas</span><span>162 mahasiswa menunggak</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body" style="padding-bottom:0">
+          <div class="filter-bar">
+            <div class="input-group" style="max-width:240px"><i class="input-icon fa-solid fa-magnifying-glass"></i><input type="text" class="form-control" id="search-bayar" placeholder="Cari NIM atau nama..."></div>
+            <select class="form-control" id="filter-bayar-status" style="width:auto"><option value="">Semua Status</option><option value="Lunas">Lunas</option><option value="Menunggak">Menunggak</option></select>
+            <button class="btn btn-ghost btn-sm" onclick="resetFilterBayar()"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead><tr><th>NIM</th><th>Nama</th><th>Program Studi</th><th>Nominal UKT</th><th>Status</th><th>Tanggal Bayar</th><th>Aksi</th></tr></thead>
+            <tbody id="tbody-bayar"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Modal Konfirmasi Bayar -->
+<div class="modal-backdrop" id="modal-konfirm-bayar">
+  <div class="modal modal-sm">
+    <div class="modal-header"><h3>Konfirmasi Pembayaran</h3><button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <p style="color:var(--text-secondary);margin-bottom:16px">Konfirmasi pembayaran UKT untuk: <strong id="konfirm-bayar-nama">—</strong></p>
+      <div class="form-group"><label class="form-label">Tanggal Pembayaran</label><input type="date" class="form-control" id="konfirm-tgl"></div>
+      <div class="form-group mb-0"><label class="form-label">No. Referensi / Invoice</label><input type="text" class="form-control" id="konfirm-ref" placeholder="Nomor referensi bank"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal-close>Batal</button>
+      <button class="btn btn-success btn-sm" onclick="konfirmasiPembayaran()"><i class="fa-solid fa-check"></i> Konfirmasi Lunas</button>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav"><div class="bottom-nav-inner">
+  <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+  <a class="bottom-nav-item" href="data-mahasiswa.html"><i class="fa-solid fa-user-graduate"></i><span>Mahasiswa</span></a>
+  <a class="bottom-nav-item" href="surat.html"><i class="fa-solid fa-envelope"></i><span>Surat</span></a>
+  <a class="bottom-nav-item" href="laporan.html"><i class="fa-solid fa-chart-pie"></i><span>Laporan</span></a>
+  <a class="bottom-nav-item" href="semester.html"><i class="fa-solid fa-calendar"></i><span>Semester</span></a>
+</div></nav>
+<div class="toast-container"></div>
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/admin-integration.js"></script>
+
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/admin-sidebar.js"></script>
+<script>
+
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'admin') window.location.href = '../auth/login.html';
+
+let bayarList = [];
+let konfirmId = null;
+
+async function loadPembayaran() {
+  const q    = document.getElementById('search-bayar').value;
+  const stat = document.getElementById('filter-bayar-status').value;
+  const params = { per_page: 50 };
+  if (q)    params.search = q;
+  if (stat) params.status = stat;
+  const res = await AdminAPI.pembayaran(params);
+  if (!res || !res.ok) { showToast('danger','Error','Gagal memuat data pembayaran'); return; }
+  bayarList = res.data.data?.data || res.data.data || [];
+  renderBayar(bayarList);
+}
+
+function renderBayar(list) {
+  if (list.length === 0) {
+    document.getElementById('tbody-bayar').innerHTML = `<tr><td colspan="99"><div class="empty-state"><h3 class="empty-state-title">Tidak ada data pembayaran</h3></div></td></tr>`;
+    return;
+  }
+  document.getElementById('tbody-bayar').innerHTML = list.map(m => `
+    <tr>
+      <td class="font-mono" style="font-size:0.8rem">${m.mahasiswa?.nim || '—'}</td>
+      <td><strong>${escHTML(m.mahasiswa?.nama || '—')}</strong></td>
+      <td style="font-size:0.8375rem">${escHTML(m.mahasiswa?.program_studi?.nama || '—')}</td>
+      <td><strong>${formatRupiah(m.nominal)}</strong></td>
+      <td><span class="badge ${m.status==='Lunas'?'badge-success':'badge-danger'}">${m.status}</span></td>
+      <td>${m.tanggal_bayar ? formatTanggal(m.tanggal_bayar,'pendek') : '—'}</td>
+      <td>
+        ${m.status==='Menunggak'
+          ? `<button class="btn btn-success btn-sm" onclick="bukaBayarModal(${m.id},'${escHTML(m.mahasiswa?.nama||'')}')"><i class="fa-solid fa-check"></i> Konfirmasi</button>`
+          : `<span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Lunas</span>`}
+      </td>
+    </tr>`).join('');
+}
+
+function bukaBayarModal(id, nama) {
+  konfirmId = id;
+  document.getElementById('konfirm-bayar-nama').textContent = nama;
+  document.getElementById('konfirm-tgl').value = new Date().toISOString().split('T')[0];
+  document.getElementById('konfirm-ref').value = '';
+  showModal('modal-konfirm-bayar');
+}
+
+async function konfirmasiPembayaran() {
+  const tgl = document.getElementById('konfirm-tgl').value;
+  if (!tgl) { showToast('warning','Tanggal','Pilih tanggal pembayaran'); return; }
+  const noRef = document.getElementById('konfirm-ref').value.trim();
+  const res = await AdminAPI.konfirmasiPembayaran(konfirmId, noRef);
+  if (res && res.ok) {
+    hideModal('modal-konfirm-bayar');
+    showToast('success','Dikonfirmasi','Pembayaran berhasil dikonfirmasi lunas');
+    loadPembayaran();
+  } else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+}
+
+function eksporBayarCSV() {
+  eksporCSV(bayarList.map(m=>({ nim:m.mahasiswa?.nim||'—', nama:m.mahasiswa?.nama||'—', nominal:m.nominal, status:m.status, tgl:m.tanggal_bayar||'—' })),
+  ['NIM','Nama','Nominal','Status','Tanggal Bayar'], 'Pembayaran_UKT');
+}
+
+function eksporBayarPDF() {
+  const rows = bayarList.map(m=>`<tr><td>${m.mahasiswa?.nim||'—'}</td><td>${m.mahasiswa?.nama||'—'}</td><td>${formatRupiah(m.nominal)}</td><td>${m.status}</td><td>${m.tanggal_bayar?formatTanggal(m.tanggal_bayar,'pendek'):'—'}</td></tr>`).join('');
+  eksporPDF('Rekap Pembayaran UKT',`<table><thead><tr><th>NIM</th><th>Nama</th><th>Nominal</th><th>Status</th><th>Tgl Bayar</th></tr></thead><tbody>${rows}</tbody></table>`);
+}
+
+const debS = debounce(() => loadPembayaran(), 300);
+document.getElementById('search-bayar').addEventListener('input', debS);
+document.getElementById('filter-bayar-status').addEventListener('change', loadPembayaran);
+function resetFilterBayar() {
+  document.getElementById('search-bayar').value = '';
+  document.getElementById('filter-bayar-status').value = '';
+  loadPembayaran();
+}
+loadPembayaran();
+
+</script>
+</body>
+</html>

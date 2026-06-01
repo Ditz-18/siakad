@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Admin — SIAKAD Ditz University</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="stylesheet" href="../assets/css/mobile-table.css">
+  <style>
+    .admin-hero {
+      background: linear-gradient(135deg, #0A0F1A 0%, #1B0A2E 50%, #0D1F3C 100%);
+      border-radius: var(--border-radius-xl); padding: 24px 28px;
+      color: white; position: relative; overflow: hidden; margin-bottom: 24px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    }
+    .admin-hero::before { content:''; position:absolute; right:-80px; top:-80px; width:260px; height:260px; border-radius:50%; background:rgba(190,51,40,0.12); }
+    .admin-hero h2 { font-family:var(--font-display); font-size:1.4rem; font-weight:700; margin-bottom:4px; }
+    .admin-hero p  { font-size:0.875rem; color:rgba(255,255,255,0.6); }
+    .admin-hero-right { flex-shrink:0; position:relative; z-index:1; }
+    .live-badge { display:inline-flex; align-items:center; gap:6px; background:rgba(26,122,66,0.25); border:1px solid rgba(26,122,66,0.4); color:#6DD49A; padding:5px 12px; border-radius:20px; font-size:0.775rem; font-weight:700; }
+    .live-dot { width:7px; height:7px; border-radius:50%; background:#6DD49A; animation:pulse 1.5s ease infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .surat-item { display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--border-light); }
+    .surat-item:last-child { border-bottom:none; }
+    .mhs-baru-item { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border-light); }
+    .mhs-baru-item:last-child { border-bottom:none; }
+
+    .ujian-status-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .dot-berlangsung { background:var(--success); animation:pulse 1.2s ease infinite; }
+    .dot-selesai { background:var(--text-muted); }
+  </style>
+  <link rel="manifest" href="../manifest.json">
+  <meta name="theme-color" content="#1A5C2A">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="SIAKAD">
+  <link rel="apple-touch-icon" href="../assets/img/icon.png">
+</head>
+<body>
+<div class="app-layout">
+  <div id="admin-sidebar-placeholder"></div>
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title">Dashboard Administrator</span>
+      <div class="topbar-actions">
+        <button class="topbar-btn" data-theme-toggle><i class="fa-solid fa-moon"></i></button>
+        <button class="topbar-btn" data-notif-toggle><i class="fa-solid fa-bell"></i><span class="topbar-badge"></span></button>
+      </div>
+    </header>
+
+    <div class="notif-dropdown" id="notif-dropdown">
+      <div class="notif-header"><h4>Notifikasi</h4><span class="badge badge-danger" style="font-size:0.65rem">3 Baru</span></div>
+      <div class="notif-item"><div class="notif-item-icon" style="background:var(--warning-bg);color:var(--warning)"><i class="fa-solid fa-envelope"></i></div><div class="notif-item-content"><div class="notif-item-title">3 Permohonan Surat Baru</div><div class="notif-item-desc">Menunggu diproses oleh admin</div><div class="notif-item-time">1 jam lalu</div></div></div>
+      <div class="notif-item"><div class="notif-item-icon" style="background:var(--danger-bg);color:var(--danger)"><i class="fa-solid fa-shield-halved"></i></div><div class="notif-item-content"><div class="notif-item-title">Pelanggaran Ujian Terdeteksi</div><div class="notif-item-desc">2 pelanggaran pada UTS Kecerdasan Buatan</div><div class="notif-item-time">2 jam lalu</div></div></div>
+      <div class="notif-item"><div class="notif-item-icon" style="background:var(--info-bg);color:var(--info)"><i class="fa-solid fa-id-card"></i></div><div class="notif-item-content"><div class="notif-item-title">KTM Mendekati Kadaluarsa</div><div class="notif-item-desc">24 KTM akan kadaluarsa bulan ini</div><div class="notif-item-time">1 hari lalu</div></div></div>
+    </div>
+
+    <main class="page-content">
+      <!-- Hero -->
+      <div class="admin-hero">
+        <div>
+          <h2>Panel Administrator</h2>
+          <p>Siska Permatasari &mdash; Kepala Bagian Akademik</p>
+          <p style="margin-top:6px;font-size:0.8rem;color:rgba(255,255,255,0.5)">Semester Ganjil 2024/2025 &mdash; <span id="hero-tanggal">—</span></p>
+        </div>
+        <div class="admin-hero-right">
+          <div class="live-badge"><span class="live-dot"></span> Sistem Aktif</div>
+        </div>
+      </div>
+
+      <!-- 4 Stat Cards -->
+      <div class="grid grid-4 mb-24">
+        <div class="stat-card" style="cursor:pointer" onclick="location.href='data-mahasiswa.html'">
+          <div class="stat-card-top"><div><div class="stat-card-value">1.247</div><div class="stat-card-label">Mahasiswa Aktif</div></div><div class="stat-card-icon stat-icon-navy"><i class="fa-solid fa-user-graduate"></i></div></div>
+          <div class="stat-card-sub">Seluruh program studi</div>
+        </div>
+        <div class="stat-card" style="cursor:pointer" onclick="location.href='data-dosen.html'">
+          <div class="stat-card-top"><div><div class="stat-card-value">68</div><div class="stat-card-label">Total Dosen</div></div><div class="stat-card-icon stat-icon-gold"><i class="fa-solid fa-chalkboard-user"></i></div></div>
+          <div class="stat-card-sub">Aktif mengajar</div>
+        </div>
+        <div class="stat-card" style="cursor:pointer" onclick="location.href='mata-kuliah.html'">
+          <div class="stat-card-top"><div><div class="stat-card-value">94</div><div class="stat-card-label">Mata Kuliah</div></div><div class="stat-card-icon stat-icon-success"><i class="fa-solid fa-book"></i></div></div>
+          <div class="stat-card-sub">Semester ini</div>
+        </div>
+        <div class="stat-card" style="cursor:pointer" onclick="location.href='pembayaran.html'">
+          <div class="stat-card-top"><div><div class="stat-card-value" style="color:var(--success)">87%</div><div class="stat-card-label">UKT Terbayar</div></div><div class="stat-card-icon stat-icon-info"><i class="fa-solid fa-credit-card"></i></div></div>
+          <div class="stat-card-sub">Semester ini</div>
+        </div>
+      </div>
+
+      <!-- Row 1: Mhs Baru + Surat -->
+      <div class="grid grid-2 mb-24">
+        <!-- Mahasiswa terbaru -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-user-plus" style="color:var(--navy);margin-right:8px"></i>Mahasiswa Terbaru</h3>
+            <a href="data-mahasiswa.html" class="btn btn-ghost btn-sm"><i class="fa-solid fa-arrow-right"></i></a>
+          </div>
+          <div class="card-body" style="padding-top:8px;padding-bottom:8px" id="mhs-baru-list"></div>
+        </div>
+
+        <!-- Permohonan Surat -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-envelope-open-text" style="color:var(--warning);margin-right:8px"></i>Permohonan Surat</h3>
+            <a href="surat.html" class="btn btn-ghost btn-sm"><i class="fa-solid fa-arrow-right"></i></a>
+          </div>
+          <div class="card-body" style="padding-top:8px;padding-bottom:8px" id="surat-list"></div>
+        </div>
+      </div>
+
+      <!-- Row 2: Ujian Berjalan + Quick Links -->
+      <div class="grid grid-2 mb-24">
+        <!-- Ujian Berjalan -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-file-circle-check" style="color:var(--navy);margin-right:8px"></i>Ujian Semester Ini</h3>
+            <a href="kelola-ujian.html" class="btn btn-ghost btn-sm"><i class="fa-solid fa-arrow-right"></i></a>
+          </div>
+          <div class="table-wrapper" style="border-radius:0;border:none">
+            <table class="table">
+              <thead><tr><th>Mata Kuliah</th><th>Dosen</th><th>Peserta</th><th>Pelanggaran</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><strong>Kecerdasan Buatan</strong><br><span style="font-size:0.75rem;color:var(--text-muted)">IF-7A</span></td>
+                  <td style="font-size:0.8rem">Dr. Hendra Wijaya</td>
+                  <td style="text-align:center">28/32</td>
+                  <td style="text-align:center"><span class="badge badge-danger">2</span></td>
+                  <td><div style="display:flex;align-items:center;gap:6px"><span class="ujian-status-dot dot-berlangsung"></span><span style="font-size:0.8rem;color:var(--success)">Berlangsung</span></div></td>
+                </tr>
+                <tr>
+                  <td><strong>Keamanan Jaringan</strong><br><span style="font-size:0.75rem;color:var(--text-muted)">IF-7B</span></td>
+                  <td style="font-size:0.8rem">Dr. Irwan Saputra</td>
+                  <td style="text-align:center">30/30</td>
+                  <td style="text-align:center"><span class="badge badge-muted">0</span></td>
+                  <td><div style="display:flex;align-items:center;gap:6px"><span class="ujian-status-dot dot-selesai"></span><span style="font-size:0.8rem;color:var(--text-muted)">Selesai</span></div></td>
+                </tr>
+                <tr>
+                  <td><strong>Pemrograman Web Lanjut</strong><br><span style="font-size:0.75rem;color:var(--text-muted)">SI-5A</span></td>
+                  <td style="font-size:0.8rem">Rina Kusuma</td>
+                  <td style="text-align:center">12/35</td>
+                  <td style="text-align:center"><span class="badge badge-warning">1</span></td>
+                  <td><div style="display:flex;align-items:center;gap:6px"><span class="ujian-status-dot dot-berlangsung"></span><span style="font-size:0.8rem;color:var(--success)">Berlangsung</span></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="card">
+          <div class="card-header"><h3><i class="fa-solid fa-bolt" style="color:var(--gold-dark);margin-right:8px"></i>Akses Cepat Admin</h3></div>
+          <div class="card-body">
+            <div class="grid grid-3 quick-link-grid" style="gap:10px">
+              <a class="quick-link-card" href="data-mahasiswa.html"><div class="quick-link-icon" style="background:rgba(26,92,42,0.1);color:var(--navy)"><i class="fa-solid fa-user-graduate"></i></div><span class="quick-link-label">Data Mahasiswa</span></a>
+              <a class="quick-link-card" href="data-dosen.html"><div class="quick-link-icon" style="background:rgba(200,146,42,0.1);color:var(--gold-dark)"><i class="fa-solid fa-chalkboard-user"></i></div><span class="quick-link-label">Data Dosen</span></a>
+              <a class="quick-link-card" href="semester.html"><div class="quick-link-icon" style="background:var(--success-bg);color:var(--success)"><i class="fa-solid fa-calendar-check"></i></div><span class="quick-link-label">Semester</span></a>
+              <a class="quick-link-card" href="ktm.html"><div class="quick-link-icon" style="background:var(--info-bg);color:var(--info)"><i class="fa-solid fa-id-card"></i></div><span class="quick-link-label">Kelola KTM</span></a>
+              <a class="quick-link-card" href="laporan.html"><div class="quick-link-icon" style="background:rgba(108,59,154,0.1);color:#6C3B9A"><i class="fa-solid fa-chart-pie"></i></div><span class="quick-link-label">Laporan</span></a>
+              <a class="quick-link-card" href="log-ujian.html"><div class="quick-link-icon" style="background:var(--danger-bg);color:var(--danger)"><i class="fa-solid fa-shield-halved"></i></div><span class="quick-link-label">Log Ujian</span></a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<nav class="bottom-nav"><div class="bottom-nav-inner">
+  <a class="bottom-nav-item active" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+  <a class="bottom-nav-item" href="data-mahasiswa.html"><i class="fa-solid fa-user-graduate"></i><span>Mahasiswa</span></a>
+  <a class="bottom-nav-item" href="surat.html"><i class="fa-solid fa-envelope"></i><span>Surat</span></a>
+  <a class="bottom-nav-item" href="laporan.html"><i class="fa-solid fa-chart-pie"></i><span>Laporan</span></a>
+  <a class="bottom-nav-item" href="semester.html"><i class="fa-solid fa-calendar"></i><span>Semester</span></a>
+</div></nav>
+<div class="toast-container"></div>
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/admin-integration.js"></script>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/admin-sidebar.js"></script>
+<script>
+// Cek auth
+const _session = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_session || _session.role !== 'admin') window.location.href = '../auth/login.html';
+
+document.getElementById('hero-tanggal').textContent = formatTanggal(new Date().toISOString(), 'panjang');
+
+// Update nama admin dari session
+if (_session && _session.profil) {
+  document.querySelector('.admin-hero p').textContent =
+    (_session.profil.nama || _session.username) + ' — ' + (_session.profil.jabatan || 'Admin');
+}
+
+// Skeleton loader helper
+function skeleton(id, cols = 1) {
+  document.getElementById(id).innerHTML = `<div style="padding:12px 0">
+    ${Array(3).fill(`<div style="height:14px;background:var(--border-color);border-radius:6px;margin-bottom:10px;opacity:0.5;animation:pulse 1.2s infinite"></div>`).join('')}
+  </div>`;
+}
+
+// Load dashboard data dari API
+async function loadDashboard() {
+  skeleton('mhs-baru-list');
+  skeleton('surat-list');
+
+  const res = await AdminAPI.dashboard();
+  if (!res || !res.ok) {
+    showToast('danger', 'Error', 'Gagal memuat data dashboard');
+    return;
+  }
+
+  const data = res.data.data;
+
+  // Update stat cards
+  document.querySelector('.stat-card:nth-child(1) .stat-card-value').textContent =
+    data.total_mahasiswa?.toLocaleString('id-ID') || '0';
+  document.querySelector('.stat-card:nth-child(2) .stat-card-value').textContent =
+    data.total_dosen?.toLocaleString('id-ID') || '0';
+  document.querySelector('.stat-card:nth-child(4) .stat-card-value').textContent =
+    data.total_pembayaran_menunggak > 0
+      ? Math.round(100 - (data.total_pembayaran_menunggak / data.total_mahasiswa * 100)) + '%'
+      : '100%';
+
+  // Update semester aktif di hero
+  if (data.semester_aktif) {
+    document.querySelector('.admin-hero p:last-child').innerHTML =
+      `${data.semester_aktif.nama} &mdash; <span id="hero-tanggal">${formatTanggal(new Date().toISOString(), 'panjang')}</span>`;
+  }
+
+  // Load mahasiswa terbaru
+  const mhsRes = await AdminAPI.mahasiswa({ per_page: 5 });
+  if (mhsRes && mhsRes.ok) {
+    const mhsList = mhsRes.data.data.data || [];
+    document.getElementById('mhs-baru-list').innerHTML = mhsList.length === 0
+      ? `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:0.875rem">Belum ada data mahasiswa</div>`
+      : mhsList.map(m => `
+        <div class="mhs-baru-item">
+          <div class="avatar avatar-sm" style="background:var(--navy);color:white">
+            <i class="fa-solid fa-user" style="font-size:0.65rem"></i>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:0.8375rem;font-weight:700;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+              ${escHTML(m.nama)}
+            </div>
+            <div style="font-size:0.75rem;color:var(--text-muted)">
+              ${m.nim} &bull; ${m.program_studi?.nama || '—'}
+            </div>
+          </div>
+          <span class="badge ${m.status === 'Aktif' ? 'badge-success' : 'badge-primary'}">${m.status}</span>
+        </div>`).join('');
+  }
+
+  // Load surat menunggu
+  const suratRes = await AdminAPI.surat({ status: 'Menunggu', per_page: 5 });
+  if (suratRes && suratRes.ok) {
+    const suratList = suratRes.data.data.data || [];
+    document.getElementById('surat-list').innerHTML = suratList.length === 0
+      ? `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:0.875rem">
+           <i class="fa-solid fa-circle-check" style="color:var(--success);margin-right:6px"></i>
+           Tidak ada permohonan menunggu
+         </div>`
+      : suratList.map(s => `
+        <div class="surat-item">
+          <div style="width:34px;height:34px;border-radius:8px;background:var(--warning-bg);color:var(--warning);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="fa-solid fa-envelope" style="font-size:0.8rem"></i>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:0.8375rem;font-weight:700;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+              ${escHTML(s.jenis_surat)}
+            </div>
+            <div style="font-size:0.75rem;color:var(--text-muted)">
+              ${escHTML(s.mahasiswa?.nama || '—')} &bull; ${formatTanggal(s.created_at, 'pendek')}
+            </div>
+          </div>
+          <span class="badge badge-warning">Menunggu</span>
+        </div>`).join('');
+  }
+}
+
+loadDashboard();
+</script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kelola Ujian — SIAKAD Ditz University</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="stylesheet" href="../assets/css/mobile-table.css">
+  <link rel="stylesheet" href="../assets/css/print.css">
+  <link rel="manifest" href="../manifest.json">
+  <meta name="theme-color" content="#1B3A6B">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="SIAKAD">
+  <link rel="apple-touch-icon" href="../assets/img/icon.png">
+</head>
+<body>
+<div class="app-layout">
+  <div id="admin-sidebar-placeholder"></div>
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title">Kelola Ujian</span>
+      <div class="topbar-actions">
+        <button class="topbar-btn" data-theme-toggle><i class="fa-solid fa-moon"></i></button>
+        <button class="topbar-btn" data-notif-toggle><i class="fa-solid fa-bell"></i><span class="topbar-badge"></span></button>
+      </div>
+    </header>
+    <main class="page-content">
+      <div class="page-header">
+        <div class="page-header-top">
+          <div><h1>Kelola Ujian</h1><p>Monitor semua ujian dari seluruh dosen</p></div>
+          <div class="flex gap-8">
+            <button class="btn btn-outline btn-sm" onclick="eksporLaporanCSV()"><i class="fa-solid fa-file-csv"></i> CSV</button>
+            <button class="btn btn-primary btn-sm" onclick="eksporLaporanPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-4 mb-24">
+        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value">3</div><div class="stat-card-label">Total Ujian</div></div><div class="stat-card-icon stat-icon-navy"><i class="fa-solid fa-file-pen"></i></div></div></div>
+        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value" style="color:var(--success)">2</div><div class="stat-card-label">Berlangsung</div></div><div class="stat-card-icon stat-icon-success"><i class="fa-solid fa-circle-play"></i></div></div></div>
+        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value" style="color:var(--danger)">3</div><div class="stat-card-label">Total Pelanggaran</div></div><div class="stat-card-icon stat-icon-danger"><i class="fa-solid fa-shield-halved"></i></div></div></div>
+        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value">90</div><div class="stat-card-label">Total Peserta</div></div><div class="stat-card-icon stat-icon-info"><i class="fa-solid fa-users"></i></div></div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3><i class="fa-solid fa-table-list" style="color:var(--navy);margin-right:8px"></i>Daftar Ujian Semester Ini</h3></div>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead><tr><th>Nama Ujian</th><th>Kelas</th><th>Dosen</th><th style="text-align:center">Peserta</th><th style="text-align:center">Selesai</th><th style="text-align:center">Pelanggaran</th><th>Status</th><th>Aksi</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong>UTS Kecerdasan Buatan</strong></td>
+                <td><span class="badge badge-primary">IF-7A</span></td>
+                <td style="font-size:0.8375rem">Dr. Hendra Wijaya</td>
+                <td style="text-align:center">32</td>
+                <td style="text-align:center">28</td>
+                <td style="text-align:center"><span class="badge badge-danger">2</span></td>
+                <td><span style="display:flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:var(--success);animation:pulse 1.2s infinite"></span><span style="font-size:0.8rem;color:var(--success)">Berlangsung</span></span></td>
+                <td><button class="btn btn-outline btn-sm" onclick="lihatLogUjian()"><i class="fa-solid fa-shield-halved"></i> Log</button></td>
+              </tr>
+              <tr>
+                <td><strong>UTS Keamanan Jaringan</strong></td>
+                <td><span class="badge badge-primary">IF-7B</span></td>
+                <td style="font-size:0.8375rem">Dr. Irwan Saputra</td>
+                <td style="text-align:center">30</td>
+                <td style="text-align:center">30</td>
+                <td style="text-align:center"><span class="badge badge-muted">0</span></td>
+                <td><span class="badge badge-muted">Selesai</span></td>
+                <td><button class="btn btn-outline btn-sm" onclick="lihatLogUjian()"><i class="fa-solid fa-chart-bar"></i> Hasil</button></td>
+              </tr>
+              <tr>
+                <td><strong>Kuis Pemrograman Web Lanjut</strong></td>
+                <td><span class="badge badge-primary">SI-5A</span></td>
+                <td style="font-size:0.8375rem">Rina Kusuma</td>
+                <td style="text-align:center">35</td>
+                <td style="text-align:center">12</td>
+                <td style="text-align:center"><span class="badge badge-warning">1</span></td>
+                <td><span style="display:flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:var(--success);animation:pulse 1.2s infinite"></span><span style="font-size:0.8rem;color:var(--success)">Berlangsung</span></span></td>
+                <td><button class="btn btn-outline-danger btn-sm" onclick="showToast('warning','Batalkan','Konfirmasi diperlukan')"><i class="fa-solid fa-ban"></i> Batalkan</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modal-log">
+  <div class="modal modal-lg">
+    <div class="modal-header"><h3>Log Pelanggaran — UTS Kecerdasan Buatan</h3><button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <div class="table-wrapper">
+        <table class="table">
+          <thead><tr><th>Mahasiswa</th><th>Waktu</th><th>Pelanggaran</th><th>Deskripsi</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Rizki Maulana</strong><br><span class="font-mono" style="font-size:0.75rem">2021010042</span></td><td>09:15:32</td><td style="text-align:center"><span class="badge badge-warning">1</span></td><td style="font-size:0.8rem">Tab disembunyikan atau browser diminimalkan</td></tr>
+            <tr><td><strong>Dewi Rahmawati</strong><br><span class="font-mono" style="font-size:0.75rem">2021010058</span></td><td>09:28:44</td><td style="text-align:center"><span class="badge badge-danger">2</span></td><td style="font-size:0.8rem">Fokus berpindah ke aplikasi lain; Shortcut terlarang: F12</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost btn-sm" data-modal-close>Tutup</button></div>
+  </div>
+</div>
+
+<nav class="bottom-nav"><div class="bottom-nav-inner">
+  <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+  <a class="bottom-nav-item" href="data-mahasiswa.html"><i class="fa-solid fa-user-graduate"></i><span>Mahasiswa</span></a>
+  <a class="bottom-nav-item" href="surat.html"><i class="fa-solid fa-envelope"></i><span>Surat</span></a>
+  <a class="bottom-nav-item" href="laporan.html"><i class="fa-solid fa-chart-pie"></i><span>Laporan</span></a>
+  <a class="bottom-nav-item" href="semester.html"><i class="fa-solid fa-calendar"></i><span>Semester</span></a>
+</div></nav>
+<div class="toast-container"></div>
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/admin-integration.js"></script>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/admin-sidebar.js"></script>
+<script>
+
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'admin') window.location.href = '../auth/login.html';
+
+let ujianList = [];
+
+async function loadUjian() {
+  const res = await AdminAPI.ujian({ per_page: 50 });
+  if (!res || !res.ok) { showToast('danger','Error','Gagal memuat data ujian'); return; }
+  ujianList = res.data.data?.data || res.data.data || [];
+
+  // Update stat cards
+  const berlangsung = ujianList.filter(u => u.status === 'Berlangsung').length;
+  document.querySelector('.stat-card:nth-child(1) .stat-card-value').textContent = ujianList.length;
+  document.querySelector('.stat-card:nth-child(2) .stat-card-value').textContent = berlangsung;
+
+  renderUjian(ujianList);
+}
+
+function renderUjian(list) {
+  const tbody = document.querySelector('.table tbody');
+  if (!tbody) return;
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="99"><div class="empty-state"><h3 class="empty-state-title">Tidak ada ujian</h3></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(u => `
+    <tr>
+      <td><strong>${escHTML(u.nama)}</strong></td>
+      <td><span class="badge badge-primary">${u.kelas?.kode_kelas || '—'}</span></td>
+      <td style="font-size:0.8375rem">${escHTML(u.dosen?.nama || '—')}</td>
+      <td style="text-align:center">—</td>
+      <td style="text-align:center">—</td>
+      <td style="text-align:center"><span class="badge badge-muted">0</span></td>
+      <td>
+        ${u.status === 'Berlangsung'
+          ? `<span style="display:flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:var(--success);animation:pulse 1.2s infinite"></span><span style="font-size:0.8rem;color:var(--success)">Berlangsung</span></span>`
+          : `<span class="badge ${u.status==='Selesai'?'badge-muted':u.status==='Draft'?'badge-info':'badge-danger'}">${u.status}</span>`}
+      </td>
+      <td>
+        <div class="table-actions">
+          ${u.status !== 'Dibatalkan' && u.status !== 'Selesai'
+            ? `<button class="btn btn-outline-danger btn-sm" onclick="batalkanUjian(${u.id})"><i class="fa-solid fa-ban"></i> Batalkan</button>`
+            : `<button class="btn btn-outline btn-sm" onclick="lihatLogUjian(${u.id})"><i class="fa-solid fa-shield-halved"></i> Log</button>`}
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function lihatLogUjian(id) { showModal('modal-log'); }
+
+async function batalkanUjian(id) {
+  konfirmasi('Yakin ingin membatalkan ujian ini?', async () => {
+    const res = await AdminAPI.batalkanUjian(id);
+    if (res && res.ok) { showToast('success','Dibatalkan','Ujian berhasil dibatalkan'); loadUjian(); }
+    else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+  });
+}
+
+function eksporLaporanPDF() {
+  const rows = ujianList.map(u=>`<tr><td>${u.nama}</td><td>${u.kelas?.kode_kelas||'—'}</td><td>${u.dosen?.nama||'—'}</td><td>${u.status}</td></tr>`).join('');
+  eksporPDF('Laporan Ujian',`<table><thead><tr><th>Nama Ujian</th><th>Kelas</th><th>Dosen</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>`);
+}
+
+function eksporLaporanCSV() {
+  eksporCSV(ujianList.map(u=>({ nama:u.nama, kelas:u.kelas?.kode_kelas||'—', dosen:u.dosen?.nama||'—', status:u.status })),
+  ['Nama Ujian','Kelas','Dosen','Status'], 'Laporan_Ujian');
+}
+
+loadUjian();
+
+</script>
+</body>
+</html>

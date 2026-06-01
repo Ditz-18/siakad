@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KTM — SIAKAD STAI DILWA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="icon" type="image/png" href="../assets/img/icon.png">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <link rel="stylesheet" href="../assets/css/print.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="stylesheet" href="../assets/css/mobile-table.css">
+  <!-- Di <head> -->
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#1A5C2A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SIAKAD">
+<link rel="apple-touch-icon" href="../assets/img/icon.png">
+  <style>
+    /* KTM 3D Flip */
+    .ktm-scene {
+      width: 340px; height: 214px;
+      perspective: 1000px;
+      cursor: pointer;
+      margin: 0 auto 8px;
+    }
+    .ktm-scene:hover .ktm-inner { transform: rotateY(180deg); }
+    .ktm-inner {
+      width: 100%; height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .ktm-inner.flipped { transform: rotateY(180deg); }
+    .ktm-face {
+      position: absolute; inset: 0;
+      backface-visibility: hidden;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .ktm-back { transform: rotateY(180deg); }
+
+    /* Depan */
+    .ktm-front-bg {
+      background: linear-gradient(135deg, #0D3D1A 0%, #1A5C2A 50%, #2E7D3A 100%);
+      width: 100%; height: 100%;
+      position: relative;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      color: white;
+    }
+    .ktm-deco-circle {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.08;
+      background: white;
+    }
+    .ktm-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; position: relative; z-index: 1; }
+    .ktm-logo { width: 28px; height: 28px; background: #C8922A; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #0D3D1A; flex-shrink: 0; }
+    .ktm-univ-name { font-family: var(--font-display); font-size: 0.875rem; font-weight: 700; line-height: 1.1; }
+    .ktm-univ-sub { font-size: 0.55rem; opacity: 0.6; letter-spacing: 0.04em; }
+    .ktm-badge { margin-left: auto; background: rgba(200,146,42,0.2); border: 1px solid rgba(200,146,42,0.4); color: #DFB050; font-size: 0.55rem; font-weight: 800; letter-spacing: 0.1em; padding: 2px 7px; border-radius: 3px; }
+
+    .ktm-body { display: flex; gap: 10px; flex: 1; position: relative; z-index: 1; }
+    .ktm-photo { width: 50px; height: 62px; background: rgba(255,255,255,0.1); border-radius: 5px; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; color: rgba(255,255,255,0.5); flex-shrink: 0; }
+    .ktm-info { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
+    .ktm-nama { font-size: 0.8rem; font-weight: 700; line-height: 1.2; }
+    .ktm-nim  { font-family: var(--font-mono); font-size: 0.7rem; color: rgba(255,255,255,0.7); }
+    .ktm-prodi { font-size: 0.6rem; color: rgba(255,255,255,0.6); margin-top: 2px; }
+    .ktm-info-row { display: flex; gap: 4px; align-items: center; margin-top: 4px; }
+    .ktm-info-row span { font-size: 0.55rem; color: rgba(255,255,255,0.5); }
+    .ktm-info-row strong { font-size: 0.6rem; color: rgba(255,255,255,0.8); }
+
+    .ktm-footer { display: flex; align-items: flex-end; justify-content: space-between; position: relative; z-index: 1; margin-top: 6px; }
+    .ktm-berlaku { font-size: 0.55rem; color: rgba(255,255,255,0.5); }
+    .ktm-qr { width: 32px; height: 32px; background: rgba(255,255,255,0.15); border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: rgba(255,255,255,0.6); }
+    .ktm-gold-line { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #C8922A, #DFB050, #C8922A); }
+
+    /* Belakang */
+    .ktm-back-bg {
+      background: var(--gray-100);
+      width: 100%; height: 100%;
+      padding: 0;
+      display: flex; flex-direction: column;
+    }
+    [data-theme="dark"] .ktm-back-bg { background: #1F2330; }
+    .ktm-stripe { height: 32px; background: #1a1a1a; margin: 20px 0 12px; }
+    .ktm-back-body { padding: 0 14px; flex: 1; display: flex; flex-direction: column; gap: 6px; }
+    .ktm-sig-area { border: 1px solid var(--border-color); border-radius: 3px; height: 24px; display: flex; align-items: center; padding: 0 6px; }
+    .ktm-sig-label { font-size: 0.5rem; color: var(--text-muted); }
+    .ktm-contact { font-size: 0.52rem; color: var(--text-muted); line-height: 1.6; }
+    .ktm-barcode { display: flex; align-items: center; gap: 1px; height: 24px; overflow: hidden; }
+    .ktm-barcode-bar { flex-shrink: 0; background: var(--gray-800); border-radius: 0; }
+    [data-theme="dark"] .ktm-barcode-bar { background: var(--text-primary); }
+    .ktm-id { font-family: var(--font-mono); font-size: 0.5rem; color: var(--text-muted); text-align: center; margin-top: 2px; }
+
+    /* Print area */
+    @media print {
+      .ktm-scene { width: 85.6mm !important; height: 54mm !important; }
+      .ktm-scene * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <div id="mahasiswa-sidebar-placeholder"></div>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title">KTM Digital</span>
+      <div class="topbar-actions">
+        <button class="topbar-btn" data-theme-toggle><i class="fa-solid fa-moon"></i></button>
+        <button class="topbar-btn" data-notif-toggle><i class="fa-solid fa-bell"></i><span class="topbar-badge"></span></button>
+      </div>
+    </header>
+
+    <main class="page-content">
+      <div class="page-header">
+        <h1>Kartu Tanda Mahasiswa</h1>
+        <p>Klik kartu untuk membalik — standar ISO/IEC 7810 ID-1 (85.6 × 54mm)</p>
+      </div>
+
+      <div class="grid grid-2" style="align-items:start;gap:24px">
+        <!-- KTM Card -->
+        <div class="card">
+          <div class="card-body">
+            <p style="text-align:center;font-size:0.775rem;color:var(--text-muted);margin-bottom:16px">
+              <i class="fa-solid fa-hand-pointer"></i> Klik kartu untuk membalik
+            </p>
+
+            <div class="ktm-scene" id="ktm-scene" onclick="flipKTM()">
+              <div class="ktm-inner" id="ktm-inner">
+
+                <!-- DEPAN -->
+                <div class="ktm-face">
+                  <div class="ktm-front-bg">
+                    <div class="ktm-deco-circle" style="width:120px;height:120px;top:-40px;right:-40px"></div>
+                    <div class="ktm-deco-circle" style="width:60px;height:60px;bottom:20px;left:20px"></div>
+
+                    <div class="ktm-header">
+                      <div class="ktm-logo"><i class="fa-solid fa-graduation-cap"></i></div>
+                      <div>
+                        <div class="ktm-univ-name">STAI DILWA</div>
+                        <div class="ktm-univ-sub">BANDUNG, JAWA BARAT</div>
+                      </div>
+                      <div class="ktm-badge">MAHASISWA</div>
+                    </div>
+
+                    <div class="ktm-body">
+                      <div class="ktm-photo"><i class="fa-solid fa-user"></i></div>
+                      <div class="ktm-info">
+                        <div class="ktm-nama" id="ktm-nama">—</div>
+                        <div class="ktm-nim" id="ktm-nim">—</div>
+                        <div class="ktm-prodi" id="ktm-prodi">—</div>
+                        <div class="ktm-info-row">
+                          <span>Angkatan</span><strong id="ktm-angkatan">—</strong>
+                          <span style="margin-left:8px">Fak.</span><strong id="ktm-fakultas" style="max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</strong>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="ktm-footer">
+                      <div class="ktm-berlaku">Berlaku hingga <strong id="ktm-berlaku" style="color:rgba(255,255,255,0.8)">—</strong></div>
+                      <div class="ktm-qr"><i class="fa-solid fa-qrcode"></i></div>
+                    </div>
+                    <div class="ktm-gold-line"></div>
+                  </div>
+                </div>
+
+                <!-- BELAKANG -->
+                <div class="ktm-face ktm-back">
+                  <div class="ktm-back-bg">
+                    <div class="ktm-stripe"></div>
+                    <div class="ktm-back-body">
+                      <div class="ktm-sig-area">
+                        <span class="ktm-sig-label">Tanda Tangan Pemegang</span>
+                      </div>
+                      <div class="ktm-contact">
+                        Jl. Sukajadi No. 100, Bandung 40162 &bull; Telp. (022) 1234-5678 &bull; www.staidilwa.ac.id
+                      </div>
+                      <div class="ktm-contact" style="color:var(--navy);font-weight:600">
+                        Jika kartu ini ditemukan, harap kembalikan ke alamat di atas.
+                      </div>
+                      <div class="ktm-barcode" id="ktm-barcode"></div>
+                      <div class="ktm-id" id="ktm-barcode-num">—</div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <div class="flex gap-8" style="justify-content:center;margin-top:16px">
+              <button class="btn btn-outline btn-sm" onclick="cetakKTM()"><i class="fa-solid fa-print"></i> Cetak</button>
+              <button class="btn btn-primary btn-sm" onclick="unduhKTMPDF()"><i class="fa-solid fa-file-pdf"></i> Unduh PDF</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Info kartu + petunjuk -->
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <!-- Info detail -->
+          <div class="card">
+            <div class="card-header"><h3><i class="fa-solid fa-circle-info" style="color:var(--navy);margin-right:8px"></i>Informasi Kartu</h3></div>
+            <div class="card-body" style="padding:0">
+              <table class="table" style="margin:0">
+                <tbody>
+                  <tr><td style="color:var(--text-muted);width:45%">Nomor KTM</td><td><strong class="font-mono" id="info-nomor-ktm" style="font-size:0.8rem">—</strong></td></tr>
+                  <tr><td style="color:var(--text-muted)">Nama</td><td><strong id="info-nama">—</strong></td></tr>
+                  <tr><td style="color:var(--text-muted)">NIM</td><td><strong class="font-mono" id="info-nim">—</strong></td></tr>
+                  <tr><td style="color:var(--text-muted)">Program Studi</td><td id="info-prodi">—</td></tr>
+                  <tr><td style="color:var(--text-muted)">Tanggal Terbit</td><td id="info-terbit">—</td></tr>
+                  <tr><td style="color:var(--text-muted)">Berlaku Hingga</td><td id="info-berlaku">—</td></tr>
+                  <tr><td style="color:var(--text-muted)">Status</td><td><span class="badge badge-success" id="info-status">Aktif</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Petunjuk -->
+          <div class="card">
+            <div class="card-header"><h3><i class="fa-solid fa-circle-question" style="color:var(--gold-dark);margin-right:8px"></i>Petunjuk Penggunaan</h3></div>
+            <div class="card-body">
+              <ul style="display:flex;flex-direction:column;gap:10px;list-style:none">
+                <li style="display:flex;align-items:flex-start;gap:10px;font-size:0.8375rem;color:var(--text-secondary)">
+                  <i class="fa-solid fa-circle-check" style="color:var(--success);margin-top:2px;flex-shrink:0"></i>
+                  KTM Digital dapat digunakan sebagai identitas resmi di lingkungan kampus
+                </li>
+                <li style="display:flex;align-items:flex-start;gap:10px;font-size:0.8375rem;color:var(--text-secondary)">
+                  <i class="fa-solid fa-circle-check" style="color:var(--success);margin-top:2px;flex-shrink:0"></i>
+                  Untuk verifikasi fisik, cetak menggunakan fitur Cetak dan potong sesuai garis
+                </li>
+                <li style="display:flex;align-items:flex-start;gap:10px;font-size:0.8375rem;color:var(--text-secondary)">
+                  <i class="fa-solid fa-triangle-exclamation" style="color:var(--warning);margin-top:2px;flex-shrink:0"></i>
+                  Jika kartu hilang atau rusak, segera laporkan ke bagian kemahasiswaan
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<div class="more-menu-overlay" id="more-menu-overlay"></div>
+<div class="more-menu-sheet" id="more-menu-sheet">
+  <div class="more-menu-handle"></div>
+  <div class="more-menu-title">Menu Lainnya</div>
+  <div class="more-menu-grid">
+    <a class="more-menu-item" href="khs.html"><i class="fa-solid fa-chart-bar"></i>KHS</a>
+    <a class="more-menu-item" href="transkrip.html"><i class="fa-solid fa-scroll"></i>Transkrip</a>
+    <a class="more-menu-item" href="jadwal.html"><i class="fa-solid fa-calendar-days"></i>Jadwal</a>
+    <a class="more-menu-item" href="pembayaran.html"><i class="fa-solid fa-credit-card"></i>Pembayaran</a>
+    <a class="more-menu-item" href="dokumen.html"><i class="fa-solid fa-folder-open"></i>Dokumen</a>
+    <a class="more-menu-item active" href="ktm.html"><i class="fa-solid fa-id-card"></i>KTM</a>
+    <a class="more-menu-item" href="pengumuman.html"><i class="fa-solid fa-bullhorn"></i>Pengumuman</a>
+    <a class="more-menu-item" href="profil.html"><i class="fa-solid fa-user"></i>Profil</a>
+  </div>
+</div>
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+    <a class="bottom-nav-item" href="krs.html"><i class="fa-solid fa-file-pen"></i><span>KRS</span></a>
+    <a class="bottom-nav-item" href="ujian.html"><i class="fa-solid fa-pencil"></i><span>Ujian</span></a>
+    <a class="bottom-nav-item" href="absensi.html"><i class="fa-solid fa-clipboard-check"></i><span>Absensi</span></a>
+    <button class="bottom-nav-more active" id="btn-more-menu"><i class="fa-solid fa-plus"></i><span>Lainnya</span></button>
+  </div>
+</nav>
+<div class="toast-container"></div>
+
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/mahasiswa-integration.js"></script>
+<script src="../assets/js/mahasiswa-sidebar.js"></script>
+<script src="../assets/js/main.js"></script>
+
+<script>
+
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'mahasiswa') window.location.href = '../auth/login.html';
+
+async function loadKTM() {
+  // Coba dari session dulu (sudah ada saat login)
+  const session = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+  const profil  = session?.profil || {};
+  
+  let m = {
+    nama:          profil.nama || session?.username || '—',
+    nim:           profil.nim  || '—',
+    program_studi: profil.program_studi || {},
+    angkatan:      profil.angkatan || '—',
+    status:        profil.status || 'Aktif',
+  };
+
+  // Refresh dari API untuk data terbaru
+  const res = await MahasiswaAPI.profil();
+  if (res && res.ok) m = res.data.data;
+
+  const fields = {
+    'ktm-nama':    m.nama,
+    'ktm-nim':     m.nim,
+    'ktm-prodi':   m.program_studi?.nama,
+    'ktm-fakultas':m.program_studi?.fakultas,
+    'ktm-angkatan':m.angkatan,
+    'ktm-status':  m.status,
+  };
+  Object.entries(fields).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val || '—';
+  });
+  
+  // Update tahun berlaku otomatis
+  const tahunEl = document.getElementById('ktm-berlaku');
+  if (tahunEl) {
+    const now = new Date();
+    tahunEl.textContent = now.getFullYear() + '/' + (now.getFullYear() + 1);
+  }
+}
+
+function cetakKTM() {
+  window.print();
+}
+
+function downloadKTM() {
+  showToast('info','Download','Fitur download KTM sebagai gambar segera tersedia');
+}
+
+loadKTM();
+
+</script>
+</body>
+</html>

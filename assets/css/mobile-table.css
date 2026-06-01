@@ -1,0 +1,307 @@
+/* ================================================================
+   SIAKAD STAI DILWA — mobile-table.css
+   Fix: Tabel scroll horizontal di mobile tanpa halaman zoom
+   
+   CARA PASANG:
+   Tambahkan link ini di SEMUA file HTML, setelah responsive-patch.css:
+   <link rel="stylesheet" href="../assets/css/mobile-table.css">
+   ================================================================ */
+
+/* ================================================================
+   1. KUNCI VIEWPORT — Cegah zoom otomatis
+   Tambahkan di <head> semua HTML (ganti yang lama):
+   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+   ================================================================ */
+
+/* ================================================================
+   2. TABLE WRAPPER — Scroll horizontal terkontrol
+   ================================================================ */
+
+/* Wrapper dasar sudah ada di style.css, ini perkuatannya */
+.table-wrapper {
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch; /* smooth scroll di iOS */
+  overscroll-behavior-x: contain;   /* cegah scroll menular ke halaman */
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--border-color);
+  /* KRITIS: cegah tabel meluber keluar container */
+  max-width: 100%;
+  width: 100%;
+}
+
+/* Tabel di dalam wrapper TIDAK boleh mempengaruhi lebar halaman */
+.table-wrapper .table {
+  /* min-content membuat tabel selebar kontennya,
+     lalu wrapper yang scroll — bukan halaman */
+  width: max-content;
+  min-width: 100%;
+}
+
+/* Indikator scroll — hint visual bahwa tabel bisa digeser */
+.table-scroll-hint {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  padding: 6px 14px 2px;
+  animation: fadeHint 3s ease forwards;
+}
+
+@keyframes fadeHint {
+  0%   { opacity: 1; }
+  70%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Gradient fade di kanan sebagai hint visual ada konten tersembunyi */
+.table-wrapper-outer {
+  position: relative;
+}
+
+.table-wrapper-outer::after {
+  content: '';
+  display: none;
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: 32px;
+  background: linear-gradient(to right, transparent, var(--bg-card));
+  border-radius: 0 var(--border-radius-lg) var(--border-radius-lg) 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ================================================================
+   3. MOBILE — Aktifkan scroll hint & fade gradient
+   ================================================================ */
+@media (max-width: 768px) {
+
+  /* Hint teks geser */
+  .table-scroll-hint {
+    display: flex;
+  }
+
+  /* Gradient fade kanan hanya muncul jika tabel overflow */
+  .table-wrapper-outer.has-overflow::after {
+    display: block;
+  }
+
+  /* Pastikan app-layout tidak overflow ke samping */
+  .app-layout,
+  .main-content,
+  .page-content {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* ── KRS: Sembunyikan kolom tidak kritis ── */
+  /* Tabel MK Diambil: sembunyikan kolom No. & Ruang */
+  #tabel-mk-diambil th:nth-child(1),
+  #tabel-mk-diambil td:nth-child(1),
+  #tabel-mk-diambil th:nth-child(7),
+  #tabel-mk-diambil td:nth-child(7) {
+    display: none;
+  }
+
+  /* Tabel Katalog KRS: sembunyikan kolom Jadwal */
+  #tabel-katalog th:nth-child(5),
+  #tabel-katalog td:nth-child(5) {
+    display: none;
+  }
+
+  /* ── KHS: Sembunyikan kolom Mutu (bisa dihitung dari SKS×Bobot) ── */
+  .table th:nth-child(7):not(.keep-mobile),
+  .table td:nth-child(7):not(.keep-mobile) {
+    /* Hanya berlaku untuk tabel nilai — lebih spesifik di bawah */
+  }
+
+  /* ── Absensi: Sembunyikan kolom Visualisasi di mobile ── */
+  #tabel-absensi th:nth-child(8),
+  #tabel-absensi td:nth-child(8) {
+    display: none;
+  }
+
+  /* ── Riwayat Pembayaran: sembunyikan No. Invoice ── */
+  .tabel-riwayat-bayar th:nth-child(1),
+  .tabel-riwayat-bayar td:nth-child(1) {
+    display: none;
+  }
+
+  /* ── Transkrip: sembunyikan kolom Bobot ── */
+  .tabel-transkrip th:nth-child(6),
+  .tabel-transkrip td:nth-child(6) {
+    display: none;
+  }
+
+  /* Minimum width tabel agar tidak terlalu sempit */
+  .table {
+    font-size: 0.8125rem;
+  }
+
+  .table th {
+    font-size: 0.68rem;
+    padding: 9px 8px;
+    white-space: nowrap;
+  }
+
+  .table td {
+    padding: 10px 8px;
+    font-size: 0.8125rem;
+  }
+
+  /* Kolom aksi selalu min-width cukup untuk tombol */
+  .table .table-actions {
+    gap: 4px;
+  }
+
+  /* Teks panjang di sel — wrap tidak masalah */
+  .table td {
+    word-break: break-word;
+    max-width: 180px;
+  }
+
+  /* Kolom dengan white-space: nowrap tetap dipertahankan */
+  .table td[style*="white-space:nowrap"],
+  .table td[style*="white-space: nowrap"] {
+    max-width: unset;
+  }
+}
+
+/* ================================================================
+   4. SMALL MOBILE (≤480px) — Lebih agresif sembunyikan kolom
+   ================================================================ */
+@media (max-width: 480px) {
+
+  /* Absensi: sembunyikan Izin & Sakit, ringkas jadi % saja */
+  #tabel-absensi th:nth-child(4),
+  #tabel-absensi td:nth-child(4),
+  #tabel-absensi th:nth-child(5),
+  #tabel-absensi td:nth-child(5) {
+    display: none;
+  }
+
+  /* KRS: sembunyikan kolom Dosen */
+  #tabel-mk-diambil th:nth-child(5),
+  #tabel-mk-diambil td:nth-child(5) {
+    display: none;
+  }
+
+  /* Jadwal list: sembunyikan SKS */
+  #tabel-jadwal-list th:nth-child(4),
+  #tabel-jadwal-list td:nth-child(4) {
+    display: none;
+  }
+
+  /* Font tabel lebih kecil */
+  .table th { font-size: 0.65rem; padding: 8px 6px; }
+  .table td { font-size: 0.775rem; padding: 9px 6px; }
+}
+
+/* ================================================================
+   5. SCROLLBAR STYLING — Lebih tipis & rapi di webkit
+   ================================================================ */
+.table-wrapper::-webkit-scrollbar {
+  height: 4px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+  border-radius: 2px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: var(--navy);
+  border-radius: 2px;
+  opacity: 0.5;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: var(--navy-light);
+}
+
+/* Firefox */
+.table-wrapper {
+  scrollbar-width: thin;
+  scrollbar-color: var(--navy) var(--bg-tertiary);
+}
+
+/* ================================================================
+   6. PERBAIKAN BODY OVERFLOW — Cegah zoom halaman
+   ================================================================ */
+html, body {
+  /* Ini yang mencegah halaman zoom akibat tabel lebar */
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+/* Khusus saat modal terbuka */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* ================================================================
+   7. FIX SPESIFIK PER HALAMAN
+   ================================================================ */
+
+/* ── Jadwal: Grid mingguan wrap ── */
+.jadwal-grid-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  border-radius: var(--border-radius-md);
+  /* Hint scroll */
+  position: relative;
+}
+
+/* ── KTM: Pastikan kartu tidak overflow ── */
+.ktm-scene {
+  max-width: 100%;
+}
+
+@media (max-width: 400px) {
+  .ktm-scene {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 85.6 / 54;
+  }
+}
+
+/* ── KHS: Grafik IPS tidak overflow ── */
+.ips-chart {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Card header: wrap tombol di mobile ── */
+@media (max-width: 480px) {
+  .card-header {
+    gap: 6px;
+  }
+
+  .card-header h3 {
+    font-size: 0.875rem;
+  }
+
+  .card-header .btn {
+    font-size: 0.75rem;
+    padding: 5px 10px;
+  }
+
+  /* Page header actions: tombol ekspor kecil */
+  .page-header-top .btn-sm {
+    font-size: 0.72rem;
+    padding: 5px 8px;
+  }
+
+  /* Krs-info-row lebih kompak */
+  .krs-info-row {
+    padding: 12px 14px;
+    gap: 12px;
+  }
+
+  .krs-info-row .sks-counter {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

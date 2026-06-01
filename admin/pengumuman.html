@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pengumuman — SIAKAD Ditz University</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="stylesheet" href="../assets/css/mobile-table.css">
+  <link rel="manifest" href="../manifest.json">
+  <meta name="theme-color" content="#1B3A6B">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="SIAKAD">
+  <link rel="apple-touch-icon" href="../assets/img/icon.png">
+</head>
+<body>
+<div class="app-layout">
+  <div id="admin-sidebar-placeholder"></div>
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title">Kelola Pengumuman</span>
+      <div class="topbar-actions">
+        <button class="topbar-btn" data-theme-toggle><i class="fa-solid fa-moon"></i></button>
+        <button class="topbar-btn" data-notif-toggle><i class="fa-solid fa-bell"></i><span class="topbar-badge"></span></button>
+      </div>
+    </header>
+    <main class="page-content">
+      <div class="page-header">
+        <div class="page-header-top">
+          <div><h1>Kelola Pengumuman</h1><p>Buat dan kelola pengumuman untuk civitas kampus</p></div>
+          <button class="btn btn-primary" data-modal-target="modal-buat-pengumuman"><i class="fa-solid fa-plus"></i> Buat Pengumuman</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body" style="padding-bottom:0">
+          <div class="filter-bar">
+            <button class="filter-btn active" onclick="setFilter('Semua',this)">Semua</button>
+            <button class="filter-btn" onclick="setFilter('Akademik',this)">Akademik</button>
+            <button class="filter-btn" onclick="setFilter('Keuangan',this)">Keuangan</button>
+            <button class="filter-btn" onclick="setFilter('Umum',this)">Umum</button>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead><tr><th>Judul</th><th>Kategori</th><th>Target</th><th>Penting</th><th>Tanggal</th><th>Status</th><th>Aksi</th></tr></thead>
+            <tbody id="tbody-pengumuman"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Modal Buat Pengumuman -->
+<div class="modal-backdrop" id="modal-buat-pengumuman">
+  <div class="modal modal-lg">
+    <div class="modal-header"><h3><i class="fa-solid fa-bullhorn" style="color:var(--navy);margin-right:8px"></i>Buat Pengumuman Baru</h3><button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Judul Pengumuman <span class="required">*</span></label><input type="text" class="form-control" id="p-judul" placeholder="Judul yang informatif dan jelas"></div>
+      <div class="form-grid form-grid-2">
+        <div class="form-group">
+          <label class="form-label">Kategori</label>
+          <select class="form-control" id="p-kategori"><option>Akademik</option><option>Keuangan</option><option>Umum</option></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Target Penerima</label>
+          <select class="form-control" id="p-target"><option value="Semua">Semua (Mahasiswa & Dosen)</option><option value="Mahasiswa">Mahasiswa Saja</option><option value="Dosen">Dosen Saja</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Isi Pengumuman <span class="required">*</span></label><textarea class="form-control" id="p-isi" rows="4" placeholder="Tuliskan isi pengumuman selengkapnya..."></textarea></div>
+      <div class="form-check">
+        <input type="checkbox" class="form-check-input" id="p-penting">
+        <label class="form-check-label" for="p-penting">Tandai sebagai <strong>Penting</strong> (akan muncul badge kuning)</label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal-close>Batal</button>
+      <button class="btn btn-primary btn-sm" onclick="buatPengumuman()"><i class="fa-solid fa-paper-plane"></i> Terbitkan</button>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav"><div class="bottom-nav-inner">
+  <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+  <a class="bottom-nav-item" href="data-mahasiswa.html"><i class="fa-solid fa-user-graduate"></i><span>Mahasiswa</span></a>
+  <a class="bottom-nav-item" href="surat.html"><i class="fa-solid fa-envelope"></i><span>Surat</span></a>
+  <a class="bottom-nav-item" href="laporan.html"><i class="fa-solid fa-chart-pie"></i><span>Laporan</span></a>
+  <a class="bottom-nav-item" href="semester.html"><i class="fa-solid fa-calendar"></i><span>Semester</span></a>
+</div></nav>
+<div class="toast-container"></div>
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/admin-integration.js"></script>
+
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/admin-sidebar.js"></script>
+<script>
+
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'admin') window.location.href = '../auth/login.html';
+
+let pengList = [];
+let currentFilter = 'Semua';
+const badgeMap = { Akademik:'badge-info', Keuangan:'badge-warning', Umum:'badge-muted' };
+
+async function loadPengumuman() {
+  const params = { per_page: 50 };
+  if (currentFilter !== 'Semua') params.kategori = currentFilter;
+  const res = await AdminAPI.pengumuman(params);
+  if (!res || !res.ok) { showToast('danger','Error','Gagal memuat pengumuman'); return; }
+  pengList = res.data.data?.data || res.data.data || [];
+  renderTabel();
+}
+
+function setFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  loadPengumuman();
+}
+
+function renderTabel() {
+  document.getElementById('tbody-pengumuman').innerHTML = pengList.map(p => `
+    <tr>
+      <td><strong>${escHTML(p.judul)}</strong></td>
+      <td><span class="badge ${badgeMap[p.kategori]||'badge-muted'}">${p.kategori}</span></td>
+      <td><span class="badge badge-muted">${p.target}</span></td>
+      <td style="text-align:center">${p.penting?'<span class="badge badge-warning">Ya</span>':'<span style="color:var(--text-muted);font-size:0.8rem">—</span>'}</td>
+      <td>${formatTanggal(p.created_at,'pendek')}</td>
+      <td><span class="badge ${p.status==='Aktif'?'badge-success':'badge-muted'}">${p.status}</span></td>
+      <td>
+        <div class="table-actions">
+          <button class="btn btn-ghost btn-icon btn-sm" onclick="arsipkan(${p.id})" title="Arsipkan"><i class="fa-solid fa-archive"></i></button>
+          <button class="btn btn-outline-danger btn-icon btn-sm" onclick="hapusPengumuman(${p.id})" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+async function arsipkan(id) {
+  const res = await AdminAPI.updatePengumuman(id, { status: 'Arsip' });
+  if (res && res.ok) { showToast('info','Diarsipkan','Pengumuman dipindahkan ke arsip'); loadPengumuman(); }
+}
+
+async function hapusPengumuman(id) {
+  konfirmasi('Yakin ingin menghapus pengumuman ini?', async () => {
+    const res = await AdminAPI.hapusPengumuman(id);
+    if (res && res.ok) { showToast('success','Dihapus','Pengumuman berhasil dihapus'); loadPengumuman(); }
+  });
+}
+
+async function buatPengumuman() {
+  const judul   = document.getElementById('p-judul').value.trim();
+  const isi     = document.getElementById('p-isi').value.trim();
+  const kategori= document.getElementById('p-kategori').value;
+  const target  = document.getElementById('p-target').value;
+  const penting = document.getElementById('p-penting').checked;
+  if (!judul||!isi) { showToast('warning','Validasi','Judul dan isi wajib diisi'); return; }
+  const res = await AdminAPI.buatPengumuman({ judul, isi, kategori, target, penting, status:'Aktif' });
+  if (res && res.ok) {
+    hideModal('modal-buat-pengumuman');
+    document.getElementById('p-judul').value = '';
+    document.getElementById('p-isi').value = '';
+    document.getElementById('p-penting').checked = false;
+    showToast('success','Diterbitkan',`Pengumuman berhasil diterbitkan`);
+    loadPengumuman();
+  } else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+}
+
+loadPengumuman();
+
+</script>
+</body>
+</html>

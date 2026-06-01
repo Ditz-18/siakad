@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Input Nilai — SIAKAD Ditz University</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <link rel="stylesheet" href="../assets/css/print.css">
+      <link rel="stylesheet" href="../assets/css/mobile-table.css">
+        <link rel="icon" type="image/png" href="../assets/img/icon.png">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="manifest" href="../manifest.json">
+  <meta name="theme-color" content="#1B3A6B">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="SIAKAD">
+  <link rel="apple-touch-icon" href="../assets/img/icon.png">
+  <style>
+    .nilai-input { width:64px; padding:5px 8px; text-align:center; border:1.5px solid var(--border-color); border-radius:var(--border-radius-sm); font-size:0.875rem; font-family:var(--font-mono); background:var(--bg-primary); color:var(--text-primary); }
+    .nilai-input:focus { border-color:var(--navy); box-shadow:0 0 0 2px rgba(27,58,107,0.1); outline:none; }
+    .nilai-input.error { border-color:var(--danger); }
+    .grade-pill { display:inline-block; padding:2px 10px; border-radius:12px; font-size:0.75rem; font-weight:700; min-width:36px; text-align:center; }
+    .grade-a { background:rgba(26,122,66,0.12);color:var(--success); }
+    .grade-b { background:rgba(23,96,160,0.12);color:var(--info); }
+    .grade-c { background:rgba(196,125,10,0.12);color:var(--warning); }
+    .grade-d { background:rgba(190,51,40,0.12);color:var(--danger); }
+    .grade-e { background:var(--danger-bg);color:var(--danger); }
+    .nilai-akhir-cell { font-family:var(--font-mono); font-weight:700; font-size:0.9rem; }
+    .kelas-selector { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; }
+    .kelas-chip { padding:7px 16px; border-radius:20px; border:1.5px solid var(--border-color); background:var(--bg-card); font-size:0.8125rem; font-weight:600; color:var(--text-secondary); cursor:pointer; transition:all 0.15s; font-family:var(--font-body); }
+    .kelas-chip.active { background:var(--navy); border-color:var(--navy); color:white; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <div id="dosen-sidebar-placeholder"></div>
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title">Input Nilai</span>
+      <div class="topbar-actions">
+        <button class="topbar-btn" data-theme-toggle><i class="fa-solid fa-moon"></i></button>
+        <button class="topbar-btn" data-notif-toggle><i class="fa-solid fa-bell"></i><span class="topbar-badge"></span></button>
+      </div>
+    </header>
+    <main class="page-content">
+      <div class="page-header">
+        <div class="page-header-top">
+          <div><h1>Input Nilai</h1><p>Masukkan nilai tugas, UTS, dan UAS mahasiswa</p></div>
+          <div class="flex gap-8">
+            <button class="btn btn-outline btn-sm" onclick="eksporNilaiCSV()"><i class="fa-solid fa-file-csv"></i> CSV</button>
+            <button class="btn btn-primary btn-sm" onclick="eksporNilaiPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+          </div>
+        </div>
+      </div>
+      <!-- Kelas selector chips -->
+      <div class="kelas-selector" id="kelas-selector"></div>
+      <!-- Info kelas aktif -->
+      <div class="card mb-20" style="background:var(--bg-secondary)">
+        <div class="card-body" style="padding:14px 20px">
+          <div class="flex gap-20 flex-wrap">
+            <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:2px">KELAS AKTIF</label><strong id="info-kelas-aktif">—</strong></div>
+            <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:2px">TOTAL MAHASISWA</label><strong id="info-total-mhs">—</strong></div>
+            <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:2px">BOBOT NILAI</label><strong>Tugas 20% + UTS 30% + UAS 50%</strong></div>
+            <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:2px">STATUS</label><strong id="info-status-nilai" style="color:var(--warning)">Belum Lengkap</strong></div>
+          </div>
+        </div>
+      </div>
+      <div class="alert alert-info mb-16">
+        <i class="fa-solid fa-circle-info"></i>
+        <div>Grade dan nilai akhir dihitung <strong>otomatis</strong> setelah Anda mengisi Tugas, UTS, dan UAS. Klik <strong>Simpan</strong> untuk menyimpan perubahan.</div>
+      </div>
+      <!-- Tabel nilai -->
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fa-solid fa-table-list" style="color:var(--navy);margin-right:8px"></i>Daftar Nilai Mahasiswa</h3>
+          <button class="btn btn-success btn-sm" onclick="simpanSemuaNilai()"><i class="fa-solid fa-floppy-disk"></i> Simpan Semua</button>
+        </div>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>No.</th><th>NIM</th><th>Nama Mahasiswa</th>
+                <th style="text-align:center">Tugas<br><span style="font-weight:400;font-size:0.65rem">(20%)</span></th>
+                <th style="text-align:center">UTS<br><span style="font-weight:400;font-size:0.65rem">(30%)</span></th>
+                <th style="text-align:center">UAS<br><span style="font-weight:400;font-size:0.65rem">(50%)</span></th>
+                <th style="text-align:center">Nilai Akhir</th>
+                <th style="text-align:center">Grade</th>
+                <th style="text-align:center">Status</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-nilai"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<div class="more-menu-overlay" id="more-menu-overlay"></div>
+<div class="more-menu-sheet" id="more-menu-sheet">
+  <div class="more-menu-handle"></div>
+  <div class="more-menu-title">Menu Lainnya</div>
+  <div class="more-menu-grid">
+    <a class="more-menu-item" href="absensi-kelas.html"><i class="fa-solid fa-clipboard-list"></i>Absensi</a>
+    <a class="more-menu-item" href="jadwal.html"><i class="fa-solid fa-calendar-days"></i>Jadwal</a>
+    <a class="more-menu-item" href="kelola-ujian.html"><i class="fa-solid fa-file-circle-check"></i>Ujian</a>
+    <a class="more-menu-item" href="persetujuan-krs.html"><i class="fa-solid fa-file-pen"></i>ACC KRS</a>
+    <a class="more-menu-item" href="pengumuman.html"><i class="fa-solid fa-bullhorn"></i>Pengumuman</a>
+    <a class="more-menu-item" href="profil.html"><i class="fa-solid fa-user"></i>Profil</a>
+  </div>
+</div>
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+    <a class="bottom-nav-item" href="kelas.html"><i class="fa-solid fa-chalkboard"></i><span>Kelas</span></a>
+    <a class="bottom-nav-item active" href="input-nilai.html"><i class="fa-solid fa-pen-to-square"></i><span>Nilai</span></a>
+    <a class="bottom-nav-item" href="bimbingan.html"><i class="fa-solid fa-users"></i><span>Bimbingan</span></a>
+    <button class="bottom-nav-more" id="btn-more-menu"><i class="fa-solid fa-plus"></i><span>Lainnya</span></button>
+  </div>
+</nav>
+<div class="toast-container"></div>
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/dosen-integration.js"></script>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/dosen-sidebar.js"></script>
+
+<script>
+(function() {
+  const btnMore=document.getElementById('btn-more-menu'), overlay=document.getElementById('more-menu-overlay'), sheet=document.getElementById('more-menu-sheet');
+  function openMore(){overlay.classList.add('open');sheet.classList.add('open');btnMore.classList.add('open');document.body.style.overflow='hidden';}
+  function closeMore(){overlay.classList.remove('open');sheet.classList.remove('open');btnMore.classList.remove('open');document.body.style.overflow='';}
+  btnMore?.addEventListener('click',function(e){e.stopPropagation();sheet.classList.contains('open')?closeMore():openMore();});
+  overlay?.addEventListener('click',closeMore);
+  let startY=0;
+  sheet?.addEventListener('touchstart',function(e){startY=e.touches[0].clientY;},{passive:true});
+  sheet?.addEventListener('touchmove',function(e){if(e.touches[0].clientY-startY>60)closeMore();},{passive:true});
+})();
+</script>
+<script>
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'dosen') window.location.href = '../auth/login.html';
+let selectedKelasId = null;
+let nilaiList = [];
+async function loadKelasOptions() {
+  const res = await DosenAPI.kelas();
+  if (!res || !res.ok) return;
+  const list = res.data.data || [];
+  const sel  = document.getElementById('select-kelas');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— Pilih Kelas —</option>' +
+    list.map(k => `<option value="${k.id}">${escHTML(k.mata_kuliah?.nama || '—')} (${k.kode_kelas})</option>`).join('');
+  // Auto-select dari URL param
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('kelas')) { sel.value = params.get('kelas'); loadNilai(params.get('kelas')); }
+  sel.addEventListener('change', () => { if (sel.value) loadNilai(sel.value); });
+}
+async function loadNilai(kelasId) {
+  selectedKelasId = kelasId;
+  const res = await DosenAPI.nilai(kelasId);
+  if (!res || !res.ok) { showToast('danger','Error','Gagal memuat data nilai'); return; }
+  nilaiList = res.data.data?.nilai || res.data.data || [];
+  renderNilai(nilaiList);
+}
+function renderNilai(list) {
+  const tbody = document.getElementById('tbody-nilai');
+  if (!tbody) return;
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="99"><div class="empty-state"><h3 class="empty-state-title">Belum ada data nilai</h3></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map((n, i) => `
+    <tr id="row-nilai-${n.id}">
+      <td>${i+1}</td>
+      <td><span class="font-mono" style="font-size:0.8rem">${n.mahasiswa?.nim || '—'}</span></td>
+      <td><strong>${escHTML(n.mahasiswa?.nama || '—')}</strong></td>
+      <td style="text-align:center">
+        <input type="number" class="form-control" style="width:70px;text-align:center;padding:4px 8px"
+          value="${n.nilai_tugas ?? ''}" min="0" max="100" onchange="updateNilai(${n.id},'tugas',this.value)"
+          placeholder="—">
+      </td>
+      <td style="text-align:center">
+        <input type="number" class="form-control" style="width:70px;text-align:center;padding:4px 8px"
+          value="${n.nilai_uts ?? ''}" min="0" max="100" onchange="updateNilai(${n.id},'uts',this.value)"
+          placeholder="—">
+      </td>
+      <td style="text-align:center">
+        <input type="number" class="form-control" style="width:70px;text-align:center;padding:4px 8px"
+          value="${n.nilai_uas ?? ''}" min="0" max="100" onchange="updateNilai(${n.id},'uas',this.value)"
+          placeholder="—">
+      </td>
+      <td style="text-align:center;font-weight:700">${n.nilai_akhir ?? '—'}</td>
+      <td style="text-align:center"><span class="badge ${n.grade?'badge-primary':'badge-muted'}">${n.grade || '—'}</span></td>
+      <td style="text-align:center"><span class="badge ${n.status==='Lulus'?'badge-success':n.status==='Tidak Lulus'?'badge-danger':'badge-muted'}">${n.status || '—'}</span></td>
+    </tr>`).join('');
+}
+async function updateNilai(nilaiId, tipe, val) {
+  const n = nilaiList.find(x => x.id === nilaiId);
+  if (!n) return;
+  const data = {
+    nilai_tugas: tipe === 'tugas' ? parseFloat(val) : n.nilai_tugas,
+    nilai_uts:   tipe === 'uts'   ? parseFloat(val) : n.nilai_uts,
+    nilai_uas:   tipe === 'uas'   ? parseFloat(val) : n.nilai_uas,
+  };
+  const res = await DosenAPI.updateNilai(selectedKelasId, nilaiId, data);
+  if (res && res.ok) {
+    // Update local data
+    Object.assign(n, res.data.data);
+    const row = document.getElementById(`row-nilai-${nilaiId}`);
+    if (row) {
+      row.cells[6].textContent = n.nilai_akhir ?? '—';
+      row.cells[7].innerHTML   = `<span class="badge ${n.grade?'badge-primary':'badge-muted'}">${n.grade || '—'}</span>`;
+      row.cells[8].innerHTML   = `<span class="badge ${n.status==='Lulus'?'badge-success':n.status==='Tidak Lulus'?'badge-danger':'badge-muted'}">${n.status || '—'}</span>`;
+    }
+  }
+}
+loadKelasOptions();
+</script>
+</body>
+</html>

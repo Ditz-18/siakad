@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laporan Akademik — SIAKAD Ditz University</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="stylesheet" href="../assets/css/mobile-table.css">
+  <link rel="stylesheet" href="../assets/css/print.css">
+  <style>
+    .ips-chart { display:flex; align-items:flex-end; gap:10px; height:120px; }
+    .ips-bar-wrap { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; justify-content:flex-end; }
+    .ips-bar { width:100%; border-radius:4px 4px 0 0; transition:height 0.6s ease; min-height:4px; }
+    .ips-bar-label { font-size:0.72rem; font-weight:700; color:var(--text-primary); }
+    .ips-bar-sem   { font-size:0.68rem; color:var(--text-muted); }
+
+    .donut-wrap { position:relative; width:120px; height:120px; margin:0 auto 12px; }
+    .donut-svg { transform:rotate(-90deg); }
+    .donut-text { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    .donut-val  { font-family:var(--font-display); font-size:1.3rem; font-weight:700; color:var(--navy); line-height:1; }
+    .donut-sub  { font-size:0.65rem; color:var(--text-muted); }
+  </style>
+  <link rel="manifest" href="../manifest.json">
+  <meta name="theme-color" content="#1B3A6B">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="SIAKAD">
+  <link rel="apple-touch-icon" href="../assets/img/icon.png">
+</head>
+<body>
+<div class="app-layout">
+  <div id="admin-sidebar-placeholder"></div>
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title">Laporan Akademik</span>
+      <div class="topbar-actions">
+        <button class="topbar-btn" data-theme-toggle><i class="fa-solid fa-moon"></i></button>
+        <button class="topbar-btn" data-notif-toggle><i class="fa-solid fa-bell"></i><span class="topbar-badge"></span></button>
+      </div>
+    </header>
+    <main class="page-content">
+      <div class="page-header">
+        <div class="page-header-top">
+          <div><h1>Laporan Akademik</h1><p>Statistik dan analisis data akademik universitas</p></div>
+          <button class="btn btn-primary btn-sm" onclick="eksporLaporan()"><i class="fa-solid fa-file-pdf"></i> Ekspor Laporan</button>
+        </div>
+      </div>
+
+      <div class="tabs mb-24">
+        <div class="tab-item active" onclick="switchTab(this,'ipk')"><i class="fa-solid fa-star"></i> Laporan IPK</div>
+        <div class="tab-item" onclick="switchTab(this,'nilai')"><i class="fa-solid fa-chart-bar"></i> Distribusi Nilai</div>
+        <div class="tab-item" onclick="switchTab(this,'kelulusan')"><i class="fa-solid fa-graduation-cap"></i> Statistik Kelulusan</div>
+        <div class="tab-item" onclick="switchTab(this,'absensi')"><i class="fa-solid fa-clipboard-list"></i> Rekap Absensi</div>
+      </div>
+
+      <!-- Tab IPK -->
+      <div class="tab-content active" id="tab-ipk">
+        <div class="grid grid-3 mb-20">
+          <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value">3.48</div><div class="stat-card-label">IPK Rata-rata Universitas</div></div><div class="stat-card-icon stat-icon-navy"><i class="fa-solid fa-star"></i></div></div></div>
+          <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value" style="color:var(--success)">342</div><div class="stat-card-label">Mahasiswa IPK ≥ 3.50</div></div><div class="stat-card-icon stat-icon-success"><i class="fa-solid fa-trophy"></i></div></div></div>
+          <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value" style="color:var(--warning)">89</div><div class="stat-card-label">Mahasiswa IPK < 2.50</div></div><div class="stat-card-icon stat-icon-warning"><i class="fa-solid fa-triangle-exclamation"></i></div></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>IPK Rata-rata Per Program Studi</h3></div>
+          <div class="table-wrapper">
+            <table class="table">
+              <thead><tr><th>Program Studi</th><th>Jumlah Mahasiswa</th><th style="text-align:center">IPK Rata-rata</th><th>Distribusi</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Teknik Informatika</strong></td><td>654</td><td style="text-align:center"><strong style="color:var(--navy)">3.52</strong></td><td><div class="progress" style="width:200px;height:6px"><div class="progress-bar" style="width:88%"></div></div></td></tr>
+                <tr><td><strong>Sistem Informasi</strong></td><td>387</td><td style="text-align:center"><strong style="color:var(--success)">3.44</strong></td><td><div class="progress" style="width:200px;height:6px"><div class="progress-bar success" style="width:86%"></div></div></td></tr>
+                <tr><td><strong>Manajemen Informatika</strong></td><td>206</td><td style="text-align:center"><strong style="color:var(--warning)">3.38</strong></td><td><div class="progress" style="width:200px;height:6px"><div class="progress-bar warning" style="width:84%"></div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Nilai -->
+      <div class="tab-content" id="tab-nilai">
+        <div class="grid grid-2" style="gap:20px">
+          <div class="card">
+            <div class="card-header"><h3>Distribusi Grade Semester Ini</h3></div>
+            <div class="card-body">
+              <div class="ips-chart" id="grade-chart" style="height:150px;align-items:flex-end;gap:12px;padding:0 8px"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>Ringkasan</h3></div>
+            <div class="card-body">
+              <div class="table-wrapper" style="border:none;border-radius:0">
+                <table class="table">
+                  <thead><tr><th>Grade</th><th style="text-align:center">Jumlah</th><th style="text-align:center">Persentase</th></tr></thead>
+                  <tbody>
+                    <tr><td><span class="badge" style="background:rgba(26,122,66,0.12);color:var(--success)">A</span></td><td style="text-align:center">1.248</td><td style="text-align:center;font-weight:700;color:var(--success)">31%</td></tr>
+                    <tr><td><span class="badge" style="background:rgba(23,96,160,0.12);color:var(--info)">B</span></td><td style="text-align:center">1.640</td><td style="text-align:center;font-weight:700;color:var(--info)">41%</td></tr>
+                    <tr><td><span class="badge" style="background:rgba(196,125,10,0.12);color:var(--warning)">C</span></td><td style="text-align:center">720</td><td style="text-align:center;font-weight:700;color:var(--warning)">18%</td></tr>
+                    <tr><td><span class="badge" style="background:rgba(190,51,40,0.12);color:var(--danger)">D/E</span></td><td style="text-align:center">392</td><td style="text-align:center;font-weight:700;color:var(--danger)">10%</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Kelulusan -->
+      <div class="tab-content" id="tab-kelulusan">
+        <div class="grid grid-4 mb-20">
+          <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value">1.247</div><div class="stat-card-label">Mahasiswa Aktif</div></div><div class="stat-card-icon stat-icon-success"><i class="fa-solid fa-user-graduate"></i></div></div></div>
+          <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value" style="color:var(--warning)">43</div><div class="stat-card-label">Cuti Akademik</div></div><div class="stat-card-icon stat-icon-warning"><i class="fa-solid fa-pause"></i></div></div></div>
+          <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value" style="color:var(--success)">328</div><div class="stat-card-label">Lulus Tahun Ini</div></div><div class="stat-card-icon stat-icon-navy"><i class="fa-solid fa-graduation-cap"></i></div></div></div>
+          <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value" style="color:var(--text-muted)">3.9 thn</div><div class="stat-card-label">Rata-rata Masa Studi</div></div><div class="stat-card-icon stat-icon-info"><i class="fa-solid fa-clock"></i></div></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Tren Kelulusan 3 Tahun Terakhir</h3></div>
+          <div class="card-body">
+            <div class="ips-chart" id="lulus-chart" style="height:150px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Absensi -->
+      <div class="tab-content" id="tab-absensi">
+        <div class="card">
+          <div class="card-header"><h3>Rekap Kehadiran Per Mata Kuliah</h3></div>
+          <div class="table-wrapper">
+            <table class="table">
+              <thead><tr><th>Mata Kuliah</th><th>Dosen</th><th style="text-align:center">Total Mhs</th><th style="text-align:center">Rata-rata Hadir</th><th style="text-align:center">Mhs < 75%</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Kecerdasan Buatan</strong></td><td style="font-size:0.8rem">Dr. Hendra Wijaya</td><td style="text-align:center">32</td><td style="text-align:center;font-weight:700;color:var(--success)">91%</td><td style="text-align:center;color:var(--danger);font-weight:700">1</td><td><span class="badge badge-success">Baik</span></td></tr>
+                <tr><td><strong>Keamanan Jaringan</strong></td><td style="font-size:0.8rem">Dr. Irwan Saputra</td><td style="text-align:center">30</td><td style="text-align:center;font-weight:700;color:var(--warning)">78%</td><td style="text-align:center;color:var(--danger);font-weight:700">5</td><td><span class="badge badge-warning">Perlu Perhatian</span></td></tr>
+                <tr><td><strong>Pemrograman Web Lanjut</strong></td><td style="font-size:0.8rem">Rina Kusuma</td><td style="text-align:center">35</td><td style="text-align:center;font-weight:700;color:var(--success)">88%</td><td style="text-align:center;color:var(--danger);font-weight:700">2</td><td><span class="badge badge-success">Baik</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<nav class="bottom-nav"><div class="bottom-nav-inner">
+  <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+  <a class="bottom-nav-item" href="data-mahasiswa.html"><i class="fa-solid fa-user-graduate"></i><span>Mahasiswa</span></a>
+  <a class="bottom-nav-item" href="surat.html"><i class="fa-solid fa-envelope"></i><span>Surat</span></a>
+  <a class="bottom-nav-item active" href="laporan.html"><i class="fa-solid fa-chart-pie"></i><span>Laporan</span></a>
+  <a class="bottom-nav-item" href="semester.html"><i class="fa-solid fa-calendar"></i><span>Semester</span></a>
+</div></nav>
+<div class="toast-container"></div>
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/admin-integration.js"></script>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/admin-sidebar.js"></script>
+<script>
+
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'admin') window.location.href = '../auth/login.html';
+
+let laporanMhs = [];
+let semesterAktifId = null;
+
+async function loadLaporan() {
+  // Load semester aktif
+  const semRes = await AdminAPI.semester();
+  if (semRes && semRes.ok) {
+    const aktif = (semRes.data.data || []).find(s => s.status === 'Aktif');
+    if (aktif) semesterAktifId = aktif.id;
+  }
+
+  // Load laporan mahasiswa
+  const res = await AdminAPI.laporanMahasiswa();
+  if (!res || !res.ok) { showToast('danger','Error','Gagal memuat laporan'); return; }
+  const data = res.data.data;
+  laporanMhs = data.mahasiswa || [];
+
+  // Update stat cards tab IPK
+  document.querySelector('#tab-ipk .stat-card:nth-child(1) .stat-card-value').textContent = data.rekap?.total || '0';
+  document.querySelector('#tab-ipk .stat-card:nth-child(2) .stat-card-value').textContent = data.rekap?.aktif || '0';
+  document.querySelector('#tab-ipk .stat-card:nth-child(3) .stat-card-value').textContent = data.rekap?.cuti || '0';
+}
+
+function switchTab(el, tab) {
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (tab === 'nilai') buildGradeChart();
+  if (tab === 'kelulusan') buildLulusChart();
+}
+
+function buildGradeChart() {
+  const data = [
+    {grade:'A',val:31,color:'var(--success)'},
+    {grade:'B',val:41,color:'var(--info)'},
+    {grade:'C',val:18,color:'var(--warning)'},
+    {grade:'D',val:7,color:'var(--danger)'},
+    {grade:'E',val:3,color:'#999'}
+  ];
+  document.getElementById('grade-chart').innerHTML = data.map(d=>`
+    <div class="ips-bar-wrap">
+      <div class="ips-bar-label">${d.val}%</div>
+      <div class="ips-bar" data-h="${d.val}" style="height:0%;background:${d.color}"></div>
+      <div class="ips-bar-sem">${d.grade}</div>
+    </div>`).join('');
+  setTimeout(()=>document.querySelectorAll('#grade-chart .ips-bar').forEach(b=>{b.style.height=b.dataset.h+'%';}),100);
+}
+
+function buildLulusChart() {
+  const data=[{thn:'2022',val:285},{thn:'2023',val:306},{thn:'2024',val:328}];
+  const maxV=Math.max(...data.map(d=>d.val));
+  document.getElementById('lulus-chart').innerHTML = data.map(d=>`
+    <div class="ips-bar-wrap">
+      <div class="ips-bar-label">${d.val}</div>
+      <div class="ips-bar" data-h="${Math.round((d.val/maxV)*100)}" style="height:0%;background:var(--navy)"></div>
+      <div class="ips-bar-sem">${d.thn}</div>
+    </div>`).join('');
+  setTimeout(()=>document.querySelectorAll('#lulus-chart .ips-bar').forEach(b=>{b.style.height=b.dataset.h+'%';}),100);
+}
+
+async function eksporLaporan() {
+  const res = await AdminAPI.laporanMahasiswa();
+  if (!res || !res.ok) { showToast('danger','Error','Gagal memuat data laporan'); return; }
+  const data = res.data.data;
+  eksporPDF('Laporan Akademik', `
+    <div class="info-grid">
+      <div class="info-item"><label>Total Mahasiswa</label><span>${data.rekap?.total || 0}</span></div>
+      <div class="info-item"><label>Mahasiswa Aktif</label><span>${data.rekap?.aktif || 0}</span></div>
+      <div class="info-item"><label>Mahasiswa Cuti</label><span>${data.rekap?.cuti || 0}</span></div>
+      <div class="info-item"><label>Mahasiswa Lulus</label><span>${data.rekap?.lulus || 0}</span></div>
+    </div>
+    <h2>Data Mahasiswa</h2>
+    <table><thead><tr><th>NIM</th><th>Nama</th><th>Program Studi</th><th>Angkatan</th><th>Status</th></tr></thead>
+    <tbody>${(data.mahasiswa||[]).slice(0,20).map(m=>`<tr><td>${m.nim}</td><td>${m.nama}</td><td>${m.program_studi?.nama||'—'}</td><td>${m.angkatan}</td><td>${m.status}</td></tr>`).join('')}</tbody></table>`);
+}
+
+loadLaporan();
+
+</script>
+</body>
+</html>

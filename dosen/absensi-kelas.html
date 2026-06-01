@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Absensi Kelas — SIAKAD Ditz University</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <link rel="stylesheet" href="../assets/css/print.css">
+      <link rel="stylesheet" href="../assets/css/mobile-table.css">
+        <link rel="icon" type="image/png" href="../assets/img/icon.png">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="manifest" href="../manifest.json">
+  <meta name="theme-color" content="#1B3A6B">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="SIAKAD">
+  <link rel="apple-touch-icon" href="../assets/img/icon.png">
+  <style>
+    .kelas-chip { padding:7px 16px; border-radius:20px; border:1.5px solid var(--border-color); background:var(--bg-card); font-size:0.8125rem; font-weight:600; color:var(--text-secondary); cursor:pointer; transition:all 0.15s; font-family:var(--font-body); }
+    .kelas-chip.active { background:var(--navy); border-color:var(--navy); color:white; }
+    .status-select { padding:5px 8px; border:1.5px solid var(--border-color); border-radius:var(--border-radius-sm); font-size:0.8rem; background:var(--bg-primary); color:var(--text-primary); font-family:var(--font-body); cursor:pointer; }
+    .att-dot { width:10px; height:10px; border-radius:50%; display:inline-block; }
+    .dot-hadir { background:var(--success); } .dot-izin { background:var(--warning); } .dot-sakit { background:var(--info); } .dot-alpha { background:var(--danger); }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <div id="dosen-sidebar-placeholder"></div>
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title">Absensi Kelas</span>
+      <div class="topbar-actions">
+        <button class="topbar-btn" data-theme-toggle><i class="fa-solid fa-moon"></i></button>
+        <button class="topbar-btn" data-notif-toggle><i class="fa-solid fa-bell"></i><span class="topbar-badge"></span></button>
+      </div>
+    </header>
+    <main class="page-content">
+      <div class="page-header">
+        <div class="page-header-top">
+          <div><h1>Absensi Kelas</h1><p>Catat dan kelola kehadiran mahasiswa</p></div>
+          <div class="flex gap-8">
+            <button class="btn btn-outline btn-sm" onclick="eksporAbsensiCSV()"><i class="fa-solid fa-file-csv"></i> CSV</button>
+            <button class="btn btn-primary btn-sm" onclick="eksporAbsensiPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+          </div>
+        </div>
+      </div>
+      <div class="flex gap-8 mb-20 flex-wrap" id="kelas-chips"></div>
+      <div class="flex gap-8 mb-20">
+        <button class="btn btn-primary" data-modal-target="modal-catat-pertemuan">
+          <i class="fa-solid fa-plus"></i> Catat Pertemuan Baru
+        </button>
+        <div style="font-size:0.8125rem;color:var(--text-muted);display:flex;align-items:center;gap:8px">
+          <span class="att-dot dot-hadir"></span>Hadir
+          <span class="att-dot dot-izin"></span>Izin
+          <span class="att-dot dot-sakit"></span>Sakit
+          <span class="att-dot dot-alpha"></span>Alpha
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h3 id="abs-kelas-title"><i class="fa-solid fa-clipboard-list" style="color:var(--navy);margin-right:8px"></i>Rekap Kehadiran</h3>
+        </div>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead><tr><th>NIM</th><th>Nama</th><th style="text-align:center">Hadir</th><th style="text-align:center">Izin</th><th style="text-align:center">Sakit</th><th style="text-align:center">Alpha</th><th>Persentase</th><th>Status</th><th>Detail</th></tr></thead>
+            <tbody id="tbody-abs"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<!-- Modal Catat Pertemuan -->
+<div class="modal-backdrop" id="modal-catat-pertemuan">
+  <div class="modal modal-lg">
+    <div class="modal-header"><h3><i class="fa-solid fa-plus" style="color:var(--navy);margin-right:8px"></i>Catat Pertemuan Baru</h3><button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Tanggal Pertemuan</label><input type="date" class="form-control" id="input-tgl-pertemuan" style="max-width:220px"></div>
+      <div class="table-wrapper">
+        <table class="table"><thead><tr><th>NIM</th><th>Nama Mahasiswa</th><th>Status Kehadiran</th></tr></thead>
+        <tbody id="tbody-catat"></tbody></table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal-close>Batal</button>
+      <button class="btn btn-primary btn-sm" onclick="simpanPertemuan()"><i class="fa-solid fa-floppy-disk"></i> Simpan Absensi</button>
+    </div>
+  </div>
+</div>
+<!-- Modal Detail Absensi Mhs -->
+<div class="modal-backdrop" id="modal-detail-abs">
+  <div class="modal"><div class="modal-header"><h3 id="modal-abs-nama">Detail Absensi</h3><button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button></div>
+  <div class="modal-body"><div class="grid grid-4 mb-16" id="modal-abs-stat"></div><div class="table-wrapper"><table class="table"><thead><tr><th>Pertemuan</th><th>Tanggal</th><th>Status</th></tr></thead><tbody id="modal-abs-tbody"></tbody></table></div></div>
+  <div class="modal-footer"><button class="btn btn-ghost btn-sm" data-modal-close>Tutup</button></div></div>
+</div>
+<div class="more-menu-overlay" id="more-menu-overlay"></div>
+<div class="more-menu-sheet" id="more-menu-sheet">
+  <div class="more-menu-handle"></div>
+  <div class="more-menu-title">Menu Lainnya</div>
+  <div class="more-menu-grid">
+    <a class="more-menu-item active" href="absensi-kelas.html"><i class="fa-solid fa-clipboard-list"></i>Absensi</a>
+    <a class="more-menu-item" href="jadwal.html"><i class="fa-solid fa-calendar-days"></i>Jadwal</a>
+    <a class="more-menu-item" href="kelola-ujian.html"><i class="fa-solid fa-file-circle-check"></i>Ujian</a>
+    <a class="more-menu-item" href="persetujuan-krs.html"><i class="fa-solid fa-file-pen"></i>ACC KRS</a>
+    <a class="more-menu-item" href="pengumuman.html"><i class="fa-solid fa-bullhorn"></i>Pengumuman</a>
+    <a class="more-menu-item" href="profil.html"><i class="fa-solid fa-user"></i>Profil</a>
+  </div>
+</div>
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+    <a class="bottom-nav-item" href="kelas.html"><i class="fa-solid fa-chalkboard"></i><span>Kelas</span></a>
+    <a class="bottom-nav-item" href="input-nilai.html"><i class="fa-solid fa-pen-to-square"></i><span>Nilai</span></a>
+    <a class="bottom-nav-item" href="bimbingan.html"><i class="fa-solid fa-users"></i><span>Bimbingan</span></a>
+    <button class="bottom-nav-more active" id="btn-more-menu"><i class="fa-solid fa-plus"></i><span>Lainnya</span></button>
+  </div>
+</nav>
+<div class="toast-container"></div>
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/dosen-integration.js"></script>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/dosen-sidebar.js"></script>
+
+<script>
+(function() {
+  const btnMore=document.getElementById('btn-more-menu'), overlay=document.getElementById('more-menu-overlay'), sheet=document.getElementById('more-menu-sheet');
+  function openMore(){overlay.classList.add('open');sheet.classList.add('open');btnMore.classList.add('open');document.body.style.overflow='hidden';}
+  function closeMore(){overlay.classList.remove('open');sheet.classList.remove('open');btnMore.classList.remove('open');document.body.style.overflow='';}
+  btnMore?.addEventListener('click',function(e){e.stopPropagation();sheet.classList.contains('open')?closeMore():openMore();});
+  overlay?.addEventListener('click',closeMore);
+  let startY=0;
+  sheet?.addEventListener('touchstart',function(e){startY=e.touches[0].clientY;},{passive:true});
+  sheet?.addEventListener('touchmove',function(e){if(e.touches[0].clientY-startY>60)closeMore();},{passive:true});
+})();
+</script>
+<script>
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'dosen') window.location.href = '../auth/login.html';
+let selectedKelasId = null;
+let absensiList = [];
+async function loadKelasOptions() {
+  const res = await DosenAPI.kelas();
+  if (!res || !res.ok) return;
+  const list = res.data.data || [];
+  const sel  = document.getElementById('select-kelas');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— Pilih Kelas —</option>' +
+    list.map(k => `<option value="${k.id}">${escHTML(k.mata_kuliah?.nama || '—')} (${k.kode_kelas})</option>`).join('');
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('kelas')) { sel.value = params.get('kelas'); loadAbsensi(params.get('kelas')); }
+  sel.addEventListener('change', () => { if (sel.value) loadAbsensi(sel.value); });
+}
+async function loadAbsensi(kelasId) {
+  selectedKelasId = kelasId;
+  const res = await DosenAPI.absensi(kelasId);
+  if (!res || !res.ok) { showToast('danger','Error','Gagal memuat absensi'); return; }
+  absensiList = res.data.data?.absensi || res.data.data || [];
+  renderAbsensi(absensiList);
+}
+function renderAbsensi(list) {
+  const tbody = document.getElementById('tbody-absensi');
+  if (!tbody) return;
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="99"><div class="empty-state"><h3 class="empty-state-title">Belum ada data absensi</h3></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map((a, i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td><span class="font-mono" style="font-size:0.8rem">${a.mahasiswa?.nim || '—'}</span></td>
+      <td><strong>${escHTML(a.mahasiswa?.nama || '—')}</strong></td>
+      <td style="text-align:center">
+        <input type="number" class="form-control" style="width:60px;text-align:center;padding:4px 6px"
+          value="${a.total_pertemuan}" min="0" id="total-${a.id}" placeholder="0">
+      </td>
+      <td style="text-align:center">
+        <input type="number" class="form-control" style="width:60px;text-align:center;padding:4px 6px"
+          value="${a.hadir}" min="0" id="hadir-${a.id}" placeholder="0">
+      </td>
+      <td style="text-align:center">
+        <input type="number" class="form-control" style="width:60px;text-align:center;padding:4px 6px"
+          value="${a.izin}" min="0" id="izin-${a.id}" placeholder="0">
+      </td>
+      <td style="text-align:center">
+        <input type="number" class="form-control" style="width:60px;text-align:center;padding:4px 6px"
+          value="${a.sakit}" min="0" id="sakit-${a.id}" placeholder="0">
+      </td>
+      <td style="text-align:center">
+        <input type="number" class="form-control" style="width:60px;text-align:center;padding:4px 6px"
+          value="${a.alpha}" min="0" id="alpha-${a.id}" placeholder="0">
+      </td>
+      <td style="text-align:center;font-weight:700;color:${a.persentase>=75?'var(--success)':'var(--danger)'}">
+        ${a.persentase}%
+      </td>
+      <td>
+        <button class="btn btn-primary btn-sm" onclick="simpanAbsensi(${a.id})">
+          <i class="fa-solid fa-floppy-disk"></i> Simpan
+        </button>
+      </td>
+    </tr>`).join('');
+}
+async function simpanAbsensi(absensiId) {
+  const data = {
+    total_pertemuan: parseInt(document.getElementById(`total-${absensiId}`).value) || 0,
+    hadir:  parseInt(document.getElementById(`hadir-${absensiId}`).value) || 0,
+    izin:   parseInt(document.getElementById(`izin-${absensiId}`).value) || 0,
+    sakit:  parseInt(document.getElementById(`sakit-${absensiId}`).value) || 0,
+    alpha:  parseInt(document.getElementById(`alpha-${absensiId}`).value) || 0,
+  };
+  const res = await DosenAPI.updateAbsensi(selectedKelasId, absensiId, data);
+  if (res && res.ok) {
+    showToast('success','Tersimpan','Absensi berhasil diperbarui');
+    loadAbsensi(selectedKelasId);
+  } else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+}
+loadKelasOptions();
+</script>
+</body>
+</html>

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>KRS — SIAKAD STAI DILWA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="icon" type="image/png" href="../assets/img/icon.png">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="stylesheet" href="../assets/css/mobile-table.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <link rel="stylesheet" href="../assets/css/print.css">
+  <!-- Di <head> -->
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#1A5C2A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SIAKAD">
+<link rel="apple-touch-icon" href="../assets/img/icon.png">
+  <style>
+    .sks-counter {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .sks-num {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .sks-label { font-size: 0.75rem; color: var(--text-muted); }
+    .sks-max { font-size: 0.8rem; color: var(--text-muted); }
+
+    .mk-color-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: inline-block;
+    }
+    .kuota-bar {
+      height: 4px;
+      background: var(--bg-tertiary);
+      border-radius: 2px;
+      overflow: hidden;
+      width: 60px;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 4px;
+    }
+    .kuota-fill { height: 100%; border-radius: 2px; transition: width 0.3s ease; }
+
+    .krs-info-row {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      padding: 16px 20px;
+      background: var(--bg-secondary);
+      border-radius: var(--border-radius-md);
+      margin-bottom: 20px;
+    }
+    .krs-info-item { display: flex; flex-direction: column; gap: 2px; }
+    .krs-info-item label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+    .krs-info-item span { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- ══ SIDEBAR ══ -->
+  <div id="mahasiswa-sidebar-placeholder"></div>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title">KRS — Kartu Rencana Studi</span>
+      <div class="topbar-actions">
+        <button class="topbar-btn" data-theme-toggle><i class="fa-solid fa-moon"></i></button>
+        <button class="topbar-btn" data-notif-toggle><i class="fa-solid fa-bell"></i><span class="topbar-badge"></span></button>
+      </div>
+    </header>
+    <div class="notif-dropdown" id="notif-dropdown"></div>
+
+    <main class="page-content">
+      <div class="page-header">
+        <div class="page-header-top">
+          <div>
+            <h1>Kartu Rencana Studi</h1>
+            <p id="krs-subtitle">Semester Ganjil 2024/2025 &mdash; Teknik Informatika</p>
+          </div>
+          <div class="flex gap-8">
+            <button class="btn btn-outline btn-sm" onclick="eksporKRSCSV()"><i class="fa-solid fa-file-csv"></i> CSV</button>
+            <button class="btn btn-primary btn-sm" onclick="eksporKRSPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Info Row -->
+      <div class="krs-info-row">
+        <div class="krs-info-item">
+          <label>Status KRS</label>
+          <span id="krs-status-badge"></span>
+        </div>
+        <div class="krs-info-item">
+          <label>Dosen PA</label>
+          <span id="krs-dosen-pa">—</span>
+        </div>
+        <div class="krs-info-item">
+          <label>Total SKS</label>
+          <span id="krs-total-sks">—</span>
+        </div>
+        <div style="flex:1"></div>
+        <div class="sks-counter">
+          <div>
+            <div class="sks-num" id="sks-num">0</div>
+            <div class="sks-label">SKS diambil</div>
+          </div>
+          <div style="color:var(--text-muted);font-size:1.2rem">/</div>
+          <div>
+            <div class="sks-num" style="color:var(--text-muted)" id="sks-max">24</div>
+            <div class="sks-label">Maks SKS</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress SKS -->
+      <div class="card mb-24">
+        <div class="card-body" style="padding:16px 20px">
+          <div class="flex-between mb-8">
+            <span style="font-size:0.8125rem;font-weight:600;color:var(--text-secondary)">Kapasitas SKS Semester Ini</span>
+            <span style="font-size:0.8125rem;font-weight:700;color:var(--text-primary)" id="sks-persen">0 / 24 SKS</span>
+          </div>
+          <div class="progress">
+            <div class="progress-bar" id="sks-progress-bar" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabel MK Diambil -->
+      <div class="card mb-24">
+        <div class="card-header">
+          <h3><i class="fa-solid fa-list-check" style="color:var(--success);margin-right:8px"></i>Mata Kuliah Diambil</h3>
+          <button class="btn btn-primary btn-sm" data-modal-target="modal-tambah-mk">
+            <i class="fa-solid fa-plus"></i> Tambah MK
+          </button>
+        </div>
+        <div class="table-scroll-hint"><i class="fa-solid fa-arrows-left-right"></i> Geser untuk lihat selengkapnya</div>
+        <div class="table-wrapper-outer">
+          <div class="table-wrapper">
+            <table class="table" id="tabel-mk-diambil">
+              <thead>
+                <tr>
+                  <th>No.</th><th>Kode</th><th>Nama Mata Kuliah</th>
+                  <th>SKS</th><th>Dosen</th><th>Jadwal</th><th>Ruang</th><th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-mk-diambil"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card-footer flex-between">
+          <span style="font-size:0.8125rem;color:var(--text-muted)">Total SKS</span>
+          <span style="font-weight:700;color:var(--text-primary)" id="footer-total-sks">0 SKS</span>
+        </div>
+      </div>
+
+      <!-- Katalog MK Tersedia -->
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fa-solid fa-book" style="color:var(--navy);margin-right:8px"></i>Katalog Mata Kuliah Tersedia</h3>
+        </div>
+        <div class="card-body" style="padding-bottom:0">
+          <div class="filter-bar">
+            <div class="input-group" style="flex:1;max-width:320px">
+              <i class="input-icon fa-solid fa-magnifying-glass"></i>
+              <input type="text" class="form-control" id="search-katalog" placeholder="Cari mata kuliah...">
+            </div>
+          </div>
+        </div>
+        <div class="table-scroll-hint"><i class="fa-solid fa-arrows-left-right"></i> Geser untuk lihat selengkapnya</div>
+        <div class="table-wrapper-outer">
+          <div class="table-wrapper">
+            <table class="table" id="tabel-katalog">
+              <thead>
+                <tr>
+                  <th>Kode</th><th>Nama Mata Kuliah</th><th>SKS</th>
+                  <th>Dosen</th><th>Jadwal</th><th>Kuota</th><th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-katalog"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Bottom Nav -->
+<div class="more-menu-overlay" id="more-menu-overlay"></div>
+<div class="more-menu-sheet" id="more-menu-sheet">
+  <div class="more-menu-handle"></div>
+  <div class="more-menu-title">Menu Lainnya</div>
+  <div class="more-menu-grid">
+    <a class="more-menu-item" href="khs.html"><i class="fa-solid fa-chart-bar"></i>KHS</a>
+    <a class="more-menu-item" href="transkrip.html"><i class="fa-solid fa-scroll"></i>Transkrip</a>
+    <a class="more-menu-item" href="jadwal.html"><i class="fa-solid fa-calendar-days"></i>Jadwal</a>
+    <a class="more-menu-item" href="pembayaran.html"><i class="fa-solid fa-credit-card"></i>Pembayaran</a>
+    <a class="more-menu-item" href="dokumen.html"><i class="fa-solid fa-folder-open"></i>Dokumen</a>
+    <a class="more-menu-item" href="ktm.html"><i class="fa-solid fa-id-card"></i>KTM</a>
+    <a class="more-menu-item" href="pengumuman.html"><i class="fa-solid fa-bullhorn"></i>Pengumuman</a>
+    <a class="more-menu-item" href="profil.html"><i class="fa-solid fa-user"></i>Profil</a>
+  </div>
+</div>
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+    <a class="bottom-nav-item active" href="krs.html"><i class="fa-solid fa-file-pen"></i><span>KRS</span></a>
+    <a class="bottom-nav-item" href="ujian.html"><i class="fa-solid fa-pencil"></i><span>Ujian</span></a>
+    <a class="bottom-nav-item" href="absensi.html"><i class="fa-solid fa-clipboard-check"></i><span>Absensi</span></a>
+    <button class="bottom-nav-more" id="btn-more-menu"><i class="fa-solid fa-plus"></i><span>Lainnya</span></button>
+  </div>
+</nav>
+
+<!-- Modal Tambah MK -->
+<div class="modal-backdrop" id="modal-tambah-mk">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-plus" style="margin-right:8px;color:var(--navy)"></i>Tambah Mata Kuliah</h3>
+      <button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Pilih Mata Kuliah</label>
+        <select class="form-control" id="select-mk-tambah">
+          <option value="">— Pilih mata kuliah —</option>
+        </select>
+      </div>
+      <div id="mk-preview" style="display:none">
+        <div class="alert alert-info mt-12" id="mk-preview-info"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal-close>Batal</button>
+      <button class="btn btn-primary btn-sm" onclick="tambahMK()"><i class="fa-solid fa-plus"></i> Tambahkan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Konfirmasi Hapus -->
+<div class="modal-backdrop" id="modal-hapus-mk">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-trash" style="margin-right:8px;color:var(--danger)"></i>Hapus Mata Kuliah</h3>
+      <button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--text-secondary);line-height:1.6">
+        Yakin ingin menghapus <strong id="hapus-mk-nama">—</strong> dari KRS?
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal-close>Batal</button>
+      <button class="btn btn-danger btn-sm" onclick="konfirmasiHapusMK()"><i class="fa-solid fa-trash"></i> Hapus</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container"></div>
+
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/mahasiswa-integration.js"></script>
+<script src="../assets/js/mahasiswa-sidebar.js"></script>
+<script src="../assets/js/main.js"></script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
+</script>
+
+<script>
+
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'mahasiswa') window.location.href = '../auth/login.html';
+
+async function loadKRS() {
+  const res = await MahasiswaAPI.krs();
+  if (!res || !res.ok) { showToast('danger','Error','Gagal memuat KRS'); return; }
+  const d = res.data.data;
+
+  // Update semester info
+  const semEl = document.querySelector('[id*="semester"], .semester-nama');
+  if (semEl && d.semester) semEl.textContent = d.semester.nama || '';
+
+  // Update total SKS
+  const sksEl = document.getElementById('total-sks') || document.querySelector('[id*="total-sks"]');
+  if (sksEl) sksEl.textContent = (d.total_sks ?? 0) + ' SKS';
+
+  renderKRS(d.krs || []);
+}
+
+const statusBadge = { Draft:'badge-muted', Menunggu:'badge-warning', Disetujui:'badge-success', Ditolak:'badge-danger' };
+
+function renderKRS(list) {
+  const tbody = document.getElementById('tbody-krs') || document.querySelector('tbody');
+  if (!tbody) return;
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="99"><div class="empty-state"><h3 class="empty-state-title">Belum ada mata kuliah di KRS</h3><p class="empty-state-desc">Tambahkan mata kuliah untuk semester ini</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map((k, i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td><span class="font-mono" style="font-size:0.8rem">${k.kelas?.mata_kuliah?.kode || '—'}</span></td>
+      <td><strong>${escHTML(k.kelas?.mata_kuliah?.nama || '—')}</strong></td>
+      <td style="text-align:center">${k.kelas?.mata_kuliah?.sks ?? '—'}</td>
+      <td style="font-size:0.8rem">${k.kelas?.dosen?.nama || '—'}</td>
+      <td style="font-size:0.8rem">${k.kelas?.hari || '—'} ${k.kelas?.jam_mulai || ''}-${k.kelas?.jam_selesai || ''}</td>
+      <td><span class="badge badge-muted">${k.kelas?.ruangan || '—'}</span></td>
+      <td><span class="badge ${statusBadge[k.status] || 'badge-muted'}">${k.status}</span></td>
+      <td>
+        ${k.status === 'Draft' || k.status === 'Ditolak'
+          ? `<button class="btn btn-outline-danger btn-icon btn-sm" onclick="hapusKRS(${k.id})" title="Hapus"><i class="fa-solid fa-trash"></i></button>`
+          : '—'}
+      </td>
+    </tr>`).join('');
+}
+
+async function hapusKRS(id) {
+  konfirmasi('Yakin ingin menghapus mata kuliah ini dari KRS?', async () => {
+    const res = await MahasiswaAPI.hapusKrs(id);
+    if (res && res.ok) { showToast('success','Dihapus','Mata kuliah berhasil dihapus dari KRS'); loadKRS(); }
+    else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+  });
+}
+
+async function ajukanKRS() {
+  showToast('info','Info','KRS akan diajukan ke dosen PA untuk persetujuan');
+}
+
+loadKRS();
+
+</script>
+</body>
+</html>

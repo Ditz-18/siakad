@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kelola KTM — SIAKAD Ditz University</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="stylesheet" href="../assets/css/mobile-table.css">
+  <link rel="stylesheet" href="../assets/css/print.css">
+</head>
+<body>
+<div class="app-layout">
+  <div id="admin-sidebar-placeholder"></div>
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title">Kelola KTM</span>
+      <div class="topbar-actions">
+        <button class="topbar-btn" data-theme-toggle><i class="fa-solid fa-moon"></i></button>
+        <button class="topbar-btn" data-notif-toggle><i class="fa-solid fa-bell"></i><span class="topbar-badge"></span></button>
+      </div>
+    </header>
+    <main class="page-content">
+      <div class="page-header">
+        <div class="page-header-top">
+          <div><h1>Kelola KTM</h1><p>Generate dan kontrol Kartu Tanda Mahasiswa</p></div>
+          <div class="flex gap-8">
+            <button class="btn btn-outline btn-sm" onclick="eksporKTMCSV()"><i class="fa-solid fa-file-csv"></i> Ekspor CSV</button>
+            <button class="btn btn-primary" data-modal-target="modal-generate-massal"><i class="fa-solid fa-id-card"></i> Generate Massal</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-3 mb-24">
+        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value" style="color:var(--success)">1.180</div><div class="stat-card-label">KTM Aktif</div></div><div class="stat-card-icon stat-icon-success"><i class="fa-solid fa-id-card"></i></div></div></div>
+        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value" style="color:var(--danger)">24</div><div class="stat-card-label">Kadaluarsa</div></div><div class="stat-card-icon stat-icon-danger"><i class="fa-solid fa-calendar-xmark"></i></div></div></div>
+        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value" style="color:var(--text-muted)">43</div><div class="stat-card-label">Belum Digenerate</div></div><div class="stat-card-icon stat-icon-info"><i class="fa-solid fa-clock"></i></div></div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-body" style="padding-bottom:0">
+          <div class="filter-bar">
+            <div class="input-group" style="max-width:240px"><i class="input-icon fa-solid fa-magnifying-glass"></i><input type="text" class="form-control" id="search-ktm" placeholder="Cari NIM atau nama..."></div>
+            <select class="form-control" id="filter-ktm-prodi" style="width:auto"><option value="">Semua Prodi</option><option>Teknik Informatika</option><option>Sistem Informasi</option></select>
+            <select class="form-control" id="filter-ktm-status" style="width:auto"><option value="">Semua Status</option><option value="Aktif">Aktif</option><option value="Kadaluarsa">Kadaluarsa</option><option value="Belum Ada">Belum Ada</option></select>
+            <button class="btn btn-ghost btn-sm" onclick="resetFilterKTM()"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead><tr><th>NIM</th><th>Nama</th><th>Program Studi</th><th>Angkatan</th><th>Status KTM</th><th>Berlaku Hingga</th><th>Aksi</th></tr></thead>
+            <tbody id="tbody-ktm"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Modal Generate Massal -->
+<div class="modal-backdrop" id="modal-generate-massal">
+  <div class="modal">
+    <div class="modal-header"><h3><i class="fa-solid fa-id-card" style="color:var(--navy);margin-right:8px"></i>Generate KTM Massal</h3><button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <div class="alert alert-warning mb-16"><i class="fa-solid fa-triangle-exclamation"></i><div>Proses generate massal <strong>tidak dapat dibatalkan</strong>. KTM yang sudah ada akan diperbarui.</div></div>
+      <div class="form-group"><label class="form-label">Program Studi</label>
+        <select class="form-control" id="gen-prodi"><option value="">Semua Program Studi</option><option>Teknik Informatika</option><option>Sistem Informasi</option><option>Manajemen Informatika</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Angkatan</label>
+        <select class="form-control" id="gen-angkatan"><option value="">Semua Angkatan</option><option>2024</option><option>2023</option><option>2022</option><option>2021</option></select>
+      </div>
+      <div class="form-group mb-0"><label class="form-label">Berlaku Hingga <span class="required">*</span></label><input type="date" class="form-control" id="gen-berlaku"></div>
+      <div class="alert alert-info mt-16"><i class="fa-solid fa-circle-info"></i><div>Estimasi: <strong id="gen-preview">1.247 KTM</strong> akan digenerate berdasarkan filter yang dipilih</div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal-close>Batal</button>
+      <button class="btn btn-primary btn-sm" onclick="generateMassal()"><i class="fa-solid fa-circle-play"></i> Eksekusi Generate</button>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav"><div class="bottom-nav-inner">
+  <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+  <a class="bottom-nav-item" href="data-mahasiswa.html"><i class="fa-solid fa-user-graduate"></i><span>Mahasiswa</span></a>
+  <a class="bottom-nav-item" href="surat.html"><i class="fa-solid fa-envelope"></i><span>Surat</span></a>
+  <a class="bottom-nav-item" href="laporan.html"><i class="fa-solid fa-chart-pie"></i><span>Laporan</span></a>
+  <a class="bottom-nav-item" href="semester.html"><i class="fa-solid fa-calendar"></i><span>Semester</span></a>
+</div></nav>
+<div class="toast-container"></div>
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/admin-integration.js"></script>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/admin-sidebar.js"></script>
+<script>
+
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'admin') window.location.href = '../auth/login.html';
+
+let ktmList = [];
+
+async function loadKTM() {
+  const q     = document.getElementById('search-ktm').value;
+  const params = { per_page: 50 };
+  if (q) params.search = q;
+  const res = await AdminAPI.mahasiswa(params);
+  if (!res || !res.ok) { showToast('danger','Error','Gagal memuat data KTM'); return; }
+  ktmList = (res.data.data?.data || res.data.data || []).map(m => ({
+    ...m,
+    ktmStatus: 'Aktif',
+    berlakuHingga: '2025-08-31'
+  }));
+  // Update stat cards
+  document.querySelector('.stat-card:nth-child(1) .stat-card-value').textContent = ktmList.length;
+  renderTabel(ktmList);
+}
+
+function applyFilter() {
+  const q    = document.getElementById('search-ktm').value.toLowerCase();
+  const stat = document.getElementById('filter-ktm-status').value;
+  return ktmList.filter(m =>
+    (!q || m.nama.toLowerCase().includes(q) || m.nim.includes(q)) &&
+    (!stat || m.ktmStatus === stat)
+  );
+}
+
+function renderTabel(list) {
+  if (list.length === 0) {
+    document.getElementById('tbody-ktm').innerHTML = `<tr><td colspan="99"><div class="empty-state"><h3 class="empty-state-title">Tidak ada data KTM</h3><p class="empty-state-desc">Coba ubah filter pencarian</p></div></td></tr>`;
+    return;
+  }
+  document.getElementById('tbody-ktm').innerHTML = list.map(m => `
+    <tr>
+      <td class="font-mono" style="font-size:0.8rem">${m.nim}</td>
+      <td><strong>${escHTML(m.nama)}</strong></td>
+      <td style="font-size:0.8375rem">${escHTML(m.program_studi?.nama || '—')}</td>
+      <td>${m.angkatan}</td>
+      <td><span class="badge badge-success">${m.ktmStatus}</span></td>
+      <td>${m.berlakuHingga ? formatTanggal(m.berlakuHingga,'pendek') : '—'}</td>
+      <td>
+        <div class="table-actions">
+          <button class="btn btn-outline btn-sm" onclick="generateSatu(${m.id},'${escHTML(m.nim)}')"><i class="fa-solid fa-circle-play"></i> Generate</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+async function generateSatu(id, nim) {
+  const res = await AdminAPI.generateKtm(id);
+  if (res && res.ok) showToast('success','KTM Digenerate',`KTM untuk ${nim} berhasil digenerate`);
+  else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+}
+
+function generateMassal() {
+  const berlaku = document.getElementById('gen-berlaku').value;
+  if (!berlaku) { showToast('warning','Validasi','Pilih tanggal berlaku hingga'); return; }
+  hideModal('modal-generate-massal');
+  showToast('success','Generate Berhasil',`${ktmList.length} KTM berhasil digenerate`);
+}
+
+function eksporKTMCSV() {
+  eksporCSV(ktmList.map(m=>({ nim:m.nim, nama:m.nama, prodi:m.program_studi?.nama||'—', angkatan:m.angkatan, status:m.ktmStatus, berlaku:m.berlakuHingga||'—' })),
+  ['NIM','Nama','Program Studi','Angkatan','Status KTM','Berlaku Hingga'], 'Data_KTM');
+}
+
+const debS = debounce(() => renderTabel(applyFilter()), 300);
+document.getElementById('search-ktm').addEventListener('input', debS);
+['filter-ktm-prodi','filter-ktm-status'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('change', () => renderTabel(applyFilter()));
+});
+function resetFilterKTM() {
+  document.getElementById('search-ktm').value = '';
+  document.getElementById('filter-ktm-prodi').value = '';
+  document.getElementById('filter-ktm-status').value = '';
+  renderTabel(ktmList);
+}
+loadKTM();
+
+</script>
+</body>
+</html>

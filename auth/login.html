@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — SIAKAD STAI DILWA</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="../assets/img/icon.png">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <!-- Anu -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1A5C2A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SIAKAD">
+<link rel="apple-touch-icon" href="assets/img/icon.png">
+
+  <style>
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy:       #1A5C2A;
+      --navy-dark:  #0D3D1A;
+      --navy-light: #2E7D3A;
+      --gold:       #C8922A;
+      --gold-light: #DFB050;
+      --gold-dark:  #A87520;
+      --success:    #1A7A42;
+      --danger:     #BE3328;
+      --danger-bg:  #FAEAEA;
+      --gray-100:   #F1F3F5;
+      --gray-200:   #E9ECEF;
+      --gray-300:   #DEE2E6;
+      --gray-500:   #ADB5BD;
+      --gray-600:   #6C757D;
+      --gray-800:   #343A40;
+      --text:       #212529;
+      --text-sub:   #495057;
+      --bg:         #FFFFFF;
+      --font-display: 'Playfair Display', Georgia, serif;
+      --font-body:    'Source Sans 3', sans-serif;
+      --font-mono:    'JetBrains Mono', monospace;
+      --trans:        0.22s ease;
+    }
+    [data-theme="dark"] {
+      --bg:       #141720;
+      --text:     #E8EAF0;
+      --text-sub: #A8AEBE;
+      --gray-100: #1F2330;
+      --gray-200: #252840;
+      --gray-300: #2D3348;
+      --gray-500: #4B5268;
+      --gray-600: #6B7280;
+      --gray-800: #C2C6D6;
+    }
+    html { font-size: 16px; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── LEFT PANEL ── */
+    .left-panel {
+      width: 48%;
+      min-height: 100vh;
+      background: var(--navy-dark);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 48px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    /* Geometric background pattern */
+    .left-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 80%, rgba(200,146,42,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 80% 20%, rgba(26,92,42,0.3) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    /* Decorative circles */
+    .left-panel::after {
+      content: '';
+      position: absolute;
+      top: -120px; right: -120px;
+      width: 400px; height: 400px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(200,146,42,0.15);
+      pointer-events: none;
+    }
+    .circle-deco {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.06);
+      pointer-events: none;
+    }
+    .circle-deco-1 { width: 280px; height: 280px; bottom: -80px; left: -80px; }
+    .circle-deco-2 { width: 160px; height: 160px; bottom: 80px;  right: 60px; border-color: rgba(200,146,42,0.1); }
+    .circle-deco-3 { width: 80px;  height: 80px;  top: 160px;   right: 140px; }
+
+    /* Grid lines deco */
+    .grid-deco {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+    }
+
+    .left-top { position: relative; z-index: 2; }
+    .left-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 56px;
+    }
+    .left-brand-logo {
+      width: 56px; height: 56px;
+      border-radius: 10px;
+      overflow: hidden;
+      flex-shrink: 0;
+      background: white;
+      padding: 4px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    }
+    .left-brand-logo img {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    .left-brand-text h1 {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #FFFFFF;
+      line-height: 1.1;
+    }
+    .left-brand-text span {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.45);
+      letter-spacing: 0.04em;
+    }
+
+    .left-headline {
+      position: relative; z-index: 2;
+    }
+    .left-headline .eyebrow {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .left-headline .eyebrow::before {
+      content: '';
+      display: block;
+      width: 24px; height: 2px;
+      background: var(--gold);
+      border-radius: 1px;
+    }
+    .left-headline h2 {
+      font-family: var(--font-display);
+      font-size: 2.4rem;
+      font-weight: 700;
+      color: #FFFFFF;
+      line-height: 1.2;
+      margin-bottom: 18px;
+    }
+    .left-headline h2 em {
+      color: var(--gold-light);
+      font-style: italic;
+    }
+    .left-headline p {
+      font-size: 0.9375rem;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.7;
+      max-width: 340px;
+    }
+
+    /* Stats row */
+    .stats-row {
+      display: flex;
+      gap: 24px;
+      margin-top: 40px;
+      position: relative; z-index: 2;
+    }
+
+    .stat-item .num {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #FFFFFF;
+      line-height: 1;
+    }
+    .stat-item .num span {
+      color: var(--gold);
+      font-size: 1rem;
+    }
+    .stat-item .lbl {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.4);
+      margin-top: 4px;
+      letter-spacing: 0.02em;
+    }
+    .stat-divider {
+      width: 1px;
+      background: rgba(255,255,255,0.1);
+      align-self: stretch;
+    }
+
+    /* Left bottom */
+    .left-bottom {
+      position: relative; z-index: 2;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.3);
+    }
+    .left-bottom a { color: rgba(255,255,255,0.45); text-decoration: none; }
+    .left-bottom a:hover { color: var(--gold); }
+
+    /* ── RIGHT PANEL ── */
+    .right-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 48px;
+      position: relative;
+      background: var(--bg);
+      min-height: 100vh;
+      overflow-y: auto;
+    }
+
+    /* Theme toggle top-right */
+    .theme-toggle {
+      position: absolute;
+      top: 24px; right: 24px;
+      width: 38px; height: 38px;
+      border-radius: 8px;
+      border: 1.5px solid var(--gray-300);
+      background: var(--gray-100);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-sub);
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all var(--trans);
+    }
+    .theme-toggle:hover { border-color: var(--navy); color: var(--navy); }
+
+    .form-wrapper {
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .form-top {
+      margin-bottom: 32px;
+      animation: fadeUp 0.4s ease both;
+    }
+    .form-top h2 {
+      font-family: var(--font-display);
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.2;
+      margin-bottom: 6px;
+    }
+    .form-top p {
+      font-size: 0.875rem;
+      color: var(--text-sub);
+    }
+
+    /* Role tabs */
+    .role-tabs {
+      display: flex;
+      background: var(--gray-100);
+      border-radius: 10px;
+      padding: 4px;
+      gap: 2px;
+      margin-bottom: 28px;
+      animation: fadeUp 0.4s ease 0.05s both;
+    }
+    .role-tab {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 9px 12px;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--gray-600);
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all var(--trans);
+      border: none;
+      background: none;
+      font-family: var(--font-body);
+      white-space: nowrap;
+    }
+    .role-tab:hover { color: var(--navy); }
+    .role-tab.active {
+      background: var(--bg);
+      color: var(--navy);
+      box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+    }
+    .role-tab i { font-size: 0.8rem; }
+
+    /* Form fields */
+    .field-group {
+      margin-bottom: 16px;
+      animation: fadeUp 0.4s ease 0.1s both;
+    }
+    .field-label {
+      display: block;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--text-sub);
+      margin-bottom: 7px;
+    }
+    .field-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .field-icon {
+      position: absolute;
+      left: 12px;
+      color: var(--gray-500);
+      font-size: 0.875rem;
+      pointer-events: none;
+      transition: color var(--trans);
+      z-index: 1;
+    }
+    .field-input {
+      width: 100%;
+      padding: 11px 12px 11px 38px;
+      font-size: 0.9375rem;
+      font-family: var(--font-body);
+      color: var(--text);
+      background: var(--bg);
+      border: 1.5px solid var(--gray-300);
+      border-radius: 9px;
+      outline: none;
+      transition: border-color var(--trans), box-shadow var(--trans);
+    }
+    .field-input:focus {
+      border-color: var(--navy);
+      box-shadow: 0 0 0 3.5px rgba(26,92,42,0.1);
+    }
+    .field-input:focus + .field-icon,
+    .field-wrap:focus-within .field-icon { color: var(--navy); }
+    .field-input.has-right { padding-right: 42px; }
+    .field-input::placeholder { color: var(--gray-500); font-size: 0.875rem; }
+    .field-input.error { border-color: var(--danger); }
+    .field-input.error:focus { box-shadow: 0 0 0 3px rgba(190,51,40,0.1); }
+
+    .field-right {
+      position: absolute;
+      right: 11px;
+      background: none;
+      border: none;
+      color: var(--gray-500);
+      cursor: pointer;
+      font-size: 0.875rem;
+      padding: 4px;
+      transition: color var(--trans);
+    }
+    .field-right:hover { color: var(--navy); }
+
+    .field-error {
+      font-size: 0.75rem;
+      color: var(--danger);
+      margin-top: 5px;
+      display: none;
+    }
+    .field-error.show { display: flex; align-items: center; gap: 4px; }
+
+    /* NIM display style */
+    #input-identifier.nim-style {
+      font-family: var(--font-mono);
+      letter-spacing: 0.08em;
+      font-size: 0.9rem;
+    }
+
+    /* Options row */
+    .options-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      animation: fadeUp 0.4s ease 0.15s both;
+    }
+    .remember-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .remember-wrap input[type="checkbox"] {
+      width: 16px; height: 16px;
+      accent-color: var(--navy);
+      cursor: pointer;
+    }
+    .remember-wrap label {
+      font-size: 0.8125rem;
+      color: var(--text-sub);
+      cursor: pointer;
+    }
+    .forgot-link {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--navy);
+      text-decoration: none;
+      transition: color var(--trans);
+    }
+    .forgot-link:hover { color: var(--gold-dark); }
+
+    /* Submit button */
+    .btn-submit {
+      width: 100%;
+      padding: 13px;
+      font-size: 0.9375rem;
+      font-weight: 700;
+      font-family: var(--font-body);
+      color: #FFFFFF;
+      background: var(--navy);
+      border: none;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: all var(--trans);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      animation: fadeUp 0.4s ease 0.2s both;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-submit::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0);
+      transition: background var(--trans);
+    }
+    .btn-submit:hover { background: var(--navy-light); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(26,92,42,0.3); }
+    .btn-submit:active { transform: translateY(0); }
+    .btn-submit:disabled { opacity: 0.65; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* Error alert */
+    .login-error {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      background: var(--danger-bg);
+      border: 1px solid rgba(190,51,40,0.25);
+      border-radius: 8px;
+      font-size: 0.8125rem;
+      color: #7A1C17;
+      margin-bottom: 18px;
+      animation: fadeUp 0.3s ease both;
+    }
+    .login-error.show { display: flex; }
+    [data-theme="dark"] .login-error { background: rgba(190,51,40,0.15); color: #F08080; border-color: rgba(190,51,40,0.3); }
+
+    /* Animations */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Loading spinner inside button */
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .left-panel { display: none; }
+      .right-panel { padding: 32px 24px; }
+    }
+    @media (max-width: 480px) {
+      .right-panel { padding: 24px 16px; }
+      .form-wrapper { max-width: 100%; }
+      .role-tab span { display: none; }
+    }
+
+    /* ══════════════════════════════════════════
+       MOBILE REDESIGN
+    ══════════════════════════════════════════ */
+    @media (max-width: 900px) {
+
+      /* Subtle green gradient header di mobile */
+      body::before {
+        content: '';
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        height: 120px;
+        background: linear-gradient(180deg, rgba(26,92,42,0.08) 0%, transparent 100%);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .right-panel {
+        padding: 32px 20px 28px;
+        justify-content: flex-start;
+        padding-top: 48px;
+      }
+
+      .form-wrapper {
+        max-width: 100%;
+        width: 100%;
+      }
+
+      /* Branding mobile di atas form */
+      .mobile-brand {
+        display: flex !important;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 24px;
+        animation: fadeUp 0.4s ease both;
+      }
+      .mobile-brand-logo {
+        width: 40px; height: 40px;
+        background: white;
+        border-radius: 8px;
+        padding: 3px;
+        box-shadow: 0 2px 10px rgba(26,92,42,0.15);
+        border: 1.5px solid rgba(26,92,42,0.1);
+        flex-shrink: 0;
+      }
+      .mobile-brand-logo img {
+        width: 100%; height: 100%;
+        object-fit: contain;
+        display: block;
+      }
+      .mobile-brand-text strong {
+        display: block;
+        font-size: 0.9375rem;
+        font-weight: 700;
+        color: var(--navy-dark);
+        line-height: 1.1;
+      }
+      .mobile-brand-text span {
+        font-size: 0.72rem;
+        color: var(--gray-600);
+      }
+
+      /* Form top lebih compact */
+      .form-top {
+        margin-bottom: 20px;
+      }
+      .form-top h2 {
+        font-size: 1.5rem;
+      }
+
+      /* Role tabs: tampilkan label + icon, tab aktif hijau */
+      .role-tabs {
+        margin-bottom: 20px;
+      }
+      .role-tab {
+        flex-direction: column;
+        gap: 4px;
+        padding: 8px 6px;
+        font-size: 0.72rem;
+      }
+      .role-tab i { font-size: 1rem; }
+      .role-tab span { display: block !important; font-size: 0.68rem; }
+      .role-tab.active {
+        background: var(--navy);
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(26,92,42,0.25);
+      }
+      .role-tab.active i { color: #fff; }
+
+      /* Input lebih compact */
+      .field-input {
+        padding: 10px 12px 10px 36px;
+        font-size: 0.875rem;
+        border-radius: 10px;
+      }
+      .field-group { margin-bottom: 14px; }
+
+      /* Button masuk pill */
+      .btn-submit {
+        border-radius: 50px;
+        padding: 13px;
+        font-size: 0.9375rem;
+      }
+
+      /* Footer mobile */
+      .mobile-footer {
+        display: block !important;
+        text-align: center;
+        margin-top: 28px;
+        font-size: 0.72rem;
+        color: var(--gray-500);
+      }
+      .mobile-footer a { color: var(--navy); text-decoration: none; }
+    }
+
+    @media (max-width: 480px) {
+      .right-panel { padding: 40px 16px 24px; }
+      .role-tab { padding: 7px 4px; }
+    }
+
+    /* Sembunyikan elemen mobile di desktop */
+    .mobile-brand { display: none; }
+    .mobile-footer { display: none; }
+  </style>
+</head>
+<body>
+
+  <!-- ── LEFT PANEL ── -->
+  <div class="left-panel">
+    <div class="grid-deco"></div>
+    <div class="circle-deco circle-deco-1"></div>
+    <div class="circle-deco circle-deco-2"></div>
+    <div class="circle-deco circle-deco-3"></div>
+
+    <!-- Brand -->
+    <div class="left-top">
+      <div class="left-brand">
+        <div class="left-brand-logo">
+          <img src="../assets/img/logo.png" alt="Logo STAI DILWA">
+        </div>
+        <div class="left-brand-text">
+          <h1>STAI DILWA</h1>
+          <span>Darul Ilmi Wadda'wah — Kab. Bogor</span>
+        </div>
+      </div>
+
+      <div class="left-headline">
+        <div class="eyebrow">Sistem Informasi Akademik</div>
+        <h2>Wujudkan <em>Masa Depan</em><br>Gemilang</h2>
+        <p>Menjadi Sekolah Tinggi Agama Islam yang unggul dalam pengembangan ilmu dan berkarakter berbasis Pondok Pesantren.</p>
+
+        <div class="stats-row">
+          <div class="stat-item">
+            <div class="num">2</div>
+            <div class="lbl">Program Studi</div>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <div class="num">2</div>
+            <div class="lbl">Pilihan Kelas</div>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <div class="num">2026<span>/27</span></div>
+            <div class="lbl">Tahun Akademik</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="left-bottom">
+      &copy; 2026 STAI DILWA &mdash;
+      <a href="https://pmb.nurhamim.com" target="_blank">PMB 2026/2027</a> &middot;
+      <a href="#">Bantuan</a>
+    </div>
+  </div>
+
+  <!-- ── RIGHT PANEL ── -->
+  <div class="right-panel">
+
+    <!-- Theme toggle -->
+    <button class="theme-toggle" data-theme-toggle title="Ganti Tema">
+      <i class="fa-solid fa-moon"></i>
+    </button>
+
+    <div class="form-wrapper">
+
+      <!-- Branding mobile — hanya tampil di mobile -->
+      <div class="mobile-brand">
+        <div class="mobile-brand-logo">
+          <img src="../assets/img/logo.png" alt="Logo STAI DILWA">
+        </div>
+        <div class="mobile-brand-text">
+          <strong>STAI DILWA</strong>
+          <span>Darul Ilmi Wadda'wah</span>
+        </div>
+      </div>
+
+      <div class="form-top">
+        <h2>Selamat Datang</h2>
+        <p>Masuk ke akun SIAKAD Anda</p>
+      </div>
+
+      <!-- Role tabs -->
+      <div class="role-tabs" role="tablist">
+        <button class="role-tab active" data-role="mahasiswa" role="tab" aria-selected="true" onclick="setRole('mahasiswa')">
+          <i class="fa-solid fa-user-graduate"></i>
+          <span>Mahasiswa</span>
+        </button>
+        <button class="role-tab" data-role="dosen" role="tab" aria-selected="false" onclick="setRole('dosen')">
+          <i class="fa-solid fa-chalkboard-user"></i>
+          <span>Dosen</span>
+        </button>
+        <button class="role-tab" data-role="admin" role="tab" aria-selected="false" onclick="setRole('admin')">
+          <i class="fa-solid fa-user-shield"></i>
+          <span>Admin</span>
+        </button>
+      </div>
+
+      <!-- Login error -->
+      <div class="login-error" id="login-error">
+        <i class="fa-solid fa-circle-xmark"></i>
+        <span id="login-error-msg">Username atau password salah.</span>
+      </div>
+
+      <!-- Form -->
+      <form id="form-login" novalidate autocomplete="off">
+
+        <!-- Identifier field -->
+        <div class="field-group">
+          <label class="field-label" id="label-identifier" for="input-identifier">NIM</label>
+          <div class="field-wrap">
+            <input
+              type="text"
+              class="field-input nim-style"
+              id="input-identifier"
+              placeholder="Masukkan NIM Anda"
+              autocomplete="username"
+              spellcheck="false"
+            >
+            <i class="fa-solid fa-id-card field-icon" id="icon-identifier"></i>
+          </div>
+          <div class="field-error" id="error-identifier">
+            <i class="fa-solid fa-circle-xmark"></i>
+            <span>Field ini wajib diisi.</span>
+          </div>
+        </div>
+
+        <!-- Password field -->
+        <div class="field-group" style="animation-delay:0.12s">
+          <label class="field-label" for="input-password">Kata Sandi</label>
+          <div class="field-wrap">
+            <input
+              type="password"
+              class="field-input has-right"
+              id="input-password"
+              placeholder="Masukkan kata sandi"
+              autocomplete="current-password"
+            >
+            <i class="fa-solid fa-lock field-icon"></i>
+            <button type="button" class="field-right" id="btn-toggle-pass" title="Tampilkan/Sembunyikan" onclick="togglePassword()">
+              <i class="fa-solid fa-eye" id="icon-pass"></i>
+            </button>
+          </div>
+          <div class="field-error" id="error-password">
+            <i class="fa-solid fa-circle-xmark"></i>
+            <span>Kata sandi wajib diisi.</span>
+          </div>
+        </div>
+
+        <!-- Remember + Forgot -->
+        <div class="options-row">
+          <label class="remember-wrap">
+            <input type="checkbox" id="chk-remember">
+            <label for="chk-remember">Ingat Saya</label>
+          </label>
+          <a href="forgot-password.html" class="forgot-link">Lupa kata sandi?</a>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="btn-submit" id="btn-submit">
+          <span class="spinner" id="spinner"></span>
+          <i class="fa-solid fa-right-to-bracket" id="btn-icon"></i>
+          <span id="btn-text">Masuk</span>
+        </button>
+
+      </form>
+
+
+
+    <!-- Footer mobile -->
+    <div class="mobile-footer">
+      &copy; 2026 STAI DILWA &mdash;
+      <a href="https://pmb.nurhamim.com" target="_blank">PMB 2026/2027</a>
+    </div>
+
+    </div>
+  </div>
+
+  <script>
+    /* ── DARK MODE ── */
+    const savedTheme = localStorage.getItem('siakad_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeBtn(savedTheme);
+
+    function updateThemeBtn(theme) {
+      const btn = document.querySelector('.theme-toggle i');
+      if (btn) btn.className = theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+    }
+    document.querySelector('.theme-toggle').addEventListener('click', () => {
+      const cur = document.documentElement.getAttribute('data-theme');
+      const next = cur === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('siakad_theme', next);
+      updateThemeBtn(next);
+    });
+
+    /* ── ROLE CONFIG ── */
+    const roleConfig = {
+      mahasiswa: {
+        label: 'NIM / Username',
+        placeholder: 'Masukkan NIM atau username',
+        icon: 'fa-id-card',
+        monoStyle: true,
+        redirect: '../mahasiswa/dashboard.html',
+        demoId: 'mhs2021001',
+        demoPass: 'mhs123'
+      },
+      dosen: {
+        label: 'NIP / Username',
+        placeholder: 'Masukkan NIP atau username',
+        icon: 'fa-user-tie',
+        monoStyle: false,
+        redirect: '../dosen/dashboard.html',
+        demoId: 'dosen01',
+        demoPass: 'dosen123'
+      },
+      admin: {
+        label: 'Username',
+        placeholder: 'Masukkan username admin',
+        icon: 'fa-user-shield',
+        monoStyle: false,
+        redirect: '../admin/dashboard.html',
+        demoId: 'admin01',
+        demoPass: 'admin123'
+      }
+    };
+
+    let currentRole = 'mahasiswa';
+
+    function setRole(role) {
+      currentRole = role;
+      const cfg = roleConfig[role];
+
+      // Update tab UI
+      document.querySelectorAll('.role-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.role === role);
+        t.setAttribute('aria-selected', t.dataset.role === role);
+      });
+
+      // Update field
+      document.getElementById('label-identifier').textContent = cfg.label;
+      const input = document.getElementById('input-identifier');
+      input.placeholder = cfg.placeholder;
+      input.classList.toggle('nim-style', cfg.monoStyle);
+      document.getElementById('icon-identifier').className = `fa-solid ${cfg.icon} field-icon`;
+
+      // Reset errors
+      hideError('identifier');
+      hideError('password');
+      hideLoginError();
+      input.value = '';
+      document.getElementById('input-password').value = '';
+    }
+
+    /* ── TOGGLE PASSWORD ── */
+    function togglePassword() {
+      const inp = document.getElementById('input-password');
+      const icon = document.getElementById('icon-pass');
+      if (inp.type === 'password') {
+        inp.type = 'text';
+        icon.className = 'fa-solid fa-eye-slash';
+      } else {
+        inp.type = 'password';
+        icon.className = 'fa-solid fa-eye';
+      }
+    }
+
+    /* ── VALIDATION ── */
+    function showError(field, msg) {
+      const el = document.getElementById(`error-${field}`);
+      const inp = document.getElementById(`input-${field}`);
+      if (el) { el.querySelector('span').textContent = msg; el.classList.add('show'); }
+      if (inp) inp.classList.add('error');
+    }
+    function hideError(field) {
+      const el = document.getElementById(`error-${field}`);
+      const inp = document.getElementById(`input-${field}`);
+      el?.classList.remove('show');
+      inp?.classList.remove('error');
+    }
+    function showLoginError(msg) {
+      const el = document.getElementById('login-error');
+      document.getElementById('login-error-msg').textContent = msg;
+      el.classList.add('show');
+    }
+    function hideLoginError() {
+      document.getElementById('login-error').classList.remove('show');
+    }
+
+    /* ── FORM SUBMIT — Real API ── */
+    document.getElementById('form-login').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideLoginError();
+
+      const id   = document.getElementById('input-identifier').value.trim();
+      const pass = document.getElementById('input-password').value;
+      let valid  = true;
+
+      hideError('identifier');
+      hideError('password');
+
+      if (!id)   { showError('identifier', `${roleConfig[currentRole].label} wajib diisi.`); valid = false; }
+      if (!pass) { showError('password', 'Kata sandi wajib diisi.'); valid = false; }
+      if (!valid) return;
+
+      // Loading state
+      const btnText   = document.getElementById('btn-text');
+      const btnIcon   = document.getElementById('btn-icon');
+      const spinner   = document.getElementById('spinner');
+      const btnSubmit = document.getElementById('btn-submit');
+      btnText.textContent   = 'Memproses...';
+      btnIcon.style.display = 'none';
+      spinner.style.display = 'block';
+      btnSubmit.disabled    = true;
+
+      try {
+        const res = await fetch('http://localhost:8000/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ username: id, password: pass }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.status) {
+          const user = data.data.user;
+
+          // Validasi role sesuai tab yang dipilih
+          if (user.role !== currentRole) {
+            btnText.textContent   = 'Masuk';
+            btnIcon.style.display = '';
+            btnIcon.className     = 'fa-solid fa-right-to-bracket';
+            spinner.style.display = 'none';
+            btnSubmit.disabled    = false;
+            showLoginError(`Akun ini bukan akun ${currentRole}. Pilih tab yang sesuai.`);
+            return;
+          }
+
+          // Simpan session dengan token
+          localStorage.setItem('siakad_role', user.role);
+          localStorage.setItem('siakad_user', JSON.stringify({
+            token:  data.data.token,
+            role:   user.role,
+            id:     user.id,
+            username: user.username,
+            email:  user.email,
+            profil: user.profil,
+          }));
+
+          if (document.getElementById('chk-remember').checked) {
+            localStorage.setItem('siakad_remember', user.role);
+          }
+
+          // Sukses UI
+          btnText.textContent   = 'Berhasil!';
+          btnIcon.style.display = '';
+          btnIcon.className     = 'fa-solid fa-check';
+          spinner.style.display = 'none';
+          btnSubmit.style.background = '#1A7A42';
+
+          setTimeout(() => {
+            window.location.href = roleConfig[user.role].redirect;
+          }, 600);
+
+        } else {
+          btnText.textContent   = 'Masuk';
+          btnIcon.style.display = '';
+          btnIcon.className     = 'fa-solid fa-right-to-bracket';
+          spinner.style.display = 'none';
+          btnSubmit.disabled    = false;
+          showLoginError(data.message || 'Username atau kata sandi salah.');
+        }
+
+      } catch (err) {
+        btnText.textContent   = 'Masuk';
+        btnIcon.style.display = '';
+        btnIcon.className     = 'fa-solid fa-right-to-bracket';
+        spinner.style.display = 'none';
+        btnSubmit.disabled    = false;
+        showLoginError('Tidak dapat terhubung ke server. Pastikan server berjalan.');
+      }
+    });
+
+    /* ── REMEMBER ME ── */
+    const remembered = localStorage.getItem('siakad_remember');
+    if (remembered && roleConfig[remembered]) {
+      setRole(remembered);
+      document.getElementById('chk-remember').checked = true;
+    }
+
+    /* ── ENTER key on identifier jumps to password ── */
+    document.getElementById('input-identifier').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') document.getElementById('input-password').focus();
+    });
+  </script>
+  <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
+</script>
+</body>
+</html>

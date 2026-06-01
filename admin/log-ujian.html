@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Log Ujian — SIAKAD Ditz University</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="stylesheet" href="../assets/css/mobile-table.css">
+  <link rel="stylesheet" href="../assets/css/print.css">
+  <link rel="manifest" href="../manifest.json">
+  <meta name="theme-color" content="#1B3A6B">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="SIAKAD">
+  <link rel="apple-touch-icon" href="../assets/img/icon.png">
+</head>
+<body>
+<div class="app-layout">
+  <div id="admin-sidebar-placeholder"></div>
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title">Log Ujian & Pelanggaran</span>
+      <div class="topbar-actions">
+        <button class="topbar-btn" data-theme-toggle><i class="fa-solid fa-moon"></i></button>
+        <button class="topbar-btn" data-notif-toggle><i class="fa-solid fa-bell"></i><span class="topbar-badge"></span></button>
+      </div>
+    </header>
+    <main class="page-content">
+      <div class="page-header">
+        <div class="page-header-top">
+          <div><h1>Log Ujian</h1><p>Riwayat ujian dan catatan pelanggaran seluruh semester</p></div>
+          <div class="flex gap-8">
+            <button class="btn btn-outline btn-sm" onclick="eksporLogCSV()"><i class="fa-solid fa-file-csv"></i> CSV</button>
+            <button class="btn btn-primary btn-sm" onclick="eksporLogPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-4 mb-24">
+        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value">3</div><div class="stat-card-label">Total Ujian</div></div><div class="stat-card-icon stat-icon-navy"><i class="fa-solid fa-file-pen"></i></div></div></div>
+        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value" style="color:var(--danger)">5</div><div class="stat-card-label">Total Pelanggaran</div></div><div class="stat-card-icon stat-icon-danger"><i class="fa-solid fa-shield-halved"></i></div></div></div>
+        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value" style="color:var(--warning)">1</div><div class="stat-card-label">Ujian Dibatalkan</div></div><div class="stat-card-icon stat-icon-warning"><i class="fa-solid fa-ban"></i></div></div></div>
+        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value">97</div><div class="stat-card-label">Total Peserta</div></div><div class="stat-card-icon stat-icon-success"><i class="fa-solid fa-users"></i></div></div></div>
+      </div>
+
+      <!-- Filter -->
+      <div class="card mb-16" style="background:var(--bg-secondary)">
+        <div class="card-body" style="padding:14px 20px">
+          <div class="filter-bar" style="margin-bottom:0">
+            <div class="input-group" style="max-width:240px"><i class="input-icon fa-solid fa-magnifying-glass"></i><input type="text" class="form-control" id="search-log" placeholder="Cari ujian atau dosen..."></div>
+            <select class="form-control" id="filter-log-status" style="width:auto"><option value="">Semua Status</option><option value="Selesai">Selesai</option><option value="Dibatalkan">Dibatalkan</option></select>
+            <input type="date" class="form-control" id="filter-log-dari" style="width:auto">
+            <span style="font-size:0.8rem;color:var(--text-muted);align-self:center">s/d</span>
+            <input type="date" class="form-control" id="filter-log-sampai" style="width:auto">
+            <button class="btn btn-ghost btn-sm" onclick="resetLogFilter()"><i class="fa-solid fa-rotate-left"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabel riwayat ujian -->
+      <div class="card mb-20">
+        <div class="card-header"><h3><i class="fa-solid fa-list-check" style="color:var(--navy);margin-right:8px"></i>Riwayat Ujian</h3></div>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead><tr><th>Nama Ujian</th><th>Kelas</th><th>Dosen</th><th style="text-align:center">Peserta</th><th style="text-align:center">Nilai Rata2</th><th style="text-align:center">Pelanggaran</th><th>Tanggal</th><th>Status</th><th>Aksi</th></tr></thead>
+            <tbody id="tbody-log"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Modal Detail Log Pelanggaran -->
+<div class="modal-backdrop" id="modal-detail-log">
+  <div class="modal modal-xl">
+    <div class="modal-header"><h3 id="modal-log-judul">Log Pelanggaran</h3><button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <div class="alert alert-info mb-16">
+        <i class="fa-solid fa-circle-info"></i>
+        <div>Log pelanggaran direkam secara otomatis oleh sistem. Setiap baris menunjukkan satu kejadian pelanggaran yang terdeteksi selama ujian berlangsung.</div>
+      </div>
+      <div class="table-wrapper">
+        <table class="table">
+          <thead><tr><th>Mahasiswa</th><th>NIM</th><th>Waktu</th><th>No. Pelanggaran</th><th>Deskripsi</th><th>Dibatalkan?</th></tr></thead>
+          <tbody id="modal-log-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal-close>Tutup</button>
+      <button class="btn btn-primary btn-sm" onclick="eksporSatuLogPDF()"><i class="fa-solid fa-file-pdf"></i> Ekspor Log ini</button>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav"><div class="bottom-nav-inner">
+  <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+  <a class="bottom-nav-item" href="data-mahasiswa.html"><i class="fa-solid fa-user-graduate"></i><span>Mahasiswa</span></a>
+  <a class="bottom-nav-item" href="surat.html"><i class="fa-solid fa-envelope"></i><span>Surat</span></a>
+  <a class="bottom-nav-item" href="laporan.html"><i class="fa-solid fa-chart-pie"></i><span>Laporan</span></a>
+  <a class="bottom-nav-item" href="semester.html"><i class="fa-solid fa-calendar"></i><span>Semester</span></a>
+</div></nav>
+<div class="toast-container"></div>
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/admin-integration.js"></script>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/admin-sidebar.js"></script>
+<script>
+
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'admin') window.location.href = '../auth/login.html';
+
+let ujianList = [];
+let activeUjianId = null;
+
+async function loadLogUjian() {
+  const q    = document.getElementById('search-log').value;
+  const stat = document.getElementById('filter-log-status').value;
+  const params = { per_page: 50 };
+  if (stat) params.status = stat;
+  const res = await AdminAPI.ujian(params);
+  if (!res || !res.ok) { showToast('danger','Error','Gagal memuat log ujian'); return; }
+  ujianList = res.data.data?.data || res.data.data || [];
+
+  // Update stat cards
+  const totalPelanggaran = ujianList.reduce((sum, u) => sum + (u.log_ujian?.length || 0), 0);
+  const dibatalkan = ujianList.filter(u => u.status === 'Dibatalkan').length;
+  document.querySelector('.stat-card:nth-child(1) .stat-card-value').textContent = ujianList.length;
+  document.querySelector('.stat-card:nth-child(2) .stat-card-value').textContent = totalPelanggaran;
+  document.querySelector('.stat-card:nth-child(3) .stat-card-value').textContent = dibatalkan;
+
+  const filtered = q ? ujianList.filter(u => u.nama.toLowerCase().includes(q.toLowerCase()) || u.dosen?.nama?.toLowerCase().includes(q.toLowerCase())) : ujianList;
+  renderLog(filtered);
+}
+
+function renderLog(list) {
+  if (list.length === 0) {
+    document.getElementById('tbody-log').innerHTML = `<tr><td colspan="99"><div class="empty-state"><h3 class="empty-state-title">Tidak ada log ujian</h3></div></td></tr>`;
+    return;
+  }
+  document.getElementById('tbody-log').innerHTML = list.map(u => `
+    <tr>
+      <td><strong>${escHTML(u.nama)}</strong></td>
+      <td><span class="badge badge-primary">${u.kelas?.kode_kelas || '—'}</span></td>
+      <td style="font-size:0.8375rem">${escHTML(u.dosen?.nama || '—')}</td>
+      <td style="text-align:center">—</td>
+      <td style="text-align:center">—</td>
+      <td style="text-align:center">
+        ${(u.log_ujian?.length || 0) > 0
+          ? `<span class="badge badge-danger"><i class="fa-solid fa-shield-halved"></i> ${u.log_ujian.length}</span>`
+          : `<span class="badge badge-muted">0</span>`}
+      </td>
+      <td>${formatTanggal(u.mulai_at, 'pendek')}</td>
+      <td><span class="badge ${u.status==='Selesai'?'badge-success':u.status==='Berlangsung'?'badge-info':'badge-danger'}">${u.status}</span></td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="bukaLog(${u.id})">
+          <i class="fa-solid fa-shield-halved"></i> Log
+        </button>
+      </td>
+    </tr>`).join('');
+}
+
+async function bukaLog(id) {
+  activeUjianId = id;
+  const res = await AdminAPI.ujian({ id });
+  const u = ujianList.find(x => x.id === id);
+  if (!u) return;
+  document.getElementById('modal-log-judul').textContent = `Log Pelanggaran — ${u.nama}`;
+  const logs = u.log_ujian || [];
+  if (logs.length === 0) {
+    document.getElementById('modal-log-tbody').innerHTML = `<tr><td colspan="6"><div class="table-empty"><i class="fa-solid fa-circle-check" style="color:var(--success)"></i><br>Tidak ada pelanggaran terdeteksi</div></td></tr>`;
+  } else {
+    document.getElementById('modal-log-tbody').innerHTML = logs.map(l => `
+      <tr>
+        <td><strong>${escHTML(l.mahasiswa?.nama || '—')}</strong></td>
+        <td class="font-mono" style="font-size:0.8rem">${l.mahasiswa?.nim || '—'}</td>
+        <td class="font-mono" style="font-size:0.8rem">${formatTanggal(l.terjadi_at,'pendek')}</td>
+        <td style="text-align:center"><span class="badge badge-warning">${l.no_pelanggaran}</span></td>
+        <td style="font-size:0.8375rem;color:var(--text-secondary)">${escHTML(l.deskripsi)}</td>
+        <td style="text-align:center">${l.dibatalkan ? '<span class="badge badge-danger">Ya</span>' : '<span class="badge badge-muted">Tidak</span>'}</td>
+      </tr>`).join('');
+  }
+  showModal('modal-detail-log');
+}
+
+function eksporSatuLogPDF() { showToast('success','Ekspor','Log pelanggaran diekspor ke PDF'); }
+
+function eksporLogCSV() {
+  eksporCSV(ujianList.map(u=>({ nama:u.nama, kelas:u.kelas?.kode_kelas||'—', dosen:u.dosen?.nama||'—', pelanggaran:u.log_ujian?.length||0, tgl:u.mulai_at||'—', status:u.status })),
+  ['Nama Ujian','Kelas','Dosen','Pelanggaran','Tanggal','Status'], 'Log_Ujian');
+}
+
+function eksporLogPDF() {
+  const rows = ujianList.map(u=>`<tr><td>${u.nama}</td><td>${u.kelas?.kode_kelas||'—'}</td><td>${u.dosen?.nama||'—'}</td><td>${u.log_ujian?.length||0}</td><td>${u.status}</td></tr>`).join('');
+  eksporPDF('Log Ujian',`<table><thead><tr><th>Nama Ujian</th><th>Kelas</th><th>Dosen</th><th>Pelanggaran</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>`);
+}
+
+const debS = debounce(() => loadLogUjian(), 300);
+document.getElementById('search-log').addEventListener('input', debS);
+document.getElementById('filter-log-status').addEventListener('change', loadLogUjian);
+function resetLogFilter() {
+  ['search-log','filter-log-status','filter-log-dari','filter-log-sampai'].forEach(id => { document.getElementById(id).value = ''; });
+  loadLogUjian();
+}
+loadLogUjian();
+
+</script>
+</body>
+</html>

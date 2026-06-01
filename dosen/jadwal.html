@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jadwal Mengajar — SIAKAD Ditz University</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <link rel="stylesheet" href="../assets/css/print.css">
+      <link rel="stylesheet" href="../assets/css/mobile-table.css">
+        <link rel="icon" type="image/png" href="../assets/img/icon.png">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="manifest" href="../manifest.json">
+  <meta name="theme-color" content="#1B3A6B">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="SIAKAD">
+  <link rel="apple-touch-icon" href="../assets/img/icon.png">
+  <style>
+    .view-toggle { display:flex; gap:4px; background:var(--bg-tertiary); padding:3px; border-radius:8px; }
+    .view-btn { padding:6px 14px; font-size:0.8125rem; font-weight:600; border:none; border-radius:6px; cursor:pointer; font-family:var(--font-body); color:var(--text-muted); background:transparent; display:flex; align-items:center; gap:6px; transition:all 0.15s; }
+    .view-btn.active { background:var(--bg-card); color:var(--navy); box-shadow:0 1px 4px rgba(0,0,0,0.08); }
+    .jadwal-grid-wrap { overflow-x:auto; }
+    .jadwal-grid { display:grid; grid-template-columns:60px repeat(6,1fr); border:1px solid var(--border-color); border-radius:var(--border-radius-md); overflow:hidden; min-width:700px; }
+    .grid-header { background:var(--bg-secondary); border-bottom:1px solid var(--border-color); padding:10px 8px; text-align:center; font-size:0.775rem; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.04em; }
+    .grid-header.today { background:var(--navy); color:white; }
+    .grid-time-col { border-right:1px solid var(--border-color); }
+    .grid-time-cell { height:64px; display:flex; align-items:flex-start; justify-content:center; padding:6px 4px 0; font-size:0.68rem; font-family:var(--font-mono); color:var(--text-muted); border-bottom:1px solid var(--border-light); }
+    .grid-day-col { position:relative; border-right:1px solid var(--border-light); }
+    .grid-day-col:last-child { border-right:none; }
+    .grid-slot { height:64px; border-bottom:1px solid var(--border-light); position:relative; }
+    .grid-slot:last-child { border-bottom:none; }
+    .mk-block { position:absolute; left:3px; right:3px; border-radius:6px; padding:5px 7px; cursor:pointer; transition:transform 0.15s,box-shadow 0.15s; overflow:hidden; z-index:1; }
+    .mk-block:hover { transform:scale(1.02); box-shadow:0 4px 12px rgba(0,0,0,0.15); z-index:2; }
+    .mk-block-nama { font-size:0.72rem; font-weight:700; color:white; line-height:1.3; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .mk-block-info { font-size:0.6rem; color:rgba(255,255,255,0.8); margin-top:2px; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <div id="dosen-sidebar-placeholder"></div>
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title">Jadwal Mengajar</span>
+      <div class="topbar-actions">
+        <button class="topbar-btn" data-theme-toggle><i class="fa-solid fa-moon"></i></button>
+        <button class="topbar-btn" data-notif-toggle><i class="fa-solid fa-bell"></i><span class="topbar-badge"></span></button>
+      </div>
+    </header>
+    <main class="page-content">
+      <div class="page-header">
+        <div class="page-header-top">
+          <div><h1>Jadwal Mengajar</h1><p>Semester Ganjil 2024/2025</p></div>
+          <div class="flex gap-8 flex-wrap">
+            <div class="view-toggle">
+              <button class="view-btn active" id="btn-grid" onclick="setView('grid')"><i class="fa-solid fa-table-cells"></i> Grid</button>
+              <button class="view-btn" id="btn-list" onclick="setView('list')"><i class="fa-solid fa-list"></i> List</button>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="eksporJadwalDosenPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+          </div>
+        </div>
+      </div>
+      <div class="card" id="view-grid">
+        <div class="card-body" style="padding:0">
+          <div class="jadwal-grid-wrap" style="padding:16px">
+            <div class="jadwal-grid" id="jadwal-grid-el"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card" id="view-list" style="display:none">
+        <div class="table-wrapper">
+          <table class="table">
+            <thead><tr><th>Hari</th><th>Jam</th><th>Mata Kuliah</th><th>Kelas</th><th>Ruangan</th><th>Mahasiswa</th></tr></thead>
+            <tbody id="tbody-list"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<div class="modal-backdrop" id="modal-detail-jadwal">
+  <div class="modal modal-sm">
+    <div class="modal-header"><h3 id="modal-j-nama">Detail</h3><button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body"><div class="grid grid-2" style="gap:14px" id="modal-j-content"></div></div>
+    <div class="modal-footer"><button class="btn btn-ghost btn-sm" data-modal-close>Tutup</button></div>
+  </div>
+</div>
+<div class="more-menu-overlay" id="more-menu-overlay"></div>
+<div class="more-menu-sheet" id="more-menu-sheet">
+  <div class="more-menu-handle"></div>
+  <div class="more-menu-title">Menu Lainnya</div>
+  <div class="more-menu-grid">
+    <a class="more-menu-item" href="absensi-kelas.html"><i class="fa-solid fa-clipboard-list"></i>Absensi</a>
+    <a class="more-menu-item active" href="jadwal.html"><i class="fa-solid fa-calendar-days"></i>Jadwal</a>
+    <a class="more-menu-item" href="kelola-ujian.html"><i class="fa-solid fa-file-circle-check"></i>Ujian</a>
+    <a class="more-menu-item" href="persetujuan-krs.html"><i class="fa-solid fa-file-pen"></i>ACC KRS</a>
+    <a class="more-menu-item" href="pengumuman.html"><i class="fa-solid fa-bullhorn"></i>Pengumuman</a>
+    <a class="more-menu-item" href="profil.html"><i class="fa-solid fa-user"></i>Profil</a>
+  </div>
+</div>
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+    <a class="bottom-nav-item" href="kelas.html"><i class="fa-solid fa-chalkboard"></i><span>Kelas</span></a>
+    <a class="bottom-nav-item" href="input-nilai.html"><i class="fa-solid fa-pen-to-square"></i><span>Nilai</span></a>
+    <a class="bottom-nav-item" href="bimbingan.html"><i class="fa-solid fa-users"></i><span>Bimbingan</span></a>
+    <button class="bottom-nav-more active" id="btn-more-menu"><i class="fa-solid fa-plus"></i><span>Lainnya</span></button>
+  </div>
+</nav>
+<div class="toast-container"></div>
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/dosen-integration.js"></script>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/dosen-sidebar.js"></script>
+
+<script>
+(function() {
+  const btnMore=document.getElementById('btn-more-menu'), overlay=document.getElementById('more-menu-overlay'), sheet=document.getElementById('more-menu-sheet');
+  function openMore(){overlay.classList.add('open');sheet.classList.add('open');btnMore.classList.add('open');document.body.style.overflow='hidden';}
+  function closeMore(){overlay.classList.remove('open');sheet.classList.remove('open');btnMore.classList.remove('open');document.body.style.overflow='';}
+  btnMore?.addEventListener('click',function(e){e.stopPropagation();sheet.classList.contains('open')?closeMore():openMore();});
+  overlay?.addEventListener('click',closeMore);
+  let startY=0;
+  sheet?.addEventListener('touchstart',function(e){startY=e.touches[0].clientY;},{passive:true});
+  sheet?.addEventListener('touchmove',function(e){if(e.touches[0].clientY-startY>60)closeMore();},{passive:true});
+})();
+</script>
+<script>
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'dosen') window.location.href = '../auth/login.html';
+const HARI_ORDER = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+const SLOTS      = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00'];
+const hariIniStr = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][new Date().getDay()];
+let jadwalDosen = [];
+async function loadJadwal() {
+  const res = await DosenAPI.kelas();
+  if (!res || !res.ok) { showToast('danger','Error','Gagal memuat jadwal'); return; }
+  jadwalDosen = (res.data.data || []).map(k => ({
+    id:         k.id,
+    kode:       k.mata_kuliah?.kode || '—',
+    nama:       k.mata_kuliah?.nama || '—',
+    kelas:      k.kode_kelas,
+    hari:       k.hari,
+    jamMulai:   k.jam_mulai,
+    jamSelesai: k.jam_selesai,
+    ruang:      k.ruangan || '—',
+    jmlMhs:     k.terisi ?? 0,
+    warna:      '#1B3A6B',
+  }));
+  // Update subtitle semester
+  const semRes = await AdminAPI.semester ? AdminAPI.semester() : null;
+  if (semRes && semRes.ok) {
+    const aktif = (semRes.data.data || []).find(s => s.status === 'Aktif');
+    if (aktif) document.querySelector('.page-header p').textContent = aktif.nama;
+  }
+  if (window.innerWidth < 768) { buildList(); setView('list'); }
+  else { buildGrid(); }
+}
+function buildGrid() {
+  const grid = document.getElementById('jadwal-grid-el');
+  if (!grid) return;
+  let html = '<div class="grid-header grid-time-col">Jam</div>';
+  HARI_ORDER.forEach(h => { html += `<div class="grid-header ${h===hariIniStr?'today':''}">${h}</div>`; });
+  SLOTS.forEach(slot => {
+    html += `<div class="grid-time-col"><div class="grid-time-cell">${slot}</div></div>`;
+    HARI_ORDER.forEach(hari => {
+      const mk = jadwalDosen.find(j => j.hari===hari && j.jamMulai===slot);
+      if (mk) {
+        const endH=parseInt(mk.jamSelesai.split(':')[0]),startH=parseInt(slot.split(':')[0]),endM=parseInt(mk.jamSelesai.split(':')[1]);
+        const dur=(endH-startH)+(endM>0?0.5:0);
+        const h=Math.round(dur*64);
+        html+=`<div class="grid-slot"><div class="mk-block" style="background:${mk.warna};height:${h-6}px;top:3px" onclick="bukaDetail(${mk.id})">
+          <div class="mk-block-nama">${escHTML(mk.nama)}</div>
+          <div class="mk-block-info">${mk.kelas} &bull; ${mk.ruang}</div>
+        </div></div>`;
+      } else { html+='<div class="grid-slot"></div>'; }
+    });
+  });
+  grid.innerHTML = html;
+}
+function buildList() {
+  const tbody = document.getElementById('tbody-list');
+  if (!tbody) return;
+  tbody.innerHTML = jadwalDosen.map(j => `
+    <tr style="cursor:pointer" onclick="bukaDetail(${j.id})">
+      <td><span class="badge ${j.hari===hariIniStr?'badge-primary':'badge-muted'}">${j.hari}</span></td>
+      <td><span class="font-mono" style="font-size:0.8rem">${j.jamMulai}–${j.jamSelesai}</span></td>
+      <td><strong>${escHTML(j.nama)}</strong></td>
+      <td><span class="badge badge-primary">${j.kelas}</span></td>
+      <td><span class="badge badge-muted">${j.ruang}</span></td>
+      <td>${j.jmlMhs} mahasiswa</td>
+    </tr>`).join('');
+}
+function bukaDetail(id) {
+  const j = jadwalDosen.find(x => x.id===id); if (!j) return;
+  document.getElementById('modal-j-nama').textContent = j.nama;
+  document.getElementById('modal-j-content').innerHTML = `
+    <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">KODE</label><strong class="font-mono">${j.kode}</strong></div>
+    <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">KELAS</label><strong>${j.kelas}</strong></div>
+    <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">HARI & JAM</label><strong>${j.hari}, ${j.jamMulai}–${j.jamSelesai}</strong></div>
+    <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">RUANGAN</label><strong>${j.ruang}</strong></div>
+    <div style="grid-column:1/-1"><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">MAHASISWA</label><strong>${j.jmlMhs} mahasiswa terdaftar</strong></div>`;
+  showModal('modal-detail-jadwal');
+}
+let gridBuilt=false, listBuilt=false;
+function setView(mode) {
+  document.getElementById('view-grid').style.display = mode==='grid'?'':'none';
+  document.getElementById('view-list').style.display = mode==='list'?'':'none';
+  document.getElementById('btn-grid').classList.toggle('active',mode==='grid');
+  document.getElementById('btn-list').classList.toggle('active',mode==='list');
+  if (mode==='list' && !listBuilt) { buildList(); listBuilt=true; }
+  if (mode==='grid' && !gridBuilt) { buildGrid(); gridBuilt=true; }
+}
+function eksporJadwalDosenPDF() {
+  const rows = jadwalDosen.map(j=>`<tr><td>${j.hari}</td><td>${j.jamMulai}–${j.jamSelesai}</td><td>${j.nama}</td><td>${j.kelas}</td><td>${j.ruang}</td><td>${j.jmlMhs}</td></tr>`).join('');
+  eksporPDF('Jadwal Mengajar', `<table><thead><tr><th>Hari</th><th>Jam</th><th>Mata Kuliah</th><th>Kelas</th><th>Ruangan</th><th>Mahasiswa</th></tr></thead><tbody>${rows}</tbody></table>`);
+}
+loadJadwal();
+</script>
+</body>
+</html>

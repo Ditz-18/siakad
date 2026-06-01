@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Kelola Ujian — SIAKAD Ditz University</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <link rel="stylesheet" href="../assets/css/print.css">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="stylesheet" href="../assets/css/mobile-table.css">        <link rel="icon" type="image/png" href="../assets/img/icon.png">  <link rel="manifest" href="../manifest.json">
+  <meta name="theme-color" content="#1B3A6B">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="SIAKAD">
+  <link rel="apple-touch-icon" href="../assets/img/icon.png">
+  <style>
+    .step-indicator { display:flex; align-items:center; gap:0; margin-bottom:28px; }
+    .step { display:flex; flex-direction:column; align-items:center; gap:4px; flex:1; }
+    .step-circle { width:32px; height:32px; border-radius:50%; border:2px solid var(--border-color); background:var(--bg-card); display:flex; align-items:center; justify-content:center; font-size:0.8rem; font-weight:700; color:var(--text-muted); transition:all 0.3s; }
+    .step.active .step-circle  { border-color:var(--navy); background:var(--navy); color:white; }
+    .step.done  .step-circle   { border-color:var(--success); background:var(--success); color:white; }
+    .step-label { font-size:0.72rem; font-weight:600; color:var(--text-muted); text-align:center; }
+    .step.active .step-label   { color:var(--navy); }
+    .step.done   .step-label   { color:var(--success); }
+    .step-line   { flex:1; height:2px; background:var(--border-color); margin:0 -2px; margin-bottom:18px; transition:background 0.3s; }
+    .step-line.done { background:var(--success); }
+    .soal-item { background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:var(--border-radius-md); padding:16px; margin-bottom:12px; }
+    .soal-item-header { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+    .soal-num { width:28px; height:28px; border-radius:50%; background:var(--navy); color:white; display:flex; align-items:center; justify-content:center; font-size:0.8rem; font-weight:700; flex-shrink:0; }
+    .ujian-list-card { background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--border-radius-lg); padding:18px 20px; margin-bottom:12px; }
+    .ujian-list-header { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+    .ujian-list-meta   { display:flex; gap:14px; flex-wrap:wrap; font-size:0.8rem; color:var(--text-secondary); }
+    .ujian-list-meta i { color:var(--text-muted); font-size:0.75rem; margin-right:3px; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <div id="dosen-sidebar-placeholder"></div>
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title">Kelola Ujian</span>
+      <div class="topbar-actions">
+        <button class="topbar-btn" data-theme-toggle><i class="fa-solid fa-moon"></i></button>
+        <button class="topbar-btn" data-notif-toggle><i class="fa-solid fa-bell"></i><span class="topbar-badge"></span></button>
+      </div>
+    </header>
+    <main class="page-content">
+      <div class="page-header">
+        <div class="page-header-top">
+          <div><h1>Kelola Ujian</h1><p>Buat dan pantau ujian online</p></div>
+          <button class="btn btn-primary" onclick="showBuatUjian()"><i class="fa-solid fa-plus"></i> Buat Ujian Baru</button>
+        </div>
+      </div>
+      <!-- List view -->
+      <div id="view-list-ujian">
+        <div id="ujian-dosen-list"></div>
+      </div>
+      <!-- Buat Ujian (multi-step) -->
+      <div id="view-buat-ujian" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-circle-plus" style="color:var(--navy);margin-right:8px"></i>Buat Ujian Baru</h3>
+            <button class="btn btn-ghost btn-sm" onclick="showListUjian()"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+          </div>
+          <div class="card-body">
+            <!-- Step indicator -->
+            <div class="step-indicator">
+              <div class="step active" id="step-1"><div class="step-circle" id="sc-1">1</div><div class="step-label">Informasi</div></div>
+              <div class="step-line" id="sl-1"></div>
+              <div class="step" id="step-2"><div class="step-circle" id="sc-2">2</div><div class="step-label">Input Soal</div></div>
+              <div class="step-line" id="sl-2"></div>
+              <div class="step" id="step-3"><div class="step-circle" id="sc-3">3</div><div class="step-label">Konfirmasi</div></div>
+            </div>
+            <!-- Step 1: Info -->
+            <div id="step-content-1">
+              <div class="form-grid form-grid-2">
+                <div class="form-group">
+                  <label class="form-label">Pilih Kelas <span class="required">*</span></label>
+                  <select class="form-control" id="ujian-kelas">
+                    <option value="">— Pilih kelas —</option>
+                    <option value="KLS-001">Kecerdasan Buatan — IF-7A</option>
+                    <option value="KLS-002">Seminar Proposal — IF-7B</option>
+                    <option value="KLS-003">Skripsi — IF-8A</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Nama Ujian <span class="required">*</span></label>
+                  <input type="text" class="form-control" id="ujian-nama" placeholder="Contoh: UTS Kecerdasan Buatan">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Tanggal & Waktu Mulai <span class="required">*</span></label>
+                  <input type="datetime-local" class="form-control" id="ujian-tanggal">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Durasi (menit) <span class="required">*</span></label>
+                  <input type="number" class="form-control" id="ujian-durasi" placeholder="Contoh: 90" min="15" max="240">
+                </div>
+                <div class="form-group" style="grid-column:1/-1">
+                  <label class="form-label">Deskripsi <span style="color:var(--text-muted);font-weight:400">(opsional)</span></label>
+                  <textarea class="form-control" id="ujian-deskripsi" rows="2" placeholder="Materi yang diujikan, catatan untuk mahasiswa..."></textarea>
+                </div>
+              </div>
+              <div class="flex" style="justify-content:flex-end;margin-top:8px">
+                <button class="btn btn-primary" onclick="goStep(2)">Lanjut: Input Soal <i class="fa-solid fa-arrow-right"></i></button>
+              </div>
+            </div>
+            <!-- Step 2: Soal -->
+            <div id="step-content-2" style="display:none">
+              <div class="flex-between mb-16">
+                <div style="font-size:0.875rem;color:var(--text-secondary)">Tambahkan minimal <strong>5 soal</strong> pilihan ganda (4 opsi)</div>
+                <button class="btn btn-outline btn-sm" onclick="tambahSoal()"><i class="fa-solid fa-plus"></i> Tambah Soal</button>
+              </div>
+              <div id="soal-list-form"></div>
+              <div class="flex gap-8" style="justify-content:space-between;margin-top:16px">
+                <button class="btn btn-ghost" onclick="goStep(1)"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+                <button class="btn btn-primary" onclick="goStep(3)">Lanjut: Konfirmasi <i class="fa-solid fa-arrow-right"></i></button>
+              </div>
+            </div>
+            <!-- Step 3: Konfirmasi -->
+            <div id="step-content-3" style="display:none">
+              <div class="card mb-16" style="background:var(--bg-secondary)">
+                <div class="card-body" style="padding:16px 20px">
+                  <div class="grid grid-2" style="gap:14px">
+                    <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">NAMA UJIAN</label><strong id="konfirm-nama">—</strong></div>
+                    <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">KELAS</label><strong id="konfirm-kelas">—</strong></div>
+                    <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">TANGGAL</label><strong id="konfirm-tanggal">—</strong></div>
+                    <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">DURASI</label><strong id="konfirm-durasi">—</strong></div>
+                    <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">JUMLAH SOAL</label><strong id="konfirm-soal">—</strong></div>
+                  </div>
+                </div>
+              </div>
+              <div class="alert alert-warning mb-16">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <div>Setelah dijadwalkan, soal tidak dapat diubah. Pastikan semua informasi sudah benar sebelum menyimpan.</div>
+              </div>
+              <div class="flex gap-8" style="justify-content:space-between">
+                <button class="btn btn-ghost" onclick="goStep(2)"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+                <div class="flex gap-8">
+                  <button class="btn btn-outline btn-sm" onclick="simpanUjian('draft')"><i class="fa-solid fa-floppy-disk"></i> Simpan Draft</button>
+                  <button class="btn btn-primary btn-sm" onclick="simpanUjian('jadwal')"><i class="fa-solid fa-calendar-check"></i> Jadwalkan Ujian</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<!-- Modal Hasil Ujian -->
+<div class="modal-backdrop" id="modal-hasil-ujian">
+  <div class="modal modal-lg">
+    <div class="modal-header"><h3 id="modal-hasil-judul">Hasil Ujian</h3><button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body">
+        <div class="table-scroll-hint"><i class="fa-solid fa-arrows-left-right"></i> Geser untuk lihat selengkapnya</div>
+        <div class="table-wrapper-outer">
+          <div class="table-wrapper"><table class="table"><thead><tr><th>NIM</th><th>Nama</th><th>Nilai</th><th>Benar/Total</th><th>Status</th><th>Pelanggaran</th></tr></thead>
+                <tbody id="modal-hasil-tbody"></tbody></table></div>
+        </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal-close>Tutup</button>
+      <button class="btn btn-primary btn-sm" onclick="eksporHasilUjianPDF()"><i class="fa-solid fa-file-pdf"></i> Ekspor PDF</button>
+    </div>
+  </div>
+</div>
+<div class="more-menu-overlay" id="more-menu-overlay"></div>
+<div class="more-menu-sheet" id="more-menu-sheet">
+  <div class="more-menu-handle"></div>
+  <div class="more-menu-title">Menu Lainnya</div>
+  <div class="more-menu-grid">
+    <a class="more-menu-item" href="absensi-kelas.html"><i class="fa-solid fa-clipboard-list"></i>Absensi</a>
+    <a class="more-menu-item" href="jadwal.html"><i class="fa-solid fa-calendar-days"></i>Jadwal</a>
+    <a class="more-menu-item active" href="kelola-ujian.html"><i class="fa-solid fa-file-circle-check"></i>Ujian</a>
+    <a class="more-menu-item" href="persetujuan-krs.html"><i class="fa-solid fa-file-pen"></i>ACC KRS</a>
+    <a class="more-menu-item" href="pengumuman.html"><i class="fa-solid fa-bullhorn"></i>Pengumuman</a>
+    <a class="more-menu-item" href="profil.html"><i class="fa-solid fa-user"></i>Profil</a>
+  </div>
+</div>
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+    <a class="bottom-nav-item" href="kelas.html"><i class="fa-solid fa-chalkboard"></i><span>Kelas</span></a>
+    <a class="bottom-nav-item" href="input-nilai.html"><i class="fa-solid fa-pen-to-square"></i><span>Nilai</span></a>
+    <a class="bottom-nav-item" href="bimbingan.html"><i class="fa-solid fa-users"></i><span>Bimbingan</span></a>
+    <button class="bottom-nav-more active" id="btn-more-menu"><i class="fa-solid fa-plus"></i><span>Lainnya</span></button>
+  </div>
+</nav>
+<div class="toast-container"></div>
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/dosen-integration.js"></script>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/dosen-sidebar.js"></script>
+
+<script>
+(function() {
+  const btnMore=document.getElementById('btn-more-menu'), overlay=document.getElementById('more-menu-overlay'), sheet=document.getElementById('more-menu-sheet');
+  function openMore(){overlay.classList.add('open');sheet.classList.add('open');btnMore.classList.add('open');document.body.style.overflow='hidden';}
+  function closeMore(){overlay.classList.remove('open');sheet.classList.remove('open');btnMore.classList.remove('open');document.body.style.overflow='';}
+  btnMore?.addEventListener('click',function(e){e.stopPropagation();sheet.classList.contains('open')?closeMore():openMore();});
+  overlay?.addEventListener('click',closeMore);
+  let startY=0;
+  sheet?.addEventListener('touchstart',function(e){startY=e.touches[0].clientY;},{passive:true});
+  sheet?.addEventListener('touchmove',function(e){if(e.touches[0].clientY-startY>60)closeMore();},{passive:true});
+})();
+</script>
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}</script>
+<script>
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'dosen') window.location.href = '../auth/login.html';
+let ujianList = [];
+async function loadUjian() {
+  const res = await DosenAPI.ujian();
+  if (!res || !res.ok) { showToast('danger','Error','Gagal memuat ujian'); return; }
+  ujianList = res.data.data || [];
+  renderUjian(ujianList);
+}
+function renderUjian(list) {
+  const tbody = document.querySelector('.table tbody') || document.getElementById('tbody-ujian');
+  if (!tbody) return;
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="99"><div class="empty-state"><h3 class="empty-state-title">Belum ada ujian</h3></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(u => `
+    <tr>
+      <td><strong>${escHTML(u.nama)}</strong></td>
+      <td><span class="badge badge-primary">${u.kelas?.kode_kelas || '—'}</span></td>
+      <td style="font-size:0.8375rem">${escHTML(u.kelas?.mata_kuliah?.nama || '—')}</td>
+      <td style="text-align:center">${u.tipe}</td>
+      <td>${u.mulai_at ? formatTanggal(u.mulai_at,'pendek') : '—'}</td>
+      <td style="text-align:center">${u.durasi} menit</td>
+      <td>
+        ${u.status==='Berlangsung'
+          ? `<span style="display:flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:var(--success);animation:pulse 1.2s infinite"></span><span style="font-size:0.8rem;color:var(--success)">Berlangsung</span></span>`
+          : `<span class="badge ${u.status==='Selesai'?'badge-muted':u.status==='Draft'?'badge-info':'badge-danger'}">${u.status}</span>`}
+      </td>
+      <td>
+        <div class="table-actions">
+          ${u.status==='Draft'?`
+            <button class="btn btn-ghost btn-icon btn-sm" onclick="editUjian(${u.id})" title="Edit"><i class="fa-solid fa-pen"></i></button>
+            <button class="btn btn-outline-danger btn-icon btn-sm" onclick="hapusUjian(${u.id})" title="Hapus"><i class="fa-solid fa-trash"></i></button>`:''}
+          ${u.status==='Berlangsung'?`<button class="btn btn-outline btn-sm" onclick="lihatLog(${u.id})"><i class="fa-solid fa-shield-halved"></i> Log</button>`:''}
+        </div>
+      </td>
+    </tr>`).join('');
+}
+async function simpanUjian() {
+  const kelasId = document.getElementById('ujian-kelas')?.value;
+  const nama    = document.getElementById('ujian-nama')?.value.trim();
+  const tipe    = document.getElementById('ujian-tipe')?.value;
+  const durasi  = parseInt(document.getElementById('ujian-durasi')?.value);
+  const mulai   = document.getElementById('ujian-mulai')?.value;
+  const selesai = document.getElementById('ujian-selesai')?.value;
+  const maxPel  = parseInt(document.getElementById('ujian-max-pel')?.value) || 3;
+  if (!kelasId||!nama||!tipe||!durasi||!mulai||!selesai) {
+    showToast('warning','Validasi','Lengkapi semua field'); return;
+  }
+  const res = await DosenAPI.buatUjian({ nama, kelas_id: parseInt(kelasId), tipe, durasi, mulai_at: mulai, selesai_at: selesai, max_pelanggaran: maxPel });
+  if (res && res.ok) {
+    const modal = document.querySelector('.modal-backdrop.open');
+    if (modal) hideModal(modal.id);
+    showToast('success','Berhasil','Ujian berhasil dibuat');
+    loadUjian();
+  } else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+}
+async function hapusUjian(id) {
+  konfirmasi('Yakin ingin menghapus ujian ini?', async () => {
+    const res = await DosenAPI.hapusUjian(id);
+    if (res && res.ok) { showToast('success','Dihapus','Ujian berhasil dihapus'); loadUjian(); }
+    else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+  });
+}
+function editUjian(id) { showToast('info','Edit','Fitur edit ujian segera tersedia'); }
+function lihatLog(id)  { showToast('info','Log','Lihat log di halaman Log Ujian'); }
+function lihatLogUjian() { showModal('modal-log'); }
+loadUjian();
+</script>
+</body>
+</html>

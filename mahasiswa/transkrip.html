@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Transkrip Nilai — SIAKAD STAI DILWA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="icon" type="image/png" href="../assets/img/icon.png">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="stylesheet" href="../assets/css/mobile-table.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <link rel="stylesheet" href="../assets/css/print.css">
+  <!-- Di <head> -->
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#1A5C2A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SIAKAD">
+<link rel="apple-touch-icon" href="../assets/img/icon.png">
+  <style>
+    .profile-header {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius-lg);
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    /* Row wrapper — di desktop transparan, isi langsung flex */
+    .profile-header-row1 {
+      display: contents; /* children langsung jadi flex children dari .profile-header */
+    }
+    .profile-avatar-lg {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      background: var(--navy);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem; color: white;
+      flex-shrink: 0;
+      border: 3px solid rgba(27,58,107,0.15);
+    }
+    .profile-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .profile-info h2 {
+      font-family: var(--font-display);
+      font-size: 1.3rem; font-weight: 700;
+      color: var(--text-primary);
+      word-break: break-word;
+    }
+    .profile-info p { font-size: 0.875rem; color: var(--text-secondary); margin-top: 4px; }
+    .profile-info-grid {
+      display: flex; gap: 16px; flex-wrap: wrap; margin-top: 8px;
+    }
+    .profile-info-item { font-size: 0.8125rem; }
+    .profile-info-item label { color: var(--text-muted); margin-right: 4px; }
+    .profile-info-item strong { color: var(--text-primary); }
+    .ipk-display {
+      margin-left: auto;
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .ipk-display .num {
+      font-family: var(--font-display);
+      font-size: 2.5rem; font-weight: 700;
+      color: var(--navy); line-height: 1;
+    }
+    .ipk-display .lbl { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+
+    /* Mobile fix: layout 2 baris — atas: avatar+nama, IPK pojok kanan; bawah: angkatan+fakultas */
+    @media (max-width: 600px) {
+      .profile-header {
+        padding: 16px;
+        gap: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      /* Baris 1: avatar + nama + IPK sejajar */
+      .profile-header-row1 {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+      }
+
+      .profile-avatar-lg {
+        width: 52px; height: 52px;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+      }
+
+      /* Nama & NIM/Prodi ambil sisa ruang, IPK di kanan */
+      .profile-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .profile-info h2 {
+        font-size: 0.9375rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .profile-info p {
+        font-size: 0.8rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .ipk-display {
+        margin-left: 0;
+        text-align: right;
+        flex-shrink: 0;
+      }
+      .ipk-display .num { font-size: 1.7rem; }
+      .ipk-display .lbl { font-size: 0.68rem; }
+
+      /* Baris 2: angkatan & fakultas */
+      .profile-info-grid {
+        margin-top: 12px;
+        gap: 6px 20px;
+      }
+    }
+
+    /* Accordion semester */
+    .semester-block {
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius-lg);
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+    .semester-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      background: var(--bg-secondary);
+      cursor: pointer;
+      transition: background var(--transition-fast);
+      user-select: none;
+    }
+    .semester-header:hover { background: var(--bg-tertiary); }
+    .semester-num {
+      width: 30px; height: 30px;
+      background: var(--navy);
+      color: white;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 700;
+      flex-shrink: 0;
+    }
+    .semester-header h3 { font-size: 0.9375rem; font-weight: 600; color: var(--text-primary); flex: 1; }
+    .semester-chevron { color: var(--text-muted); font-size: 0.8rem; transition: transform 0.3s; }
+    .semester-block.open .semester-chevron { transform: rotate(180deg); }
+    .semester-body { display: none; }
+    .semester-block.open .semester-body { display: block; }
+
+    .grade-a   { background:rgba(26,122,66,0.12);  color:var(--success); font-weight:700; }
+    .grade-b   { background:rgba(23,96,160,0.12);  color:var(--info);    font-weight:700; }
+    .grade-c   { background:rgba(196,125,10,0.12); color:var(--warning); font-weight:700; }
+    .grade-d   { background:rgba(190,51,40,0.12);  color:var(--danger);  font-weight:700; }
+    .grade-e   { background:var(--danger-bg);       color:var(--danger);  font-weight:700; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <div id="mahasiswa-sidebar-placeholder"></div>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title">Transkrip Nilai</span>
+      <div class="topbar-actions">
+        <button class="topbar-btn" data-theme-toggle><i class="fa-solid fa-moon"></i></button>
+        <button class="topbar-btn" data-notif-toggle><i class="fa-solid fa-bell"></i><span class="topbar-badge"></span></button>
+      </div>
+    </header>
+
+    <main class="page-content">
+      <!-- Kop surat — hanya tampil saat print/ekspor PDF -->
+      <div class="print-header">
+        <img src="../assets/img/kop-surat.png" alt="Kop Surat STAI DILWA">
+      </div>
+      <div class="page-header">
+        <div class="page-header-top">
+          <div><h1>Transkrip Nilai</h1><p>Riwayat lengkap nilai akademik seluruh semester</p></div>
+          <button class="btn btn-primary" onclick="eksporTranskripPDF()">
+            <i class="fa-solid fa-file-pdf"></i> Ekspor PDF
+          </button>
+        </div>
+      </div>
+
+      <!-- Profile header -->
+      <div class="profile-header">
+        <div class="profile-header-row1">
+          <div class="profile-avatar-lg"><i class="fa-solid fa-user"></i></div>
+          <div class="profile-info">
+            <h2 id="tr-nama">—</h2>
+            <p id="tr-nim-prodi">—</p>
+          </div>
+          <div class="ipk-display">
+            <div class="num" id="tr-ipk">—</div>
+            <div class="lbl">IPK Kumulatif</div>
+          </div>
+        </div>
+        <div class="profile-info-grid">
+          <div class="profile-info-item"><label>Angkatan</label><strong id="tr-angkatan">—</strong></div>
+          <div class="profile-info-item"><label>Fakultas</label><strong id="tr-fakultas">—</strong></div>
+        </div>
+      </div>
+
+      <!-- Stat cards -->
+      <div class="grid grid-4 mb-24">
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div><div class="stat-card-value" id="tr-sks-lulus">—</div><div class="stat-card-label">Total SKS Lulus</div></div>
+            <div class="stat-card-icon stat-icon-navy"><i class="fa-solid fa-layer-group"></i></div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div><div class="stat-card-value" id="tr-jml-mk">—</div><div class="stat-card-label">MK Lulus</div></div>
+            <div class="stat-card-icon stat-icon-success"><i class="fa-solid fa-circle-check"></i></div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div><div class="stat-card-value" id="tr-semester">—</div><div class="stat-card-label">Semester Ditempuh</div></div>
+            <div class="stat-card-icon stat-icon-gold"><i class="fa-solid fa-calendar-days"></i></div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div><div class="stat-card-value" id="tr-progress">—</div><div class="stat-card-label">Progres Studi</div></div>
+            <div class="stat-card-icon stat-icon-info"><i class="fa-solid fa-chart-pie"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Accordion per semester -->
+      <div id="transkrip-list"></div>
+
+    </main>
+  </div>
+</div>
+
+<div class="more-menu-overlay" id="more-menu-overlay"></div>
+<div class="more-menu-sheet" id="more-menu-sheet">
+  <div class="more-menu-handle"></div>
+  <div class="more-menu-title">Menu Lainnya</div>
+  <div class="more-menu-grid">
+    <a class="more-menu-item" href="khs.html"><i class="fa-solid fa-chart-bar"></i>KHS</a>
+    <a class="more-menu-item active" href="transkrip.html"><i class="fa-solid fa-scroll"></i>Transkrip</a>
+    <a class="more-menu-item" href="jadwal.html"><i class="fa-solid fa-calendar-days"></i>Jadwal</a>
+    <a class="more-menu-item" href="pembayaran.html"><i class="fa-solid fa-credit-card"></i>Pembayaran</a>
+    <a class="more-menu-item" href="dokumen.html"><i class="fa-solid fa-folder-open"></i>Dokumen</a>
+    <a class="more-menu-item" href="ktm.html"><i class="fa-solid fa-id-card"></i>KTM</a>
+    <a class="more-menu-item" href="pengumuman.html"><i class="fa-solid fa-bullhorn"></i>Pengumuman</a>
+    <a class="more-menu-item" href="profil.html"><i class="fa-solid fa-user"></i>Profil</a>
+  </div>
+</div>
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+    <a class="bottom-nav-item" href="krs.html"><i class="fa-solid fa-file-pen"></i><span>KRS</span></a>
+    <a class="bottom-nav-item" href="ujian.html"><i class="fa-solid fa-pencil"></i><span>Ujian</span></a>
+    <a class="bottom-nav-item" href="absensi.html"><i class="fa-solid fa-clipboard-check"></i><span>Absensi</span></a>
+    <button class="bottom-nav-more active" id="btn-more-menu"><i class="fa-solid fa-plus"></i><span>Lainnya</span></button>
+  </div>
+</nav>
+<div class="toast-container"></div>
+
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/mahasiswa-integration.js"></script>
+<script src="../assets/js/mahasiswa-sidebar.js"></script>
+<script src="../assets/js/main.js"></script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
+</script>
+
+<script>
+
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'mahasiswa') window.location.href = '../auth/login.html';
+
+async function loadTranskrip() {
+  const [profilRes, khsRes] = await Promise.all([
+    MahasiswaAPI.profil(),
+    MahasiswaAPI.khs()
+  ]);
+
+  if (profilRes && profilRes.ok) {
+    const m = profilRes.data.data;
+    const fields = {
+      'tr-nama':    m.nama,
+      'tr-nim':     m.nim,
+      'tr-prodi':   m.program_studi?.nama,
+      'tr-angkatan':m.angkatan,
+      'tr-status':  m.status,
+    };
+    Object.entries(fields).forEach(([id,val]) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val || '—';
+    });
+  }
+
+  if (khsRes && khsRes.ok) {
+    const d = khsRes.data.data;
+    const ipkEl = document.getElementById('tr-ipk') || document.querySelector('[id*="ipk"]');
+    if (ipkEl) ipkEl.textContent = d.ipk ?? '0.00';
+    const sksEl = document.getElementById('tr-sks') || document.querySelector('[id*="sks"]');
+    if (sksEl) sksEl.textContent = d.total_sks ?? '0';
+    renderTranskrip(d.per_semester || []);
+  }
+}
+
+function renderTranskrip(list) {
+  const tbody = document.getElementById('tbody-transkrip') || document.querySelector('tbody');
+  if (!tbody) return;
+  let no = 1;
+  tbody.innerHTML = list.flatMap(s =>
+    (s.nilai || []).map(n => `
+      <tr>
+        <td style="text-align:center">${no++}</td>
+        <td class="font-mono" style="font-size:0.8rem">${n.kelas?.mata_kuliah?.kode || '—'}</td>
+        <td>${escHTML(n.kelas?.mata_kuliah?.nama || '—')}</td>
+        <td style="text-align:center">${n.kelas?.mata_kuliah?.sks ?? '—'}</td>
+        <td style="text-align:center">${escHTML(s.semester?.nama || '—')}</td>
+        <td style="text-align:center;font-weight:700">${n.nilai_akhir ?? '—'}</td>
+        <td style="text-align:center"><span class="badge badge-primary">${n.grade || '—'}</span></td>
+        <td style="text-align:center">${n.bobot ?? '—'}</td>
+        <td><span class="badge ${n.status==='Lulus'?'badge-success':'badge-danger'}">${n.status || '—'}</span></td>
+      </tr>`)
+  ).join('');
+}
+
+function eksporTranskrip() {
+  showToast('info','Ekspor','Fitur ekspor transkrip PDF segera tersedia');
+}
+
+loadTranskrip();
+
+</script>
+</body>
+</html>

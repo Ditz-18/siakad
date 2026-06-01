@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Kelas Saya — SIAKAD Ditz University</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="icon" type="image/png" href="../assets/img/icon.png">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <link rel="stylesheet" href="../assets/css/print.css">
+  <link rel="stylesheet" href="../assets/css/mobile-table.css">
+  <link rel="manifest" href="../manifest.json">
+  <meta name="theme-color" content="#1B3A6B">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="SIAKAD">
+  <link rel="apple-touch-icon" href="../assets/img/icon.png">
+  <style>
+    .kelas-card { background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--border-radius-lg); overflow:hidden; transition:all var(--transition-base); }
+    .kelas-card:hover { box-shadow:var(--shadow-md); transform:translateY(-2px); }
+    .kelas-card-header { padding:16px 20px; display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--border-light); }
+    .kelas-card-icon { width:44px; height:44px; border-radius:var(--border-radius-md); display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
+    .kelas-card-body { padding:16px 20px; }
+    .kelas-meta-row { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:14px; }
+    .kelas-meta-item { display:flex; align-items:center; gap:5px; font-size:0.8rem; color:var(--text-secondary); }
+    .kelas-meta-item i { color:var(--text-muted); font-size:0.75rem; }
+    .mhs-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--border-light); }
+    .mhs-row:last-child { border-bottom:none; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <div id="dosen-sidebar-placeholder"></div>
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title">Kelas Saya</span>
+      <div class="topbar-actions">
+        <button class="topbar-btn" data-theme-toggle><i class="fa-solid fa-moon"></i></button>
+        <button class="topbar-btn" data-notif-toggle><i class="fa-solid fa-bell"></i><span class="topbar-badge"></span></button>
+      </div>
+    </header>
+    <main class="page-content">
+      <div class="page-header"><h1>Kelas Saya</h1><p>Daftar kelas yang Anda ampu semester ini</p></div>
+      <div class="grid grid-2" style="gap:20px" id="kelas-grid"></div>
+    </main>
+  </div>
+</div>
+<!-- Modal Detail Mahasiswa -->
+<div class="modal-backdrop" id="modal-detail-mhs">
+  <div class="modal"><div class="modal-header"><h3 id="modal-mhs-nama">Detail Mahasiswa</h3><button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button></div>
+  <div class="modal-body" id="modal-mhs-body"></div>
+  <div class="modal-footer"><button class="btn btn-ghost btn-sm" data-modal-close>Tutup</button></div></div>
+</div>
+<div class="more-menu-overlay" id="more-menu-overlay"></div>
+<div class="more-menu-sheet" id="more-menu-sheet">
+  <div class="more-menu-handle"></div>
+  <div class="more-menu-title">Menu Lainnya</div>
+  <div class="more-menu-grid">
+    <a class="more-menu-item" href="absensi-kelas.html"><i class="fa-solid fa-clipboard-list"></i>Absensi</a>
+    <a class="more-menu-item" href="jadwal.html"><i class="fa-solid fa-calendar-days"></i>Jadwal</a>
+    <a class="more-menu-item" href="kelola-ujian.html"><i class="fa-solid fa-file-circle-check"></i>Ujian</a>
+    <a class="more-menu-item" href="persetujuan-krs.html"><i class="fa-solid fa-file-pen"></i>ACC KRS</a>
+    <a class="more-menu-item" href="pengumuman.html"><i class="fa-solid fa-bullhorn"></i>Pengumuman</a>
+    <a class="more-menu-item" href="profil.html"><i class="fa-solid fa-user"></i>Profil</a>
+  </div>
+</div>
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+    <a class="bottom-nav-item active" href="kelas.html"><i class="fa-solid fa-chalkboard"></i><span>Kelas</span></a>
+    <a class="bottom-nav-item" href="input-nilai.html"><i class="fa-solid fa-pen-to-square"></i><span>Nilai</span></a>
+    <a class="bottom-nav-item" href="bimbingan.html"><i class="fa-solid fa-users"></i><span>Bimbingan</span></a>
+    <button class="bottom-nav-more" id="btn-more-menu"><i class="fa-solid fa-plus"></i><span>Lainnya</span></button>
+  </div>
+</nav>
+<div class="toast-container"></div>
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/dosen-integration.js"></script>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/dosen-sidebar.js"></script>
+
+<script>
+(function() {
+  const btnMore=document.getElementById('btn-more-menu'), overlay=document.getElementById('more-menu-overlay'), sheet=document.getElementById('more-menu-sheet');
+  function openMore(){overlay.classList.add('open');sheet.classList.add('open');btnMore.classList.add('open');document.body.style.overflow='hidden';}
+  function closeMore(){overlay.classList.remove('open');sheet.classList.remove('open');btnMore.classList.remove('open');document.body.style.overflow='';}
+  btnMore?.addEventListener('click',function(e){e.stopPropagation();sheet.classList.contains('open')?closeMore():openMore();});
+  overlay?.addEventListener('click',closeMore);
+  let startY=0;
+  sheet?.addEventListener('touchstart',function(e){startY=e.touches[0].clientY;},{passive:true});
+  sheet?.addEventListener('touchmove',function(e){if(e.touches[0].clientY-startY>60)closeMore();},{passive:true});
+})();
+</script>
+<script>
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'dosen') window.location.href = '../auth/login.html';
+const kelasColors = [
+  { bg:'rgba(27,58,107,0.1)', color:'var(--navy)', icon:'fa-brain' },
+  { bg:'var(--warning-bg)',    color:'var(--warning)', icon:'fa-file-contract' },
+  { bg:'var(--success-bg)',    color:'var(--success)', icon:'fa-graduation-cap' }
+];
+async function loadKelas() {
+  const res = await DosenAPI.kelas();
+  if (!res || !res.ok) { showToast('danger','Error','Gagal memuat kelas'); return; }
+  const list = res.data.data || [];
+  const grid = document.getElementById('kelas-grid');
+  if (!grid) return;
+  if (list.length === 0) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><h3 class="empty-state-title">Tidak ada kelas semester ini</h3></div>`;
+    return;
+  }
+  grid.innerHTML = list.map((k, i) => {
+    const c = kelasColors[i % kelasColors.length];
+    return `
+    <div class="kelas-card">
+      <div class="kelas-card-header">
+        <div class="kelas-card-icon" style="background:${c.bg};color:${c.color}"><i class="fa-solid ${c.icon}"></i></div>
+        <div style="flex:1;min-width:0">
+          <h3 style="font-size:0.9375rem;font-weight:700;color:var(--text-primary)">${escHTML(k.mata_kuliah?.nama || '—')}</h3>
+          <p style="font-size:0.8rem;color:var(--text-muted)">${k.kode_kelas} &bull; ${k.mata_kuliah?.kode || ''}</p>
+        </div>
+        <span class="badge badge-success">Aktif</span>
+      </div>
+      <div class="kelas-card-body">
+        <div class="kelas-meta-row">
+          <div class="kelas-meta-item"><i class="fa-solid fa-clock"></i>${k.jam_mulai}–${k.jam_selesai}</div>
+          <div class="kelas-meta-item"><i class="fa-solid fa-calendar"></i>${k.hari}</div>
+          <div class="kelas-meta-item"><i class="fa-solid fa-location-dot"></i>${k.ruangan || '—'}</div>
+          <div class="kelas-meta-item"><i class="fa-solid fa-users"></i>${k.terisi ?? '—'}/${k.kuota} mhs</div>
+        </div>
+        <div class="flex gap-8" style="margin-top:12px">
+          <a href="input-nilai.html?kelas=${k.id}" class="btn btn-outline btn-sm"><i class="fa-solid fa-pen-to-square"></i> Input Nilai</a>
+          <a href="absensi-kelas.html?kelas=${k.id}" class="btn btn-ghost btn-sm"><i class="fa-solid fa-clipboard-list"></i> Absensi</a>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+loadKelas();
+</script>
+</body>
+</html>

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Mahasiswa Bimbingan — SIAKAD Ditz University</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <link rel="stylesheet" href="../assets/css/print.css">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="stylesheet" href="../assets/css/mobile-table.css">        <link rel="icon" type="image/png" href="../assets/img/icon.png">  <link rel="manifest" href="../manifest.json">
+  <meta name="theme-color" content="#1B3A6B">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="SIAKAD">
+  <link rel="apple-touch-icon" href="../assets/img/icon.png">
+</head>
+<body>
+<div class="app-layout">
+  <div id="dosen-sidebar-placeholder"></div>
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title">Mahasiswa Bimbingan</span>
+      <div class="topbar-actions">
+        <button class="topbar-btn" data-theme-toggle><i class="fa-solid fa-moon"></i></button>
+        <button class="topbar-btn" data-notif-toggle><i class="fa-solid fa-bell"></i><span class="topbar-badge"></span></button>
+      </div>
+    </header>
+    <main class="page-content">
+      <div class="page-header">
+        <div class="page-header-top">
+          <div><h1>Mahasiswa Bimbingan</h1><p>Daftar mahasiswa yang Anda bimbing sebagai Pembimbing Akademik (PA)</p></div>
+        </div>
+      </div>
+      <!-- Filter -->
+      <div class="filter-bar mb-20">
+        <div class="input-group" style="max-width:280px">
+          <i class="input-icon fa-solid fa-magnifying-glass"></i>
+          <input type="text" class="form-control" id="search-mhs" placeholder="Cari nama atau NIM...">
+        </div>
+        <select class="form-control" id="filter-angkatan" style="width:auto">
+          <option value="">Semua Angkatan</option>
+          <option value="2021">2021</option>
+          <option value="2022">2022</option>
+          <option value="2023">2023</option>
+        </select>
+        <select class="form-control" id="filter-status-krs" style="width:auto">
+          <option value="">Semua Status KRS</option>
+          <option value="Disetujui">Disetujui</option>
+          <option value="Menunggu">Menunggu</option>
+          <option value="Draft">Draft</option>
+          <option value="Ditolak">Ditolak</option>
+        </select>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fa-solid fa-user-graduate" style="color:var(--navy);margin-right:8px"></i>Daftar Mahasiswa Bimbingan</h3>
+          <span class="badge badge-primary" id="total-badge">6 Mahasiswa</span>
+        </div>
+        <div class="table-scroll-hint"><i class="fa-solid fa-arrows-left-right"></i> Geser untuk lihat selengkapnya</div>
+        <div class="table-wrapper-outer">
+          <div class="table-wrapper">
+                    <table class="table">
+                      <thead><tr><th>NIM</th><th>Nama</th><th>Angkatan</th><th>Semester</th><th style="text-align:center">IPK</th><th style="text-align:center">SKS Lulus</th><th>Status KRS</th><th>Aksi</th></tr></thead>
+                      <tbody id="tbody-bimbingan"></tbody>
+                    </table>
+                  </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<!-- Modal Detail -->
+<div class="modal-backdrop" id="modal-detail-bimbingan">
+  <div class="modal modal-lg">
+    <div class="modal-header"><h3 id="modal-b-nama">Detail Mahasiswa</h3><button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <div class="grid grid-4 mb-20" id="modal-b-stats"></div>
+      <div class="tabs mb-16" id="modal-b-tabs">
+        <div class="tab-item active" onclick="switchBTab(this,'krs')">KRS Semester Ini</div>
+        <div class="tab-item" onclick="switchBTab(this,'catatan')">Catatan PA</div>
+      </div>
+      <div id="modal-b-krs">
+        <div class="table-scroll-hint"><i class="fa-solid fa-arrows-left-right"></i> Geser untuk lihat selengkapnya</div>
+        <div class="table-wrapper-outer">
+          <div class="table-wrapper"><table class="table"><thead><tr><th>Kode</th><th>Nama MK</th><th>SKS</th><th>Dosen</th><th>Jadwal</th></tr></thead>
+                  <tbody id="modal-b-krs-tbody"></tbody></table></div>
+        </div>
+      </div>
+      <div id="modal-b-catatan" style="display:none">
+        <div class="alert alert-info mb-12"><i class="fa-solid fa-circle-info"></i> Belum ada catatan bimbingan untuk mahasiswa ini.</div>
+        <button class="btn btn-primary btn-sm" onclick="showToast('info','Segera','Fitur tambah catatan akan disempurnakan')"><i class="fa-solid fa-plus"></i> Tambah Catatan</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal-close>Tutup</button>
+      <button class="btn btn-success btn-sm" id="btn-acc-krs-modal"><i class="fa-solid fa-check"></i> Setujui KRS</button>
+      <button class="btn btn-outline-danger btn-sm" id="btn-tolak-krs-modal"><i class="fa-solid fa-xmark"></i> Tolak KRS</button>
+    </div>
+  </div>
+</div>
+<div class="more-menu-overlay" id="more-menu-overlay"></div>
+<div class="more-menu-sheet" id="more-menu-sheet">
+  <div class="more-menu-handle"></div>
+  <div class="more-menu-title">Menu Lainnya</div>
+  <div class="more-menu-grid">
+    <a class="more-menu-item" href="absensi-kelas.html"><i class="fa-solid fa-clipboard-list"></i>Absensi</a>
+    <a class="more-menu-item" href="jadwal.html"><i class="fa-solid fa-calendar-days"></i>Jadwal</a>
+    <a class="more-menu-item" href="kelola-ujian.html"><i class="fa-solid fa-file-circle-check"></i>Ujian</a>
+    <a class="more-menu-item" href="persetujuan-krs.html"><i class="fa-solid fa-file-pen"></i>ACC KRS</a>
+    <a class="more-menu-item" href="pengumuman.html"><i class="fa-solid fa-bullhorn"></i>Pengumuman</a>
+    <a class="more-menu-item" href="profil.html"><i class="fa-solid fa-user"></i>Profil</a>
+  </div>
+</div>
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+    <a class="bottom-nav-item" href="kelas.html"><i class="fa-solid fa-chalkboard"></i><span>Kelas</span></a>
+    <a class="bottom-nav-item" href="input-nilai.html"><i class="fa-solid fa-pen-to-square"></i><span>Nilai</span></a>
+    <a class="bottom-nav-item active" href="bimbingan.html"><i class="fa-solid fa-users"></i><span>Bimbingan</span></a>
+    <button class="bottom-nav-more" id="btn-more-menu"><i class="fa-solid fa-plus"></i><span>Lainnya</span></button>
+  </div>
+</nav>
+<div class="toast-container"></div>
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/dosen-integration.js"></script>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/dosen-sidebar.js"></script>
+
+<script>
+(function() {
+  const btnMore=document.getElementById('btn-more-menu'), overlay=document.getElementById('more-menu-overlay'), sheet=document.getElementById('more-menu-sheet');
+  function openMore(){overlay.classList.add('open');sheet.classList.add('open');btnMore.classList.add('open');document.body.style.overflow='hidden';}
+  function closeMore(){overlay.classList.remove('open');sheet.classList.remove('open');btnMore.classList.remove('open');document.body.style.overflow='';}
+  btnMore?.addEventListener('click',function(e){e.stopPropagation();sheet.classList.contains('open')?closeMore():openMore();});
+  overlay?.addEventListener('click',closeMore);
+  let startY=0;
+  sheet?.addEventListener('touchstart',function(e){startY=e.touches[0].clientY;},{passive:true});
+  sheet?.addEventListener('touchmove',function(e){if(e.touches[0].clientY-startY>60)closeMore();},{passive:true});
+})();
+</script>
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}</script>
+<script>
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'dosen') window.location.href = '../auth/login.html';
+let allMhs = [];
+let activeMhsId = null;
+async function loadBimbingan() {
+  const res = await DosenAPI.bimbingan();
+  if (!res || !res.ok) { showToast('danger','Error','Gagal memuat data bimbingan'); return; }
+  allMhs = res.data.data || [];
+  document.getElementById('total-badge').textContent = allMhs.length + ' Mahasiswa';
+  renderTabel(allMhs);
+}
+const statusBadgeMap = { Draft:'badge-muted', Menunggu:'badge-warning', Disetujui:'badge-success', Ditolak:'badge-danger', 'Belum Isi':'badge-muted' };
+function renderTabel(list) {
+  document.getElementById('total-badge').textContent = list.length + ' Mahasiswa';
+  document.getElementById('tbody-bimbingan').innerHTML = list.map(m => `
+    <tr>
+      <td><span class="font-mono" style="font-size:0.8rem">${m.nim}</span></td>
+      <td><strong>${escHTML(m.nama)}</strong></td>
+      <td>${m.angkatan}</td>
+      <td>Semester ${m.semester}</td>
+      <td style="text-align:center;font-weight:700;color:var(--text-muted)">—</td>
+      <td style="text-align:center">—</td>
+      <td><span class="badge badge-success">${m.status}</span></td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="bukaDetail(${m.id})">
+          <i class="fa-solid fa-eye"></i> Detail
+        </button>
+      </td>
+    </tr>`).join('');
+}
+async function bukaDetail(id) {
+  activeMhsId = id;
+  const res = await DosenAPI.detailBimbingan(id);
+  if (!res || !res.ok) return;
+  const data = res.data.data;
+  const m    = data.mahasiswa || {};
+  document.getElementById('modal-b-nama').textContent = m.nama || '—';
+  document.getElementById('modal-b-stats').innerHTML = `
+    <div class="stat-card" style="padding:14px"><div class="stat-card-value" style="font-size:1.3rem">${data.ipk ?? '—'}</div><div class="stat-card-label">IPK</div></div>
+    <div class="stat-card" style="padding:14px"><div class="stat-card-value" style="font-size:1.3rem">${data.total_sks ?? '—'}</div><div class="stat-card-label">SKS Lulus</div></div>
+    <div class="stat-card" style="padding:14px"><div class="stat-card-value" style="font-size:1.3rem">Sem ${m.semester ?? '—'}</div><div class="stat-card-label">Semester</div></div>
+    <div class="stat-card" style="padding:14px"><div class="stat-card-value" style="font-size:1rem"><span class="badge badge-success">${m.status ?? '—'}</span></div><div class="stat-card-label">Status</div></div>`;
+  const krsAktif = data.krs_aktif || [];
+  document.getElementById('modal-b-krs-tbody').innerHTML = krsAktif.length === 0
+    ? `<tr><td colspan="5" style="text-align:center;padding:16px;color:var(--text-muted)">Belum ada KRS semester ini</td></tr>`
+    : krsAktif.map(k => `
+        <tr>
+          <td class="font-mono" style="font-size:0.8rem">${k.kelas?.mata_kuliah?.kode || '—'}</td>
+          <td>${escHTML(k.kelas?.mata_kuliah?.nama || '—')}</td>
+          <td>${k.kelas?.mata_kuliah?.sks ?? '—'}</td>
+          <td style="font-size:0.8rem">—</td>
+          <td style="font-size:0.8rem">${k.kelas?.hari || '—'} ${k.kelas?.jam_mulai || ''}</td>
+        </tr>`).join('');
+  // Sembunyikan tombol acc/tolak (handled di persetujuan-krs)
+  document.getElementById('btn-acc-krs-modal').style.display   = 'none';
+  document.getElementById('btn-tolak-krs-modal').style.display = 'none';
+  showModal('modal-detail-bimbingan');
+}
+function applyFilter() {
+  const q   = document.getElementById('search-mhs').value.toLowerCase();
+  const ang = document.getElementById('filter-angkatan').value;
+  return allMhs.filter(m =>
+    (!q || m.nama.toLowerCase().includes(q) || m.nim.includes(q)) &&
+    (!ang || String(m.angkatan) === ang)
+  );
+}
+function switchBTab(el, tab) {
+  document.querySelectorAll('#modal-b-tabs .tab-item').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('modal-b-krs').style.display     = tab==='krs' ? '' : 'none';
+  document.getElementById('modal-b-catatan').style.display = tab==='catatan' ? '' : 'none';
+}
+const debSearch = debounce(() => renderTabel(applyFilter()), 200);
+document.getElementById('search-mhs').addEventListener('input', debSearch);
+document.getElementById('filter-angkatan').addEventListener('change', () => renderTabel(applyFilter()));
+const filterKrs = document.getElementById('filter-status-krs');
+if (filterKrs) filterKrs.addEventListener('change', () => renderTabel(applyFilter()));
+loadBimbingan();
+</script>
+</body>
+</html>

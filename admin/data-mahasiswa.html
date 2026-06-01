@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Mahasiswa — SIAKAD Ditz University</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="stylesheet" href="../assets/css/mobile-table.css">
+  <link rel="stylesheet" href="../assets/css/print.css">
+</head>
+<body>
+<div class="app-layout">
+  <div id="admin-sidebar-placeholder"></div>
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title">Data Mahasiswa</span>
+      <div class="topbar-actions">
+        <button class="topbar-btn" data-theme-toggle><i class="fa-solid fa-moon"></i></button>
+        <button class="topbar-btn" data-notif-toggle><i class="fa-solid fa-bell"></i><span class="topbar-badge"></span></button>
+      </div>
+    </header>
+    <main class="page-content">
+      <div class="page-header">
+        <div class="page-header-top">
+          <div><h1>Data Mahasiswa</h1><p>Kelola seluruh data mahasiswa universitas</p></div>
+          <div class="flex gap-8">
+            <button class="btn btn-outline btn-sm" onclick="eksporMhsCSV()"><i class="fa-solid fa-file-csv"></i> Ekspor CSV</button>
+            <button class="btn btn-primary" data-modal-target="modal-tambah-mhs"><i class="fa-solid fa-user-plus"></i> Tambah Mahasiswa</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body" style="padding-bottom:0">
+          <div class="filter-bar">
+            <div class="input-group" style="max-width:260px">
+              <i class="input-icon fa-solid fa-magnifying-glass"></i>
+              <input type="text" class="form-control" id="search-mhs" placeholder="Cari nama atau NIM...">
+            </div>
+            <select class="form-control" id="filter-prodi" style="width:auto">
+              <option value="">Semua Prodi</option>
+              <option value="Teknik Informatika">Teknik Informatika</option>
+              <option value="Sistem Informasi">Sistem Informasi</option>
+              <option value="Manajemen Informatika">Manajemen Informatika</option>
+            </select>
+            <select class="form-control" id="filter-angkatan" style="width:auto">
+              <option value="">Semua Angkatan</option>
+              <option value="2024">2024</option>
+              <option value="2023">2023</option>
+              <option value="2022">2022</option>
+              <option value="2021">2021</option>
+              <option value="2020">2020</option>
+            </select>
+            <select class="form-control" id="filter-status" style="width:auto">
+              <option value="">Semua Status</option>
+              <option value="Aktif">Aktif</option>
+              <option value="Cuti">Cuti</option>
+            </select>
+            <button class="btn btn-ghost btn-sm" onclick="resetFilter()"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead><tr><th>No.</th><th>NIM</th><th>Nama Lengkap</th><th>Program Studi</th><th>Angkatan</th><th style="text-align:center">Semester</th><th style="text-align:center">IPK</th><th>Status</th><th>Aksi</th></tr></thead>
+            <tbody id="tbody-mhs"></tbody>
+          </table>
+        </div>
+        <div class="card-footer flex-between">
+          <span style="font-size:0.8125rem;color:var(--text-muted)" id="table-info">Menampilkan 0 data</span>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Modal Tambah Mahasiswa -->
+<div class="modal-backdrop" id="modal-tambah-mhs">
+  <div class="modal modal-xl">
+    <div class="modal-header"><h3><i class="fa-solid fa-user-plus" style="color:var(--navy);margin-right:8px"></i>Tambah Mahasiswa Baru</h3><button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <div class="form-grid form-grid-2">
+        <div class="form-group"><label class="form-label">NIM <span class="required">*</span></label><input type="text" class="form-control" id="new-nim" placeholder="Contoh: 2024010001"></div>
+        <div class="form-group"><label class="form-label">Nama Lengkap <span class="required">*</span></label><input type="text" class="form-control" id="new-nama" placeholder="Nama sesuai KTP"></div>
+        <div class="form-group"><label class="form-label">Program Studi <span class="required">*</span></label>
+          <select class="form-control" id="new-prodi">
+            <option value="">— Pilih prodi —</option>
+            <option>Teknik Informatika</option><option>Sistem Informasi</option><option>Manajemen Informatika</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Angkatan <span class="required">*</span></label><input type="number" class="form-control" id="new-angkatan" placeholder="2024" min="2000" max="2030"></div>
+        <div class="form-group"><label class="form-label">Email Akademik <span class="required">*</span></label><input type="email" class="form-control" id="new-email" placeholder="nim@student.ditz.ac.id"></div>
+        <div class="form-group"><label class="form-label">Nomor HP</label><input type="tel" class="form-control" id="new-hp" placeholder="08xxxxxxxxxx"></div>
+        <div class="form-group"><label class="form-label">Dosen PA</label>
+          <select class="form-control" id="new-pa">
+            <option value="">— Pilih dosen PA —</option>
+            <option>Dr. Hendra Wijaya, M.Kom.</option>
+            <option>Dr. Irwan Saputra, M.T.</option>
+            <option>Rina Kusuma, M.Kom.</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Password Awal</label><input type="text" class="form-control" id="new-pass" placeholder="Default: NIM" readonly></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal-close>Batal</button>
+      <button class="btn btn-primary btn-sm" onclick="tambahMhs()"><i class="fa-solid fa-save"></i> Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Detail -->
+<div class="modal-backdrop" id="modal-detail-mhs">
+  <div class="modal modal-lg">
+    <div class="modal-header"><h3 id="detail-mhs-nama">Detail Mahasiswa</h3><button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body" id="detail-mhs-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal-close>Tutup</button>
+      <button class="btn btn-outline btn-sm"><i class="fa-solid fa-pen"></i> Edit</button>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav"><div class="bottom-nav-inner">
+  <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+  <a class="bottom-nav-item active" href="data-mahasiswa.html"><i class="fa-solid fa-user-graduate"></i><span>Mahasiswa</span></a>
+  <a class="bottom-nav-item" href="surat.html"><i class="fa-solid fa-envelope"></i><span>Surat</span></a>
+  <a class="bottom-nav-item" href="laporan.html"><i class="fa-solid fa-chart-pie"></i><span>Laporan</span></a>
+  <a class="bottom-nav-item" href="semester.html"><i class="fa-solid fa-calendar"></i><span>Semester</span></a>
+</div></nav>
+<div class="toast-container"></div>
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/admin-integration.js"></script>
+
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/admin-sidebar.js"></script>
+<script>
+
+// Cek auth
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'admin') window.location.href = '../auth/login.html';
+
+let allMhs = [];
+let currentPage = 1;
+
+async function loadMahasiswa() {
+  const q     = document.getElementById('search-mhs').value;
+  const prodi = document.getElementById('filter-prodi').value;
+  const ang   = document.getElementById('filter-angkatan').value;
+  const stat  = document.getElementById('filter-status').value;
+  const params = { per_page: 50 };
+  if (q)     params.search = q;
+  if (prodi) params.program_studi_id = prodi;
+  if (ang)   params.angkatan = ang;
+  if (stat)  params.status = stat;
+
+  const res = await AdminAPI.mahasiswa(params);
+  if (!res || !res.ok) { showToast('danger','Error','Gagal memuat data mahasiswa'); return; }
+  allMhs = res.data.data?.data || res.data.data || [];
+  renderTabel(allMhs);
+}
+
+function renderTabel(list) {
+  document.getElementById('table-info').textContent = `Menampilkan ${list.length} data`;
+  if (list.length === 0) {
+    document.getElementById('tbody-mhs').innerHTML = `<tr><td colspan="99"><div class="empty-state"><h3 class="empty-state-title">Tidak ada data mahasiswa</h3><p class="empty-state-desc">Coba ubah filter pencarian</p></div></td></tr>`;
+    return;
+  }
+  document.getElementById('tbody-mhs').innerHTML = list.map((m, i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td><span class="font-mono" style="font-size:0.8rem">${m.nim}</span></td>
+      <td><strong>${escHTML(m.nama)}</strong></td>
+      <td style="font-size:0.8375rem">${escHTML(m.program_studi?.nama || m.prodi || '—')}</td>
+      <td style="text-align:center">${m.angkatan}</td>
+      <td style="text-align:center">Sem ${m.semester}</td>
+      <td style="text-align:center;font-weight:700;color:var(--text-muted)">—</td>
+      <td><span class="badge badge-success">${m.status}</span></td>
+      <td>
+        <div class="table-actions">
+          <button class="btn btn-outline btn-icon btn-sm" onclick="bukaDetail(${m.id})" title="Detail"><i class="fa-solid fa-eye"></i></button>
+          <button class="btn btn-ghost btn-icon btn-sm" title="Edit" onclick="editMhs(${m.id})"><i class="fa-solid fa-pen"></i></button>
+          <button class="btn btn-outline-danger btn-icon btn-sm" title="Hapus" onclick="hapusMhs(${m.id})"><i class="fa-solid fa-user-slash"></i></button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+async function bukaDetail(id) {
+  const res = await AdminAPI.detailMahasiswa(id);
+  if (!res || !res.ok) return;
+  const m = res.data.data;
+  document.getElementById('detail-mhs-nama').textContent = m.nama;
+  document.getElementById('detail-mhs-body').innerHTML = `
+    <div class="grid grid-2" style="gap:14px">
+      <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">NIM</label><strong class="font-mono">${m.nim}</strong></div>
+      <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">PROGRAM STUDI</label><strong>${escHTML(m.program_studi?.nama || '—')}</strong></div>
+      <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">ANGKATAN</label><strong>${m.angkatan}</strong></div>
+      <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">SEMESTER AKTIF</label><strong>Semester ${m.semester}</strong></div>
+      <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">STATUS</label><span class="badge badge-success">${m.status}</span></div>
+      <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">EMAIL</label><strong>${m.email || '—'}</strong></div>
+      <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">NO. HP</label><strong>${m.no_hp || '—'}</strong></div>
+      <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">DOSEN PA</label><strong>${m.dosen_pa?.nama || '—'}</strong></div>
+    </div>`;
+  showModal('modal-detail-mhs');
+}
+
+async function hapusMhs(id) {
+  konfirmasi('Yakin ingin menghapus mahasiswa ini? Akun login juga akan terhapus.', async () => {
+    const res = await AdminAPI.hapusMahasiswa(id);
+    if (res && res.ok) { showToast('success','Dihapus','Mahasiswa berhasil dihapus'); loadMahasiswa(); }
+    else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+  });
+}
+
+// NIM auto-fill password
+document.getElementById('new-nim').addEventListener('input', e => {
+  document.getElementById('new-pass').value = e.target.value;
+});
+
+async function tambahMhs() {
+  const nim  = document.getElementById('new-nim').value.trim();
+  const nama = document.getElementById('new-nama').value.trim();
+  const ang  = document.getElementById('new-angkatan').value;
+  const email= document.getElementById('new-email').value.trim();
+  const hp   = document.getElementById('new-hp').value.trim();
+  if (!nim||!nama||!ang) { showToast('warning','Validasi','Lengkapi semua field wajib'); return; }
+  const res = await AdminAPI.tambahMahasiswa({
+    username: nim, email: email || nim+'@student.siakad.ac.id',
+    password: nim, nim, nama, program_studi_id: 1,
+    angkatan: parseInt(ang), no_hp: hp,
+  });
+  if (res && res.ok) {
+    hideModal('modal-tambah-mhs');
+    showToast('success','Berhasil','Mahasiswa baru berhasil ditambahkan');
+    loadMahasiswa();
+  } else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+}
+
+function resetFilter() {
+  ['search-mhs','filter-prodi','filter-angkatan','filter-status'].forEach(id => document.getElementById(id).value='');
+  loadMahasiswa();
+}
+
+function eksporMhsCSV() {
+  eksporCSV(allMhs.map(m=>({ nim:m.nim, nama:m.nama, prodi:m.program_studi?.nama||'—', angkatan:m.angkatan, semester:m.semester, status:m.status })),
+  ['NIM','Nama','Program Studi','Angkatan','Semester','Status'], 'Data_Mahasiswa');
+}
+
+const debSearch = debounce(() => loadMahasiswa(), 300);
+document.getElementById('search-mhs').addEventListener('input', debSearch);
+['filter-prodi','filter-angkatan','filter-status'].forEach(id =>
+  document.getElementById(id).addEventListener('change', loadMahasiswa));
+
+loadMahasiswa();
+
+
+// ── EDIT MAHASISWA ──────────────────────────────────────────────
+async function editMhs(id) {
+  const res = await AdminAPI.detailMahasiswa(id);
+  if (!res || !res.ok) { showToast('danger','Error','Gagal memuat data'); return; }
+  const m = res.data.data;
+  document.getElementById('edit-mhs-id').value       = m.id;
+  document.getElementById('edit-mhs-nama').value     = m.nama || '';
+  document.getElementById('edit-mhs-status').value   = m.status || 'Aktif';
+  document.getElementById('edit-mhs-semester').value = m.semester || 1;
+  document.getElementById('edit-mhs-angkatan').value = m.angkatan || '';
+  document.getElementById('edit-mhs-hp').value       = m.no_hp || '';
+  document.getElementById('edit-mhs-email').value    = m.email || '';
+  document.getElementById('edit-mhs-alamat').value   = m.alamat || '';
+  showModal('modal-edit-mhs');
+}
+
+async function simpanEditMhs() {
+  const id = document.getElementById('edit-mhs-id').value;
+  const data = {
+    nama:     document.getElementById('edit-mhs-nama').value.trim(),
+    status:   document.getElementById('edit-mhs-status').value,
+    semester: parseInt(document.getElementById('edit-mhs-semester').value),
+    angkatan: parseInt(document.getElementById('edit-mhs-angkatan').value),
+    no_hp:    document.getElementById('edit-mhs-hp').value.trim(),
+    email:    document.getElementById('edit-mhs-email').value.trim(),
+    alamat:   document.getElementById('edit-mhs-alamat').value.trim(),
+  };
+  if (!data.nama) { showToast('warning','Validasi','Nama wajib diisi'); return; }
+  const res = await AdminAPI.updateMahasiswa(id, data);
+  if (res && res.ok) {
+    hideModal('modal-edit-mhs');
+    showToast('success','Berhasil','Data mahasiswa berhasil diperbarui');
+    loadMahasiswa();
+  } else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+}
+</script>
+
+
+<!-- Modal Edit Mahasiswa -->
+<div class="modal-backdrop" id="modal-edit-mhs">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-user-pen" style="color:var(--navy);margin-right:8px"></i>Edit Data Mahasiswa</h3>
+      <button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-mhs-id">
+      <div class="form-grid form-grid-2">
+        <div class="form-group"><label class="form-label">Nama Lengkap</label><input type="text" class="form-control" id="edit-mhs-nama" placeholder="Nama lengkap mahasiswa"></div>
+        <div class="form-group"><label class="form-label">Status</label>
+          <select class="form-control" id="edit-mhs-status">
+            <option value="Aktif">Aktif</option>
+            <option value="Cuti">Cuti</option>
+            <option value="Lulus">Lulus</option>
+            <option value="Dropout">Dropout</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Semester</label>
+          <select class="form-control" id="edit-mhs-semester">
+            ${[1,2,3,4,5,6,7,8,9,10,11,12,13,14].map(n=>`<option value="${n}">Semester ${n}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Angkatan</label><input type="number" class="form-control" id="edit-mhs-angkatan" min="2000" max="2030"></div>
+        <div class="form-group"><label class="form-label">No. HP</label><input type="tel" class="form-control" id="edit-mhs-hp" placeholder="08xxxxxxxxxx"></div>
+        <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-control" id="edit-mhs-email" placeholder="email@example.com"></div>
+        <div class="form-group" style="grid-column:1/-1"><label class="form-label">Alamat</label><textarea class="form-control" id="edit-mhs-alamat" rows="2" placeholder="Alamat lengkap"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal-close>Batal</button>
+      <button class="btn btn-primary btn-sm" onclick="simpanEditMhs()"><i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

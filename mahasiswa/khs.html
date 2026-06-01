@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>KHS — SIAKAD STAI DILWA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="icon" type="image/png" href="../assets/img/icon.png">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="stylesheet" href="../assets/css/mobile-table.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <link rel="stylesheet" href="../assets/css/print.css">
+  <!-- Di <head> -->
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#1A5C2A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SIAKAD">
+<link rel="apple-touch-icon" href="../assets/img/icon.png">
+  <style>
+    /* Chart IPS */
+    .ips-chart { display: flex; align-items: flex-end; gap: 12px; height: 140px; padding: 0 8px; }
+    .ips-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
+    .ips-bar-label { font-size: 0.72rem; font-weight: 700; color: var(--text-primary); }
+    .ips-bar {
+      width: 100%; border-radius: 4px 4px 0 0;
+      transition: height 0.6s cubic-bezier(0.34,1.56,0.64,1);
+      min-height: 4px;
+      position: relative;
+    }
+    .ips-bar-sem { font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; }
+
+    /* Grade badge */
+    .grade-a   { background:rgba(26,122,66,0.12);  color:var(--success); font-weight:700; }
+    .grade-b   { background:rgba(23,96,160,0.12);  color:var(--info);    font-weight:700; }
+    .grade-c   { background:rgba(196,125,10,0.12); color:var(--warning); font-weight:700; }
+    .grade-d   { background:rgba(190,51,40,0.12);  color:var(--danger);  font-weight:700; }
+    .grade-e   { background:var(--danger-bg);       color:var(--danger);  font-weight:700; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <!-- SIDEBAR -->
+  <div id="mahasiswa-sidebar-placeholder"></div>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title">KHS — Kartu Hasil Studi</span>
+      <div class="topbar-actions">
+        <button class="topbar-btn" data-theme-toggle><i class="fa-solid fa-moon"></i></button>
+        <button class="topbar-btn" data-notif-toggle><i class="fa-solid fa-bell"></i><span class="topbar-badge"></span></button>
+      </div>
+    </header>
+
+    <main class="page-content">
+      <div class="page-header">
+        <div class="page-header-top">
+          <div>
+            <h1>Kartu Hasil Studi</h1>
+            <p>Nilai akademik per semester</p>
+          </div>
+          <div class="flex gap-8">
+            <button class="btn btn-outline btn-sm" onclick="eksporKHSCSV()"><i class="fa-solid fa-file-csv"></i> CSV</button>
+            <button class="btn btn-primary btn-sm" onclick="eksporKHSPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stat cards -->
+      <div class="grid grid-4 mb-24">
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div><div class="stat-card-value" id="stat-ipk">—</div><div class="stat-card-label">IPK Kumulatif</div></div>
+            <div class="stat-card-icon stat-icon-navy"><i class="fa-solid fa-star"></i></div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div><div class="stat-card-value" id="stat-ips">—</div><div class="stat-card-label">IPS Semester Ini</div></div>
+            <div class="stat-card-icon stat-icon-gold"><i class="fa-solid fa-trophy"></i></div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div><div class="stat-card-value" id="stat-sks">—</div><div class="stat-card-label">Total SKS Lulus</div></div>
+            <div class="stat-card-icon stat-icon-success"><i class="fa-solid fa-circle-check"></i></div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div><div class="stat-card-value" id="stat-semester">7</div><div class="stat-card-label">Semester Aktif</div></div>
+            <div class="stat-card-icon stat-icon-info"><i class="fa-solid fa-calendar"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Selector + Tabel + Grafik -->
+      <div class="grid" style="grid-template-columns:1fr 340px;gap:20px;align-items:start">
+
+        <!-- Kiri: selector + tabel -->
+        <div>
+          <div class="card">
+            <div class="card-header">
+              <h3><i class="fa-solid fa-table-list" style="color:var(--navy);margin-right:8px"></i>Nilai Semester</h3>
+              <select class="form-control" id="select-semester" style="width:auto;padding:6px 32px 6px 10px;font-size:0.8125rem"></select>
+            </div>
+                    <div class="table-scroll-hint"><i class="fa-solid fa-arrows-left-right"></i> Geser untuk lihat selengkapnya</div>
+        <div class="table-wrapper-outer">
+  <div class="table-wrapper">
+                <table class="table" id="tabel-nilai">
+                  <thead>
+                    <tr>
+                      <th>Kode</th><th>Nama Mata Kuliah</th><th>SKS</th>
+                      <th>Nilai</th><th>Grade</th><th>Bobot</th><th>Mutu</th><th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbody-nilai"></tbody>
+                </table>
+              </div>
+        </div>
+            <div class="card-footer flex-between">
+              <span style="font-size:0.8125rem;color:var(--text-muted)">IPS Semester Ini</span>
+              <span class="font-display" style="font-size:1.1rem;font-weight:700;color:var(--navy)" id="footer-ips">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kanan: grafik IPS -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-chart-column" style="color:var(--navy);margin-right:8px"></i>Riwayat IPS</h3>
+          </div>
+          <div class="card-body">
+            <div class="ips-chart" id="ips-chart"></div>
+            <div class="separator"></div>
+            <div style="font-size:0.75rem;color:var(--text-muted);text-align:center">
+              Rata-rata IPS: <strong id="avg-ips" style="color:var(--navy)">—</strong>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<div class="more-menu-overlay" id="more-menu-overlay"></div>
+<div class="more-menu-sheet" id="more-menu-sheet">
+  <div class="more-menu-handle"></div>
+  <div class="more-menu-title">Menu Lainnya</div>
+  <div class="more-menu-grid">
+    <a class="more-menu-item active" href="khs.html"><i class="fa-solid fa-chart-bar"></i>KHS</a>
+    <a class="more-menu-item" href="transkrip.html"><i class="fa-solid fa-scroll"></i>Transkrip</a>
+    <a class="more-menu-item" href="jadwal.html"><i class="fa-solid fa-calendar-days"></i>Jadwal</a>
+    <a class="more-menu-item" href="pembayaran.html"><i class="fa-solid fa-credit-card"></i>Pembayaran</a>
+    <a class="more-menu-item" href="dokumen.html"><i class="fa-solid fa-folder-open"></i>Dokumen</a>
+    <a class="more-menu-item" href="ktm.html"><i class="fa-solid fa-id-card"></i>KTM</a>
+    <a class="more-menu-item" href="pengumuman.html"><i class="fa-solid fa-bullhorn"></i>Pengumuman</a>
+    <a class="more-menu-item" href="profil.html"><i class="fa-solid fa-user"></i>Profil</a>
+  </div>
+</div>
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+    <a class="bottom-nav-item" href="krs.html"><i class="fa-solid fa-file-pen"></i><span>KRS</span></a>
+    <a class="bottom-nav-item" href="ujian.html"><i class="fa-solid fa-pencil"></i><span>Ujian</span></a>
+    <a class="bottom-nav-item" href="absensi.html"><i class="fa-solid fa-clipboard-check"></i><span>Absensi</span></a>
+    <button class="bottom-nav-more active" id="btn-more-menu"><i class="fa-solid fa-plus"></i><span>Lainnya</span></button>
+  </div>
+</nav>
+<div class="toast-container"></div>
+
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/mahasiswa-integration.js"></script>
+<script src="../assets/js/mahasiswa-sidebar.js"></script>
+<script src="../assets/js/main.js"></script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
+</script>
+
+<script>
+
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'mahasiswa') window.location.href = '../auth/login.html';
+
+async function loadKHS() {
+  const res = await MahasiswaAPI.khs();
+  if (!res || !res.ok) { showToast('danger','Error','Gagal memuat KHS'); return; }
+  const d = res.data.data;
+
+  // Update IPK & SKS
+  const ipkEl = document.getElementById('ipk-value') || document.querySelector('[id*="ipk"]');
+  if (ipkEl) ipkEl.textContent = d.ipk ?? '0.00';
+  const sksEl = document.getElementById('sks-value') || document.querySelector('[id*="total-sks"]');
+  if (sksEl) sksEl.textContent = d.total_sks ?? '0';
+
+  renderPerSemester(d.per_semester || []);
+}
+
+function renderPerSemester(list) {
+  const container = document.getElementById('khs-container') || document.querySelector('[id*="khs"]');
+  if (!container) return;
+  if (list.length === 0) {
+    container.innerHTML = `<div class="empty-state"><h3 class="empty-state-title">Belum ada data nilai</h3></div>`;
+    return;
+  }
+  container.innerHTML = list.map(s => `
+    <div class="card mb-16">
+      <div class="card-header">
+        <h3>${escHTML(s.semester?.nama || '—')}</h3>
+        <div style="display:flex;gap:12px;align-items:center">
+          <span style="font-size:0.8125rem;color:var(--text-muted)">Total SKS: <strong>${s.total_sks}</strong></span>
+          <span style="font-size:0.8125rem;color:var(--text-muted)">IPS: <strong style="color:var(--navy)">${s.ips}</strong></span>
+        </div>
+      </div>
+      <div class="table-wrapper">
+        <table class="table">
+          <thead><tr><th>Kode</th><th>Mata Kuliah</th><th>SKS</th><th style="text-align:center">Nilai Akhir</th><th style="text-align:center">Grade</th><th style="text-align:center">Bobot</th><th>Status</th></tr></thead>
+          <tbody>
+            ${(s.nilai || []).map(n => `
+              <tr>
+                <td class="font-mono" style="font-size:0.8rem">${n.kelas?.mata_kuliah?.kode || '—'}</td>
+                <td><strong>${escHTML(n.kelas?.mata_kuliah?.nama || '—')}</strong></td>
+                <td style="text-align:center">${n.kelas?.mata_kuliah?.sks ?? '—'}</td>
+                <td style="text-align:center;font-weight:700">${n.nilai_akhir ?? '—'}</td>
+                <td style="text-align:center"><span class="badge badge-primary">${n.grade || '—'}</span></td>
+                <td style="text-align:center">${n.bobot ?? '—'}</td>
+                <td><span class="badge ${n.status==='Lulus'?'badge-success':'badge-danger'}">${n.status || '—'}</span></td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`).join('');
+}
+
+function eksporKHS() {
+  showToast('info','Ekspor','Fitur ekspor KHS segera tersedia');
+}
+
+loadKHS();
+
+</script>
+</body>
+</html>

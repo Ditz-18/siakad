@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ujian Online — SIAKAD STAI DILWA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="icon" type="image/png" href="../assets/img/icon.png">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <link rel="stylesheet" href="../assets/css/print.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="stylesheet" href="../assets/css/mobile-table.css">
+  <!-- Di <head> -->
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#1B3A6B">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SIAKAD">
+<link rel="apple-touch-icon" href="../assets/img/icon.png">
+  <style>
+    .ujian-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius-lg);
+      padding: 20px;
+      transition: all var(--transition-base);
+      position: relative;
+      overflow: hidden;
+    }
+    .ujian-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 4px; height: 100%;
+    }
+    .ujian-card.belum::before { background: var(--navy); }
+    .ujian-card.selesai::before { background: var(--success); }
+    .ujian-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+
+    .ujian-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+    .ujian-card-title { font-size: 1rem; font-weight: 700; color: var(--text-primary); }
+    .ujian-card-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+    .ujian-meta-item { display: flex; align-items: center; gap: 5px; font-size: 0.8rem; color: var(--text-secondary); }
+    .ujian-meta-item i { color: var(--text-muted); font-size: 0.75rem; width: 12px; }
+
+    .skor-circle {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .skor-lulus   { background: var(--success-bg); color: var(--success); border: 2px solid var(--success); }
+    .skor-gagal   { background: var(--danger-bg);  color: var(--danger);  border: 2px solid var(--danger); }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <div id="mahasiswa-sidebar-placeholder"></div>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title">Ujian Online</span>
+      <div class="topbar-actions">
+        <button class="topbar-btn" data-theme-toggle><i class="fa-solid fa-moon"></i></button>
+        <button class="topbar-btn" data-notif-toggle><i class="fa-solid fa-bell"></i><span class="topbar-badge"></span></button>
+      </div>
+    </header>
+
+    <main class="page-content">
+      <div class="page-header">
+        <h1>Ujian Online</h1>
+        <p>Daftar ujian semester Ganjil 2024/2025</p>
+      </div>
+
+      <div class="alert alert-info mb-24">
+        <i class="fa-solid fa-circle-info"></i>
+        <div>
+          <div class="alert-title">Perhatian Sebelum Ujian</div>
+          Pastikan koneksi internet stabil. Berpindah tab lebih dari 3 kali akan membatalkan ujian secara otomatis. Klik kanan dan copy-paste dinonaktifkan selama ujian berlangsung.
+        </div>
+      </div>
+
+      <div class="grid grid-2" id="ujian-list" style="gap:16px"></div>
+    </main>
+  </div>
+</div>
+
+<!-- Modal Briefing -->
+<div class="modal-backdrop" id="modal-briefing">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-clipboard-list" style="color:var(--navy);margin-right:8px"></i>Briefing Ujian</h3>
+      <button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="card mb-16" style="background:var(--bg-secondary)">
+        <div class="card-body" style="padding:14px 18px">
+          <div class="grid grid-3" id="briefing-info" style="gap:12px"></div>
+        </div>
+      </div>
+      <div class="grid grid-2 mb-16" style="gap:12px">
+        <div>
+          <h4 style="font-size:0.875rem;font-weight:700;color:var(--success);margin-bottom:10px"><i class="fa-solid fa-circle-check"></i> Diperbolehkan</h4>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:6px">
+            <li style="font-size:0.8375rem;color:var(--text-secondary);display:flex;align-items:center;gap:8px"><i class="fa-solid fa-check" style="color:var(--success);font-size:0.7rem;width:14px"></i>Membaca soal dengan teliti</li>
+            <li style="font-size:0.8375rem;color:var(--text-secondary);display:flex;align-items:center;gap:8px"><i class="fa-solid fa-check" style="color:var(--success);font-size:0.7rem;width:14px"></i>Menandai soal ragu-ragu</li>
+            <li style="font-size:0.8375rem;color:var(--text-secondary);display:flex;align-items:center;gap:8px"><i class="fa-solid fa-check" style="color:var(--success);font-size:0.7rem;width:14px"></i>Menggunakan kertas coret-coretan</li>
+            <li style="font-size:0.8375rem;color:var(--text-secondary);display:flex;align-items:center;gap:8px"><i class="fa-solid fa-check" style="color:var(--success);font-size:0.7rem;width:14px"></i>Mengumpulkan sebelum waktu habis</li>
+          </ul>
+        </div>
+        <div>
+          <h4 style="font-size:0.875rem;font-weight:700;color:var(--danger);margin-bottom:10px"><i class="fa-solid fa-ban"></i> Dilarang</h4>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:6px">
+            <li style="font-size:0.8375rem;color:var(--text-secondary);display:flex;align-items:center;gap:8px"><i class="fa-solid fa-xmark" style="color:var(--danger);font-size:0.7rem;width:14px"></i>Berpindah tab / aplikasi lain</li>
+            <li style="font-size:0.8375rem;color:var(--text-secondary);display:flex;align-items:center;gap:8px"><i class="fa-solid fa-xmark" style="color:var(--danger);font-size:0.7rem;width:14px"></i>Screenshot atau merekam layar</li>
+            <li style="font-size:0.8375rem;color:var(--text-secondary);display:flex;align-items:center;gap:8px"><i class="fa-solid fa-xmark" style="color:var(--danger);font-size:0.7rem;width:14px"></i>Copy-paste teks soal</li>
+            <li style="font-size:0.8375rem;color:var(--text-secondary);display:flex;align-items:center;gap:8px"><i class="fa-solid fa-xmark" style="color:var(--danger);font-size:0.7rem;width:14px"></i>Membuka developer tools</li>
+          </ul>
+        </div>
+      </div>
+      <label class="form-check" style="padding:14px;background:var(--bg-secondary);border-radius:var(--border-radius-md);border:1.5px solid var(--border-color)">
+        <input type="checkbox" class="form-check-input" id="chk-setuju">
+        <span class="form-check-label" style="font-weight:600">Saya telah membaca dan memahami seluruh aturan ujian di atas</span>
+      </label>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal-close>Kembali</button>
+      <button class="btn btn-primary btn-sm" id="btn-mulai-ujian" disabled onclick="mulaiUjian()">
+        <i class="fa-solid fa-play"></i> Mulai Ujian
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="more-menu-overlay" id="more-menu-overlay"></div>
+<div class="more-menu-sheet" id="more-menu-sheet">
+  <div class="more-menu-handle"></div>
+  <div class="more-menu-title">Menu Lainnya</div>
+  <div class="more-menu-grid">
+    <a class="more-menu-item" href="khs.html"><i class="fa-solid fa-chart-bar"></i>KHS</a>
+    <a class="more-menu-item" href="transkrip.html"><i class="fa-solid fa-scroll"></i>Transkrip</a>
+    <a class="more-menu-item" href="jadwal.html"><i class="fa-solid fa-calendar-days"></i>Jadwal</a>
+    <a class="more-menu-item" href="pembayaran.html"><i class="fa-solid fa-credit-card"></i>Pembayaran</a>
+    <a class="more-menu-item" href="dokumen.html"><i class="fa-solid fa-folder-open"></i>Dokumen</a>
+    <a class="more-menu-item" href="ktm.html"><i class="fa-solid fa-id-card"></i>KTM</a>
+    <a class="more-menu-item" href="pengumuman.html"><i class="fa-solid fa-bullhorn"></i>Pengumuman</a>
+    <a class="more-menu-item" href="profil.html"><i class="fa-solid fa-user"></i>Profil</a>
+  </div>
+</div>
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+    <a class="bottom-nav-item" href="krs.html"><i class="fa-solid fa-file-pen"></i><span>KRS</span></a>
+    <a class="bottom-nav-item active" href="ujian.html"><i class="fa-solid fa-pencil"></i><span>Ujian</span></a>
+    <a class="bottom-nav-item" href="absensi.html"><i class="fa-solid fa-clipboard-check"></i><span>Absensi</span></a>
+    <button class="bottom-nav-more" id="btn-more-menu"><i class="fa-solid fa-plus"></i><span>Lainnya</span></button>
+  </div>
+</nav>
+<div class="toast-container"></div>
+
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/mahasiswa-integration.js"></script>
+<script src="../assets/js/mahasiswa-sidebar.js"></script>
+<script src="../assets/js/main.js"></script>
+
+<script>
+
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'mahasiswa') window.location.href = '../auth/login.html';
+
+let ujianAktifId = null;
+let ujianList    = [];
+
+async function loadUjian() {
+  const res = await MahasiswaAPI.ujian();
+  if (!res || !res.ok) { showToast('danger','Error','Gagal memuat ujian'); return; }
+  ujianList = res.data.data || [];
+  renderUjianList(ujianList);
+}
+
+function renderUjianList(list) {
+  const container = document.getElementById('ujian-list');
+  if (!container) return;
+  if (list.length === 0) {
+    container.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><h3 class="empty-state-title">Belum ada ujian terjadwal</h3></div>`;
+    return;
+  }
+  container.innerHTML = list.map(u => {
+    const selesai  = u.status === 'Selesai';
+    const berlangsung = u.status === 'Berlangsung';
+    return `
+    <div class="ujian-card ${selesai?'selesai':'belum'}">
+      <div class="ujian-card-header">
+        <div>
+          <div class="ujian-card-title">${escHTML(u.nama)}</div>
+          <span class="badge ${selesai?'badge-success':berlangsung?'badge-info':'badge-primary'}" style="margin-top:6px;display:inline-flex">
+            ${selesai?'<i class="fa-solid fa-circle-check"></i>':berlangsung?'<i class="fa-solid fa-play"></i>':'<i class="fa-solid fa-clock"></i>'}
+            &nbsp;${u.status}
+          </span>
+        </div>
+      </div>
+      <div class="ujian-card-meta">
+        <div class="ujian-meta-item"><i class="fa-solid fa-book"></i>${escHTML(u.kelas?.mata_kuliah?.kode || '—')}</div>
+        <div class="ujian-meta-item"><i class="fa-solid fa-clock"></i>${u.durasi} menit</div>
+        <div class="ujian-meta-item"><i class="fa-solid fa-calendar"></i>${u.mulai_at ? formatTanggal(u.mulai_at,'pendek') : '—'}</div>
+        <div class="ujian-meta-item"><i class="fa-solid fa-tag"></i>${u.tipe}</div>
+      </div>
+      <div class="flex gap-8">
+        ${berlangsung
+          ? `<button class="btn btn-primary btn-sm" onclick="bukaBriefing(${u.id})"><i class="fa-solid fa-play"></i> Kerjakan</button>`
+          : selesai
+          ? `<button class="btn btn-outline btn-sm" onclick="showToast('info','Pembahasan','Fitur lihat pembahasan segera tersedia')"><i class="fa-solid fa-eye"></i> Lihat Pembahasan</button>`
+          : `<button class="btn btn-ghost btn-sm" disabled><i class="fa-solid fa-lock"></i> Belum Dimulai</button>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function bukaBriefing(id) {
+  ujianAktifId = id;
+  const u = ujianList.find(x => x.id === id);
+  if (!u) return;
+  document.getElementById('briefing-info').innerHTML = `
+    <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">MATA KULIAH</label><strong>${escHTML(u.kelas?.mata_kuliah?.nama || '—')}</strong></div>
+    <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">TIPE</label><strong>${u.tipe}</strong></div>
+    <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">DURASI</label><strong>${u.durasi} Menit</strong></div>`;
+  document.getElementById('chk-setuju').checked = false;
+  document.getElementById('btn-mulai-ujian').disabled = true;
+  showModal('modal-briefing');
+}
+
+document.getElementById('chk-setuju')?.addEventListener('change', e => {
+  const btn = document.getElementById('btn-mulai-ujian');
+  if (btn) btn.disabled = !e.target.checked;
+});
+
+function mulaiUjian() {
+  hideModal('modal-briefing');
+  localStorage.setItem('siakad_ujian_aktif', ujianAktifId);
+  window.location.href = 'ujian-kerjakan.html';
+}
+
+loadUjian();
+
+</script>
+</body>
+</html>

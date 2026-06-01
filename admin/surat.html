@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Permohonan Surat — SIAKAD Ditz University</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/dark.css">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="stylesheet" href="../assets/css/mobile-table.css">
+</head>
+<body>
+<div class="app-layout">
+  <div id="admin-sidebar-placeholder"></div>
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title">Permohonan Surat</span>
+      <div class="topbar-actions">
+        <button class="topbar-btn" data-theme-toggle><i class="fa-solid fa-moon"></i></button>
+        <button class="topbar-btn" data-notif-toggle><i class="fa-solid fa-bell"></i><span class="topbar-badge"></span></button>
+      </div>
+    </header>
+    <main class="page-content">
+      <div class="page-header"><h1>Permohonan Surat</h1><p>Proses pengajuan surat mahasiswa</p></div>
+
+      <div class="grid grid-4 mb-24">
+        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value" style="color:var(--warning)" id="cnt-menunggu">3</div><div class="stat-card-label">Menunggu</div></div><div class="stat-card-icon stat-icon-warning"><i class="fa-solid fa-clock"></i></div></div></div>
+        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value" style="color:var(--info)">2</div><div class="stat-card-label">Diproses</div></div><div class="stat-card-icon stat-icon-info"><i class="fa-solid fa-spinner"></i></div></div></div>
+        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value" style="color:var(--success)">28</div><div class="stat-card-label">Selesai</div></div><div class="stat-card-icon stat-icon-success"><i class="fa-solid fa-circle-check"></i></div></div></div>
+        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value" style="color:var(--danger)">4</div><div class="stat-card-label">Ditolak</div></div><div class="stat-card-icon stat-icon-danger"><i class="fa-solid fa-circle-xmark"></i></div></div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-body" style="padding-bottom:0">
+          <div class="filter-bar">
+            <div class="input-group" style="max-width:240px"><i class="input-icon fa-solid fa-magnifying-glass"></i><input type="text" class="form-control" id="search-surat" placeholder="Cari nama atau NIM..."></div>
+            <select class="form-control" id="filter-surat-status" style="width:auto">
+              <option value="">Semua Status</option>
+              <option value="Menunggu">Menunggu</option>
+              <option value="Diproses">Diproses</option>
+              <option value="Selesai">Selesai</option>
+              <option value="Ditolak">Ditolak</option>
+            </select>
+            <select class="form-control" id="filter-jenis-surat" style="width:auto">
+              <option value="">Semua Jenis</option>
+              <option>Surat Keterangan Mahasiswa Aktif</option>
+              <option>Surat Rekomendasi</option>
+              <option>Surat Keterangan IPK</option>
+            </select>
+            <button class="btn btn-ghost btn-sm" onclick="resetFilterSurat()"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead><tr><th>No. Pengajuan</th><th>Nama</th><th>NIM</th><th>Jenis Surat</th><th>Keperluan</th><th>Tanggal</th><th>Status</th><th>Aksi</th></tr></thead>
+            <tbody id="tbody-surat-admin"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Modal Detail Surat -->
+<div class="modal-backdrop" id="modal-surat-detail">
+  <div class="modal">
+    <div class="modal-header"><h3 id="modal-surat-judul">Detail Permohonan</h3><button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body" id="modal-surat-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal-close>Tutup</button>
+      <button class="btn btn-danger btn-sm" id="btn-tolak-surat" onclick="prosesSurat('tolak')"><i class="fa-solid fa-xmark"></i> Tolak</button>
+      <button class="btn btn-success btn-sm" id="btn-proses-surat" onclick="prosesSurat('proses')"><i class="fa-solid fa-check"></i> Proses</button>
+      <button class="btn btn-primary btn-sm" id="btn-selesai-surat" style="display:none" onclick="prosesSurat('selesai')"><i class="fa-solid fa-circle-check"></i> Tandai Selesai</button>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav"><div class="bottom-nav-inner">
+  <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+  <a class="bottom-nav-item" href="data-mahasiswa.html"><i class="fa-solid fa-user-graduate"></i><span>Mahasiswa</span></a>
+  <a class="bottom-nav-item active" href="surat.html"><i class="fa-solid fa-envelope"></i><span>Surat</span></a>
+  <a class="bottom-nav-item" href="laporan.html"><i class="fa-solid fa-chart-pie"></i><span>Laporan</span></a>
+  <a class="bottom-nav-item" href="semester.html"><i class="fa-solid fa-calendar"></i><span>Semester</span></a>
+</div></nav>
+<div class="toast-container"></div>
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/admin-integration.js"></script>
+
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/admin-sidebar.js"></script>
+<script>
+
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'admin') window.location.href = '../auth/login.html';
+
+let suratList = [];
+let activeSuratId = null;
+
+async function loadSurat() {
+  const q    = document.getElementById('search-surat').value;
+  const stat = document.getElementById('filter-surat-status').value;
+  const params = { per_page: 50 };
+  if (q)    params.search = q;
+  if (stat) params.status = stat;
+  const res = await AdminAPI.surat(params);
+  if (!res || !res.ok) { showToast('danger','Error','Gagal memuat data surat'); return; }
+  suratList = res.data.data?.data || res.data.data || [];
+  renderSurat(suratList);
+  updateStats(suratList);
+}
+
+function updateStats(list) {
+  document.getElementById('cnt-menunggu').textContent = list.filter(s=>s.status==='Menunggu').length;
+}
+
+const statusBadge = { Menunggu:'badge-warning', Diproses:'badge-info', Selesai:'badge-success', Ditolak:'badge-danger' };
+
+function renderSurat(list) {
+  if (list.length === 0) {
+    document.getElementById('tbody-surat-admin').innerHTML = `<tr><td colspan="99"><div class="empty-state"><h3 class="empty-state-title">Tidak ada permohonan surat</h3></div></td></tr>`;
+    return;
+  }
+  document.getElementById('tbody-surat-admin').innerHTML = list.map(s => `
+    <tr>
+      <td class="font-mono" style="font-size:0.8rem">${s.no_pengajuan}</td>
+      <td><strong>${escHTML(s.mahasiswa?.nama || '—')}</strong></td>
+      <td class="font-mono" style="font-size:0.8rem">${s.mahasiswa?.nim || '—'}</td>
+      <td style="font-size:0.8375rem">${escHTML(s.jenis_surat)}</td>
+      <td style="font-size:0.8rem;color:var(--text-secondary)">${escHTML(s.keperluan)}</td>
+      <td>${formatTanggal(s.created_at,'pendek')}</td>
+      <td><span class="badge ${statusBadge[s.status]||'badge-muted'}">${s.status}</span></td>
+      <td>
+        <div class="table-actions">
+          <button class="btn btn-outline btn-sm" onclick="bukaSuratDetail(${s.id})"><i class="fa-solid fa-eye"></i> Tinjau</button>
+          ${s.status==='Menunggu'?`
+            <button class="btn btn-success btn-icon btn-sm" onclick="prosesLangsung(${s.id},'proses')" title="Proses"><i class="fa-solid fa-check"></i></button>
+            <button class="btn btn-outline-danger btn-icon btn-sm" onclick="prosesLangsung(${s.id},'tolak')" title="Tolak"><i class="fa-solid fa-xmark"></i></button>`:''}
+          ${s.status==='Diproses'?`<button class="btn btn-primary btn-icon btn-sm" onclick="prosesLangsung(${s.id},'selesai')" title="Selesai"><i class="fa-solid fa-circle-check"></i></button>`:''}
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function bukaSuratDetail(id) {
+  activeSuratId = id;
+  const s = suratList.find(x=>x.id===id); if (!s) return;
+  document.getElementById('modal-surat-judul').textContent = s.jenis_surat;
+  document.getElementById('modal-surat-body').innerHTML = `
+    <div class="grid grid-2" style="gap:14px">
+      <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">NAMA</label><strong>${escHTML(s.mahasiswa?.nama||'—')}</strong></div>
+      <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">NIM</label><strong class="font-mono">${s.mahasiswa?.nim||'—'}</strong></div>
+      <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">JENIS SURAT</label><strong>${escHTML(s.jenis_surat)}</strong></div>
+      <div><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">STATUS</label><span class="badge ${statusBadge[s.status]}">${s.status}</span></div>
+      <div style="grid-column:1/-1"><label style="font-size:0.72rem;color:var(--text-muted);display:block;margin-bottom:3px">KEPERLUAN</label><p style="font-size:0.875rem;color:var(--text-secondary)">${escHTML(s.keperluan)}</p></div>
+    </div>`;
+  document.getElementById('btn-proses-surat').style.display  = s.status==='Menunggu' ? '' : 'none';
+  document.getElementById('btn-tolak-surat').style.display   = s.status==='Menunggu' ? '' : 'none';
+  document.getElementById('btn-selesai-surat').style.display = s.status==='Diproses'  ? '' : 'none';
+  showModal('modal-surat-detail');
+}
+
+function prosesSurat(mode) { prosesLangsung(activeSuratId, mode); hideModal('modal-surat-detail'); }
+
+async function prosesLangsung(id, mode) {
+  let res;
+  if (mode==='proses')  res = await AdminAPI.prosesSurat(id);
+  if (mode==='selesai') res = await AdminAPI.selesaikanSurat(id);
+  if (mode==='tolak') {
+    const catatan = prompt('Alasan penolakan:');
+    if (!catatan) return;
+    res = await AdminAPI.tolakSurat(id, catatan);
+  }
+  if (res && res.ok) {
+    const msgs = { proses:'Surat sedang diproses', selesai:'Surat selesai', tolak:'Surat ditolak' };
+    showToast('success','Berhasil', msgs[mode]);
+    loadSurat();
+  } else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+}
+
+const debS = debounce(() => loadSurat(), 300);
+document.getElementById('search-surat').addEventListener('input', debS);
+['filter-surat-status','filter-jenis-surat'].forEach(id => document.getElementById(id).addEventListener('change', loadSurat));
+function resetFilterSurat() {
+  document.getElementById('search-surat').value = '';
+  document.getElementById('filter-surat-status').value = '';
+  document.getElementById('filter-jenis-surat').value = '';
+  loadSurat();
+}
+loadSurat();
+
+</script>
+</body>
+</html>
