@@ -248,6 +248,13 @@ function renderAbsensi(list) {
 
 loadAbsensi();
 
+function eksporAbsensiCSV() {
+  eksporTabelCSV('tabel-absensi', 'Absensi-' + new Date().toISOString().slice(0,10));
+}
+function eksporAbsensiPDF() {
+  window.print();
+}
+
 </script>
 </body>
 </html>

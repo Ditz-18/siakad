@@ -27,7 +27,7 @@
       <div class="page-header">
         <div class="page-header-top">
           <div><h1>Mata Kuliah</h1><p>Kelola kurikulum dan kelas per mata kuliah</p></div>
-          <button class="btn btn-primary" data-modal-target="modal-tambah-mk"><i class="fa-solid fa-plus"></i> Tambah MK</button>
+          <button class="btn btn-primary" onclick="bukaModalTambahMK()"><i class="fa-solid fa-plus"></i> Tambah MK</button>
         </div>
       </div>
       <div class="card">
@@ -39,7 +39,6 @@
             </div>
             <select class="form-control" id="filter-mk-prodi" style="width:auto">
               <option value="">Semua Prodi</option>
-              <option>Teknik Informatika</option><option>Sistem Informasi</option>
             </select>
             <button class="btn btn-ghost btn-sm" onclick="resetFilterMK()"><i class="fa-solid fa-rotate-left"></i> Reset</button>
           </div>
@@ -71,7 +70,7 @@
         </div>
       </div>
       <div class="form-group mb-0"><label class="form-label">Program Studi</label>
-        <select class="form-control" id="mk-prodi"><option>Teknik Informatika</option><option>Sistem Informasi</option><option>Manajemen Informatika</option></select>
+        <select class="form-control" id="mk-prodi"><option value="">— Memuat prodi... —</option></select>
       </div>
     </div>
     <div class="modal-footer">
@@ -96,12 +95,26 @@
   </div>
 </div>
 
+<div class="more-menu-overlay" id="more-menu-overlay"></div>
+<div class="more-menu-sheet" id="more-menu-sheet">
+  <div class="more-menu-handle"></div>
+  <div class="more-menu-title">Menu Lainnya</div>
+  <div class="more-menu-grid">
+    <a class="more-menu-item" href="data-dosen.html"><i class="fa-solid fa-chalkboard-teacher"></i>Data Dosen</a>
+    <a class="more-menu-item" href="mata-kuliah.html"><i class="fa-solid fa-book"></i>Mata Kuliah</a>
+    <a class="more-menu-item" href="kelola-ujian.html"><i class="fa-solid fa-file-alt"></i>Ujian</a>
+    <a class="more-menu-item" href="pembayaran.html"><i class="fa-solid fa-credit-card"></i>Pembayaran</a>
+    <a class="more-menu-item" href="pengumuman.html"><i class="fa-solid fa-bullhorn"></i>Pengumuman</a>
+    <a class="more-menu-item" href="ktm.html"><i class="fa-solid fa-id-card"></i>KTM</a>
+    <a class="more-menu-item" href="log-ujian.html"><i class="fa-solid fa-list-alt"></i>Log Ujian</a>
+  </div>
+</div>
 <nav class="bottom-nav"><div class="bottom-nav-inner">
   <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
-  <a class="bottom-nav-item" href="data-mahasiswa.html"><i class="fa-solid fa-user-graduate"></i><span>Mahasiswa</span></a>
+  <a class="bottom-nav-item active" href="data-mahasiswa.html"><i class="fa-solid fa-user-graduate"></i><span>Mahasiswa</span></a>
   <a class="bottom-nav-item" href="surat.html"><i class="fa-solid fa-envelope"></i><span>Surat</span></a>
   <a class="bottom-nav-item" href="laporan.html"><i class="fa-solid fa-chart-pie"></i><span>Laporan</span></a>
-  <a class="bottom-nav-item" href="semester.html"><i class="fa-solid fa-calendar"></i><span>Semester</span></a>
+  <button class="bottom-nav-more" id="btn-more-menu"><i class="fa-solid fa-plus"></i><span>Lainnya</span></button>
 </div></nav>
 <div class="toast-container"></div>
 <script src="../assets/js/utils.js"></script>
@@ -188,7 +201,25 @@ function resetFilterMK() {
   document.getElementById('filter-mk-prodi').value = '';
   loadMataKuliah();
 }
+
+async function bukaModalTambahMK() {
+  await loadProdiOptions('mk-prodi');
+  showModal('modal-tambah-mk');
+}
+
+// Load filter prodi dari API
+async function loadProdiFilter() {
+  const sel = document.getElementById('filter-mk-prodi');
+  if (!sel) return;
+  const res = await AdminAPI.programStudi();
+  const list = (res?.data?.data || []);
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Semua Prodi</option>' +
+    list.map(p => `<option value="${p.id}" ${p.id == current ? 'selected' : ''}>${escHTML(p.nama)}</option>`).join('');
+}
+
 loadMataKuliah();
+loadProdiFilter();
 
 
 // ── EDIT MATA KULIAH ────────────────────────────────────────────

@@ -242,8 +242,12 @@ function renderPerSemester(list) {
     </div>`).join('');
 }
 
-function eksporKHS() {
-  showToast('info','Ekspor','Fitur ekspor KHS segera tersedia');
+function eksporKHSPDF() {
+  window.print();
+}
+
+function eksporKHSCSV() {
+  eksporTabelCSV('tabel-nilai', 'KHS-' + (new Date().toISOString().slice(0,10)));
 }
 
 loadKHS();

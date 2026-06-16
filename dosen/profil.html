@@ -153,39 +153,35 @@
 <script src="../assets/js/main.js"></script>
 <script src="../assets/js/dosen-sidebar.js"></script>
 
-<script>
-(function() {
-  const btnMore=document.getElementById('btn-more-menu'), overlay=document.getElementById('more-menu-overlay'), sheet=document.getElementById('more-menu-sheet');
-  function openMore(){overlay.classList.add('open');sheet.classList.add('open');btnMore.classList.add('open');document.body.style.overflow='hidden';}
-  function closeMore(){overlay.classList.remove('open');sheet.classList.remove('open');btnMore.classList.remove('open');document.body.style.overflow='';}
-  btnMore?.addEventListener('click',function(e){e.stopPropagation();sheet.classList.contains('open')?closeMore():openMore();});
-  overlay?.addEventListener('click',closeMore);
-  let startY=0;
-  sheet?.addEventListener('touchstart',function(e){startY=e.touches[0].clientY;},{passive:true});
-  sheet?.addEventListener('touchmove',function(e){if(e.touches[0].clientY-startY>60)closeMore();},{passive:true});
-})();
-</script>
+
 <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}</script>
 <script>
 const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
 if (!_s || _s.role !== 'dosen') window.location.href = '../auth/login.html';
 async function loadProfil() {
-  const res = await apiFetch('/auth/me');
-  if (!res || !res.ok) return;
-  const user  = res.data.data;
-  const dosen = user.profil || {};
-  document.getElementById('pl-nama').textContent    = dosen.nama || user.username || '—';
-  document.getElementById('pl-jabatan').textContent = (dosen.jabatan || '—') + ' — ' + (dosen.program_studi?.nama || '—');
-  document.getElementById('ro-nama').textContent    = dosen.nama || '—';
-  document.getElementById('ro-nip').textContent     = dosen.nip || '—';
-  document.getElementById('ro-prodi').textContent   = dosen.program_studi?.nama || '—';
-  document.getElementById('ro-fak').textContent     = dosen.fakultas || '—';
-  document.getElementById('ro-jabatan').textContent = dosen.jabatan || '—';
-  document.getElementById('ro-gol').textContent     = dosen.golongan || '—';
-  document.getElementById('ro-email').textContent   = dosen.email_akademik || '—';
+  const res = await DosenAPI.profil();
+  if (!res || !res.ok) { showToast('danger','Error','Gagal memuat profil'); return; }
+  const dosen = res.data.data;
+
+  // Hero
+  const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val || '—'; };
+  setEl('pl-nama',    dosen.nama);
+  setEl('pl-jabatan', (dosen.jabatan || '—') + ' — ' + (dosen.program_studi?.nama || '—'));
+
+  // Read-only akademik
+  setEl('ro-nama',    dosen.nama);
+  setEl('ro-nip',     dosen.nip);
+  setEl('ro-prodi',   dosen.program_studi?.nama);
+  setEl('ro-fak',     dosen.program_studi?.fakultas);
+  setEl('ro-jabatan', dosen.jabatan);
+  setEl('ro-gol',     dosen.golongan);
+  setEl('ro-email',   dosen.email_akademik);
+
   // Pre-fill form pribadi
-  const inputHp = document.getElementById('input-hp');
-  if (inputHp && dosen.no_hp) inputHp.value = dosen.no_hp;
+  const fillInput = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+  fillInput('input-hp',             dosen.no_hp);
+  fillInput('input-email-akademik', dosen.email_akademik);
+  fillInput('input-email',          dosen.email_akademik);
 }
 function switchTabProfil(el, tab) {
   document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
@@ -196,28 +192,57 @@ function switchTabProfil(el, tab) {
 async function simpanPribadi(e) {
   e.preventDefault();
   const data = {
-    no_hp: document.getElementById('input-hp')?.value.trim(),
+    no_hp:          document.getElementById('input-hp')?.value.trim(),
+    email_akademik: document.getElementById('input-email-akademik')?.value.trim() ||
+                    document.getElementById('input-email')?.value.trim(),
   };
-  // Update via auth/me profil endpoint
-  const res = await apiFetch('/dosen/profil', {
-    method: 'PUT',
-    body: JSON.stringify(data)
-  });
-  // Fallback: just show success (dosen profil update via admin)
-  showToast('success','Tersimpan','Data pribadi berhasil diperbarui');
+  Object.keys(data).forEach(k => { if (!data[k]) delete data[k]; });
+  const btn = e.submitter;
+  if (btn) { btn.disabled = true; btn.textContent = 'Menyimpan...'; }
+  const res = await DosenAPI.updateProfil(data);
+  if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan'; }
+  if (res && res.ok) showToast('success','Tersimpan','Data berhasil diperbarui');
+  else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
 }
-function gantiPassword(e) {
+
+async function gantiPassword(e) {
   e.preventDefault();
-  const lama    = document.getElementById('pass-lama').value;
-  const baru    = document.getElementById('pass-baru').value;
-  const konfirm = document.getElementById('pass-konfirm').value;
-  if (!lama||!baru||!konfirm) { showToast('warning','Validasi','Semua field wajib diisi'); return; }
-  if (baru.length < 8) { showToast('warning','Validasi','Minimal 8 karakter'); return; }
-  if (baru !== konfirm) { showToast('danger','Tidak Cocok','Konfirmasi kata sandi tidak sesuai'); return; }
-  document.getElementById('pass-lama').value = '';
-  document.getElementById('pass-baru').value = '';
-  document.getElementById('pass-konfirm').value = '';
-  showToast('success','Berhasil','Kata sandi berhasil diperbarui');
+  const lama    = document.getElementById('pass-lama')?.value;
+  const baru    = document.getElementById('pass-baru')?.value;
+  const konfirm = document.getElementById('pass-konfirm')?.value
+               || document.getElementById('pass-konfirmasi')?.value;
+
+  // Clear error states
+  ['err-pass-lama','err-pass-baru','err-pass-konfirm'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('d-none');
+  });
+
+  let valid = true;
+  if (!lama) { const el = document.getElementById('err-pass-lama'); if (el) { el.textContent = 'Wajib diisi.'; el.classList.remove('d-none'); } valid = false; }
+  if (!baru || baru.length < 8) { const el = document.getElementById('err-pass-baru'); if (el) { el.textContent = baru ? 'Minimal 8 karakter.' : 'Wajib diisi.'; el.classList.remove('d-none'); } valid = false; }
+  if (baru !== konfirm) { const el = document.getElementById('err-pass-konfirm'); if (el) { el.textContent = 'Tidak cocok dengan kata sandi baru.'; el.classList.remove('d-none'); } valid = false; }
+  if (!valid) return;
+
+  const btn = e.submitter;
+  if (btn) { btn.disabled = true; btn.textContent = 'Memproses...'; }
+
+  const res = await DosenAPI.gantiPassword({
+    password_lama:            lama,
+    password_baru:            baru,
+    password_baru_konfirmasi: konfirm,
+  });
+
+  if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-shield-halved"></i> Ganti Kata Sandi'; }
+
+  if (res && res.ok) {
+    showToast('success','Berhasil','Kata sandi berhasil diperbarui');
+    document.getElementById('form-password')?.reset();
+  } else {
+    showToast('danger','Gagal', res?.data?.message || 'Kata sandi lama tidak sesuai');
+    const el = document.getElementById('err-pass-lama');
+    if (el) { el.textContent = res?.data?.message || 'Kata sandi lama tidak sesuai.'; el.classList.remove('d-none'); }
+  }
 }
 loadProfil();
 </script>

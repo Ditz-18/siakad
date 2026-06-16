@@ -27,7 +27,7 @@
       <div class="page-header">
         <div class="page-header-top">
           <div><h1>Data Dosen</h1><p>Kelola data seluruh dosen universitas</p></div>
-          <button class="btn btn-primary" data-modal-target="modal-tambah-dosen"><i class="fa-solid fa-plus"></i> Tambah Dosen</button>
+          <button class="btn btn-primary" onclick="bukaModalTambahDosen()"><i class="fa-solid fa-plus"></i> Tambah Dosen</button>
         </div>
       </div>
       <div class="card">
@@ -65,7 +65,7 @@
         <div class="form-group"><label class="form-label">NIP <span class="required">*</span></label><input type="text" class="form-control" id="d-nip" placeholder="18 digit NIP"></div>
         <div class="form-group"><label class="form-label">Nama Lengkap <span class="required">*</span></label><input type="text" class="form-control" id="d-nama" placeholder="Nama + gelar"></div>
         <div class="form-group"><label class="form-label">Program Studi <span class="required">*</span></label>
-          <select class="form-control" id="d-prodi"><option value="">— Pilih prodi —</option><option>Teknik Informatika</option><option>Sistem Informasi</option><option>Manajemen Informatika</option></select>
+          <select class="form-control" id="d-prodi"><option value="">— Memuat prodi... —</option></select>
         </div>
         <div class="form-group"><label class="form-label">Jabatan Fungsional</label>
           <select class="form-control" id="d-jabatan"><option>Tenaga Pengajar</option><option>Asisten Ahli</option><option>Lektor</option><option>Lektor Kepala</option><option>Guru Besar</option></select>
@@ -81,12 +81,26 @@
   </div>
 </div>
 
+<div class="more-menu-overlay" id="more-menu-overlay"></div>
+<div class="more-menu-sheet" id="more-menu-sheet">
+  <div class="more-menu-handle"></div>
+  <div class="more-menu-title">Menu Lainnya</div>
+  <div class="more-menu-grid">
+    <a class="more-menu-item" href="data-dosen.html"><i class="fa-solid fa-chalkboard-teacher"></i>Data Dosen</a>
+    <a class="more-menu-item" href="mata-kuliah.html"><i class="fa-solid fa-book"></i>Mata Kuliah</a>
+    <a class="more-menu-item" href="kelola-ujian.html"><i class="fa-solid fa-file-alt"></i>Ujian</a>
+    <a class="more-menu-item" href="pembayaran.html"><i class="fa-solid fa-credit-card"></i>Pembayaran</a>
+    <a class="more-menu-item" href="pengumuman.html"><i class="fa-solid fa-bullhorn"></i>Pengumuman</a>
+    <a class="more-menu-item" href="ktm.html"><i class="fa-solid fa-id-card"></i>KTM</a>
+    <a class="more-menu-item" href="log-ujian.html"><i class="fa-solid fa-list-alt"></i>Log Ujian</a>
+  </div>
+</div>
 <nav class="bottom-nav"><div class="bottom-nav-inner">
   <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
-  <a class="bottom-nav-item" href="data-mahasiswa.html"><i class="fa-solid fa-user-graduate"></i><span>Mahasiswa</span></a>
+  <a class="bottom-nav-item active" href="data-mahasiswa.html"><i class="fa-solid fa-user-graduate"></i><span>Mahasiswa</span></a>
   <a class="bottom-nav-item" href="surat.html"><i class="fa-solid fa-envelope"></i><span>Surat</span></a>
   <a class="bottom-nav-item" href="laporan.html"><i class="fa-solid fa-chart-pie"></i><span>Laporan</span></a>
-  <a class="bottom-nav-item" href="semester.html"><i class="fa-solid fa-calendar"></i><span>Semester</span></a>
+  <button class="bottom-nav-more" id="btn-more-menu"><i class="fa-solid fa-plus"></i><span>Lainnya</span></button>
 </div></nav>
 <div class="toast-container"></div>
 <script src="../assets/js/utils.js"></script>
@@ -173,21 +187,35 @@ function resetFilterDosen() {
   document.getElementById('filter-prodi-d').value = '';
   loadDosen();
 }
+
+async function bukaModalTambahDosen() {
+  await loadProdiOptions('d-prodi');
+  showModal('modal-tambah-dosen');
+}
+
 loadDosen();
 
 
 // ── EDIT DOSEN ──────────────────────────────────────────────────
 async function editDosen(id) {
-  const res = await AdminAPI.dosen({ per_page: 100 });
-  if (!res || !res.ok) return;
-  const list = res.data.data?.data || res.data.data || [];
-  const d = list.find(x => x.id == id);
-  if (!d) { showToast('danger','Error','Data tidak ditemukan'); return; }
+  const res = await AdminAPI.detailDosen(id);
+  if (!res || !res.ok) {
+    // fallback: cari dari list yang sudah ter-load
+    const found = (window._dosenList || []).find(x => x.id == id);
+    if (!found) { showToast('danger','Error','Data tidak ditemukan'); return; }
+    _fillEditDosen(found);
+    return;
+  }
+  const d = res.data.data;
+  _fillEditDosen(d);
+}
+
+function _fillEditDosen(d) {
   document.getElementById('edit-dosen-id').value      = d.id;
   document.getElementById('edit-dosen-nama').value    = d.nama || '';
   document.getElementById('edit-dosen-jabatan').value = d.jabatan || 'Tenaga Pengajar';
   document.getElementById('edit-dosen-gol').value     = d.golongan || '';
-  document.getElementById('edit-dosen-email').value   = d.email_akademik || '';
+  document.getElementById('edit-dosen-email').value   = d.email_akademik || d.email || '';
   document.getElementById('edit-dosen-hp').value      = d.no_hp || '';
   document.getElementById('edit-dosen-aktif').value   = d.is_active ? '1' : '0';
   showModal('modal-edit-dosen');

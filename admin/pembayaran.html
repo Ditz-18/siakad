@@ -30,7 +30,8 @@
           <div><h1>Pembayaran UKT</h1><p>Monitor status pembayaran semester ini</p></div>
           <div class="flex gap-8">
             <button class="btn btn-outline btn-sm" onclick="eksporBayarCSV()"><i class="fa-solid fa-file-csv"></i> CSV</button>
-            <button class="btn btn-primary btn-sm" onclick="eksporBayarPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+            <button class="btn btn-outline btn-sm" onclick="eksporBayarPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+            <button class="btn btn-primary btn-sm" onclick="bukaModalTambahTagihan()"><i class="fa-solid fa-plus"></i> Tambah Tagihan</button>
           </div>
         </div>
       </div>
@@ -93,12 +94,26 @@
   </div>
 </div>
 
+<div class="more-menu-overlay" id="more-menu-overlay"></div>
+<div class="more-menu-sheet" id="more-menu-sheet">
+  <div class="more-menu-handle"></div>
+  <div class="more-menu-title">Menu Lainnya</div>
+  <div class="more-menu-grid">
+    <a class="more-menu-item" href="data-dosen.html"><i class="fa-solid fa-chalkboard-teacher"></i>Data Dosen</a>
+    <a class="more-menu-item" href="mata-kuliah.html"><i class="fa-solid fa-book"></i>Mata Kuliah</a>
+    <a class="more-menu-item" href="kelola-ujian.html"><i class="fa-solid fa-file-alt"></i>Ujian</a>
+    <a class="more-menu-item" href="pembayaran.html"><i class="fa-solid fa-credit-card"></i>Pembayaran</a>
+    <a class="more-menu-item" href="pengumuman.html"><i class="fa-solid fa-bullhorn"></i>Pengumuman</a>
+    <a class="more-menu-item" href="ktm.html"><i class="fa-solid fa-id-card"></i>KTM</a>
+    <a class="more-menu-item" href="log-ujian.html"><i class="fa-solid fa-list-alt"></i>Log Ujian</a>
+  </div>
+</div>
 <nav class="bottom-nav"><div class="bottom-nav-inner">
   <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
   <a class="bottom-nav-item" href="data-mahasiswa.html"><i class="fa-solid fa-user-graduate"></i><span>Mahasiswa</span></a>
   <a class="bottom-nav-item" href="surat.html"><i class="fa-solid fa-envelope"></i><span>Surat</span></a>
-  <a class="bottom-nav-item" href="laporan.html"><i class="fa-solid fa-chart-pie"></i><span>Laporan</span></a>
-  <a class="bottom-nav-item" href="semester.html"><i class="fa-solid fa-calendar"></i><span>Semester</span></a>
+  <a class="bottom-nav-item active" href="laporan.html"><i class="fa-solid fa-chart-pie"></i><span>Laporan</span></a>
+  <button class="bottom-nav-more" id="btn-more-menu"><i class="fa-solid fa-plus"></i><span>Lainnya</span></button>
 </div></nav>
 <div class="toast-container"></div>
 <script src="../assets/js/utils.js"></script>
@@ -142,7 +157,10 @@ function renderBayar(list) {
       <td>${m.tanggal_bayar ? formatTanggal(m.tanggal_bayar,'pendek') : '—'}</td>
       <td>
         ${m.status==='Menunggak'
-          ? `<button class="btn btn-success btn-sm" onclick="bukaBayarModal(${m.id},'${escHTML(m.mahasiswa?.nama||'')}')"><i class="fa-solid fa-check"></i> Konfirmasi</button>`
+          ? `<div class="table-actions">
+               <button class="btn btn-success btn-sm" onclick="bukaBayarModal(${m.id},'${escHTML(m.mahasiswa?.nama||'')}')"><i class="fa-solid fa-check"></i> Konfirmasi</button>
+               <button class="btn btn-outline-danger btn-icon btn-sm" title="Hapus" onclick="hapusTagihan(${m.id})"><i class="fa-solid fa-trash"></i></button>
+             </div>`
           : `<span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Lunas</span>`}
       </td>
     </tr>`).join('');
@@ -186,8 +204,84 @@ function resetFilterBayar() {
   document.getElementById('filter-bayar-status').value = '';
   loadPembayaran();
 }
+
+async function hapusTagihan(id) {
+  konfirmasi('Yakin ingin menghapus tagihan ini? Hanya tagihan yang belum lunas yang dapat dihapus.', async () => {
+    const res = await AdminAPI.hapusPembayaran(id);
+    if (res && res.ok) { showToast('success','Dihapus','Tagihan berhasil dihapus'); loadPembayaran(); }
+    else showToast('danger','Gagal', res?.data?.message || 'Tidak dapat menghapus tagihan ini');
+  });
+}
+
+async function bukaModalTambahTagihan() {
+  // Load daftar mahasiswa untuk select
+  const res = await AdminAPI.mahasiswa({ per_page: 200, status: 'Aktif' });
+  const mhs = (res?.data?.data?.data || res?.data?.data || []);
+  const sel = document.getElementById('tagihan-mahasiswa');
+  if (sel) {
+    sel.innerHTML = '<option value="">— Pilih Mahasiswa —</option>' +
+      mhs.map(m => `<option value="${m.id}">[${m.nim}] ${escHTML(m.nama)}</option>`).join('');
+  }
+  // Load semester aktif
+  const resSem = await AdminAPI.semester();
+  const semList = (resSem?.data?.data || []);
+  const selSem = document.getElementById('tagihan-semester');
+  if (selSem) {
+    const aktif = semList.find(s => s.status === 'Aktif');
+    selSem.innerHTML = semList.map(s =>
+      `<option value="${s.id}" ${s.id === aktif?.id ? 'selected' : ''}>${escHTML(s.nama)}</option>`
+    ).join('');
+  }
+  showModal('modal-tambah-tagihan');
+}
+
+async function simpanTambahTagihan() {
+  const mahasiswaId = document.getElementById('tagihan-mahasiswa')?.value;
+  const semesterId  = document.getElementById('tagihan-semester')?.value;
+  const nominal     = document.getElementById('tagihan-nominal')?.value;
+  if (!mahasiswaId || !semesterId || !nominal) { showToast('warning','Validasi','Semua field wajib diisi'); return; }
+  const res = await AdminAPI.tambahTagihan({
+    mahasiswa_id: parseInt(mahasiswaId),
+    semester_id:  parseInt(semesterId),
+    nominal:      parseInt(nominal),
+  });
+  if (res && res.ok) {
+    hideModal('modal-tambah-tagihan');
+    showToast('success','Berhasil','Tagihan berhasil ditambahkan');
+    loadPembayaran();
+  } else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+}
+
 loadPembayaran();
 
 </script>
+
+<!-- Modal Tambah Tagihan -->
+<div class="modal-backdrop" id="modal-tambah-tagihan">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-plus" style="color:var(--navy);margin-right:8px"></i>Tambah Tagihan UKT</h3>
+      <button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Mahasiswa <span class="required">*</span></label>
+        <select class="form-control" id="tagihan-mahasiswa"><option value="">— Memuat... —</option></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Semester <span class="required">*</span></label>
+        <select class="form-control" id="tagihan-semester"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nominal (Rp) <span class="required">*</span></label>
+        <input type="number" class="form-control" id="tagihan-nominal" placeholder="5000000" min="1">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal-close>Batal</button>
+      <button class="btn btn-primary btn-sm" onclick="simpanTambahTagihan()"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

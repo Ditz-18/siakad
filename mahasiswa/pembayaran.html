@@ -257,6 +257,48 @@ async function submitBayar() {
 
 loadPembayaran();
 
+function eksporRiwayatCSV() {
+  const tbl = document.querySelector('#tbody-riwayat')?.closest('table')
+            || document.querySelector('table');
+  if (!tbl) { showToast('warning','Error','Tabel tidak ditemukan'); return; }
+  // Buat CSV manual dari pembayaranList
+  const rows = [['Semester','Nominal','Status','Tanggal Bayar','No. Referensi']];
+  pembayaranList.forEach(p => {
+    rows.push([
+      p.semester?.nama || '—',
+      p.nominal || 0,
+      p.status || '—',
+      p.tanggal_bayar || '—',
+      p.no_referensi || '—',
+    ]);
+  });
+  const csv  = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'Riwayat-Pembayaran-' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click(); URL.revokeObjectURL(url);
+  showToast('success','Berhasil','File CSV berhasil diunduh');
+}
+
+function eksporRiwayatPDF() {
+  window.print();
+}
+
+function unduhBukti() {
+  const aktif = pembayaranList.find(p => p.semester?.status === 'Aktif');
+  if (!aktif || !aktif.no_referensi) {
+    showToast('warning','Tidak Ada','Bukti pembayaran tidak tersedia'); return;
+  }
+  // Jika no_referensi adalah URL, buka di tab baru
+  if (aktif.no_referensi.startsWith('http')) {
+    window.open(aktif.no_referensi, '_blank');
+  } else {
+    // Tampilkan sebagai teks (no referensi bank)
+    showToast('info', 'No. Referensi', aktif.no_referensi);
+  }
+}
+
 </script>
 </body>
 </html>

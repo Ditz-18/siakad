@@ -197,18 +197,7 @@
 <script src="../assets/js/main.js"></script>
 <script src="../assets/js/dosen-sidebar.js"></script>
 
-<script>
-(function() {
-  const btnMore=document.getElementById('btn-more-menu'), overlay=document.getElementById('more-menu-overlay'), sheet=document.getElementById('more-menu-sheet');
-  function openMore(){overlay.classList.add('open');sheet.classList.add('open');btnMore.classList.add('open');document.body.style.overflow='hidden';}
-  function closeMore(){overlay.classList.remove('open');sheet.classList.remove('open');btnMore.classList.remove('open');document.body.style.overflow='';}
-  btnMore?.addEventListener('click',function(e){e.stopPropagation();sheet.classList.contains('open')?closeMore():openMore();});
-  overlay?.addEventListener('click',closeMore);
-  let startY=0;
-  sheet?.addEventListener('touchstart',function(e){startY=e.touches[0].clientY;},{passive:true});
-  sheet?.addEventListener('touchmove',function(e){if(e.touches[0].clientY-startY>60)closeMore();},{passive:true});
-})();
-</script>
+
 <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}</script>
 <script>
 const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
@@ -242,6 +231,7 @@ function renderUjian(list) {
       </td>
       <td>
         <div class="table-actions">
+          <button class="btn btn-ghost btn-sm" onclick="kelolasoal(${u.id})" title="Kelola Soal"><i class="fa-solid fa-list-ol"></i> Soal</button>
           ${u.status==='Draft'?`
             <button class="btn btn-ghost btn-icon btn-sm" onclick="editUjian(${u.id})" title="Edit"><i class="fa-solid fa-pen"></i></button>
             <button class="btn btn-outline-danger btn-icon btn-sm" onclick="hapusUjian(${u.id})" title="Hapus"><i class="fa-solid fa-trash"></i></button>`:''}
@@ -270,16 +260,314 @@ async function simpanUjian() {
   } else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
 }
 async function hapusUjian(id) {
-  konfirmasi('Yakin ingin menghapus ujian ini?', async () => {
+  konfirmasi('Yakin ingin menghapus ujian ini? Hanya ujian berstatus Draft yang bisa dihapus.', async () => {
     const res = await DosenAPI.hapusUjian(id);
     if (res && res.ok) { showToast('success','Dihapus','Ujian berhasil dihapus'); loadUjian(); }
     else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
   });
 }
-function editUjian(id) { showToast('info','Edit','Fitur edit ujian segera tersedia'); }
-function lihatLog(id)  { showToast('info','Log','Lihat log di halaman Log Ujian'); }
-function lihatLogUjian() { showModal('modal-log'); }
+
+// ── EDIT UJIAN ──────────────────────────────────────────────────
+async function editUjian(id) {
+  const ujian = ujianList.find(u => u.id == id);
+  if (!ujian) return;
+  const el = k => document.getElementById(k);
+  if (el('edit-ujian-id'))     el('edit-ujian-id').value     = ujian.id;
+  if (el('edit-ujian-nama'))   el('edit-ujian-nama').value   = ujian.nama;
+  if (el('edit-ujian-tipe'))   el('edit-ujian-tipe').value   = ujian.tipe;
+  if (el('edit-ujian-durasi')) el('edit-ujian-durasi').value = ujian.durasi;
+  if (el('edit-ujian-mulai'))  el('edit-ujian-mulai').value  = ujian.mulai_at?.slice(0,16);
+  if (el('edit-ujian-selesai'))el('edit-ujian-selesai').value= ujian.selesai_at?.slice(0,16);
+  if (el('edit-ujian-maks'))   el('edit-ujian-maks').value   = ujian.max_pelanggaran;
+  showModal('modal-edit-ujian');
+}
+
+async function simpanEditUjian() {
+  const id = document.getElementById('edit-ujian-id').value;
+  const data = {
+    nama:            document.getElementById('edit-ujian-nama')?.value.trim(),
+    tipe:            document.getElementById('edit-ujian-tipe')?.value,
+    durasi:          parseInt(document.getElementById('edit-ujian-durasi')?.value),
+    mulai_at:        document.getElementById('edit-ujian-mulai')?.value,
+    selesai_at:      document.getElementById('edit-ujian-selesai')?.value,
+    max_pelanggaran: parseInt(document.getElementById('edit-ujian-maks')?.value),
+  };
+  if (!data.nama) { showToast('warning','Validasi','Nama ujian wajib diisi'); return; }
+  const res = await DosenAPI.updateUjian(id, data);
+  if (res && res.ok) {
+    hideModal('modal-edit-ujian');
+    showToast('success','Tersimpan','Ujian berhasil diperbarui');
+    loadUjian();
+  } else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+}
+
+// ── KELOLA SOAL ─────────────────────────────────────────────────
+let activeUjianId = null;
+let soalList = [];
+
+async function kelolasoal(ujianId) {
+  activeUjianId = ujianId;
+  const ujian = ujianList.find(u => u.id == ujianId);
+  const namaEl = document.getElementById('soal-ujian-nama');
+  if (namaEl) namaEl.textContent = ujian?.nama || 'Ujian';
+  await loadSoal();
+  showModal('modal-kelola-soal');
+}
+
+async function loadSoal() {
+  const res = await DosenAPI.soalUjian(activeUjianId);
+  if (!res || !res.ok) { showToast('danger','Error','Gagal memuat soal'); return; }
+  soalList = res.data.data || [];
+  renderSoalList();
+}
+
+function renderSoalList() {
+  const tbody = document.getElementById('tbody-soal');
+  const jumlah = document.getElementById('jumlah-soal');
+  if (jumlah) jumlah.textContent = soalList.length + ' soal';
+  if (!tbody) return;
+  if (!soalList.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-secondary)">Belum ada soal</td></tr>';
+    return;
+  }
+  tbody.innerHTML = soalList.map(s => `
+    <tr>
+      <td style="text-align:center">${s.nomor}</td>
+      <td style="max-width:300px">${escHTML(s.pertanyaan.slice(0,80))}${s.pertanyaan.length>80?'…':''}</td>
+      <td><span class="badge">${s.tipe === 'pilihan_ganda' ? 'Pilihan Ganda' : 'Essay'}</span></td>
+      <td style="text-align:center">${s.bobot}</td>
+      <td>
+        <div class="table-actions">
+          <button class="btn btn-ghost btn-icon btn-sm" onclick="editSoal(${s.id})" title="Edit"><i class="fa-solid fa-pen"></i></button>
+          <button class="btn btn-outline-danger btn-icon btn-sm" onclick="hapusSoalItem(${s.id})" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function bukaFormSoal(soalId = null) {
+  const el = k => document.getElementById(k);
+  el('form-soal-id').value          = soalId || '';
+  el('soal-pertanyaan-input').value  = '';
+  el('soal-tipe').value              = 'pilihan_ganda';
+  el('soal-bobot').value             = '1';
+  el('soal-jawaban-benar').value     = 'A';
+  renderPilihanForm('A');
+
+  if (soalId) {
+    const s = soalList.find(x => x.id == soalId);
+    if (s) {
+      el('soal-pertanyaan-input').value = s.pertanyaan;
+      el('soal-tipe').value             = s.tipe;
+      el('soal-bobot').value            = s.bobot;
+      el('soal-jawaban-benar').value    = s.jawaban_benar || 'A';
+      if (s.tipe === 'pilihan_ganda') renderPilihanForm(s.jawaban_benar, s.pilihan);
+    }
+  }
+
+  toggleTipeSoal();
+  showModal('modal-form-soal');
+}
+
+function editSoal(id) { bukaFormSoal(id); }
+
+function toggleTipeSoal() {
+  const tipe = document.getElementById('soal-tipe')?.value;
+  const pgArea = document.getElementById('area-pilihan-ganda');
+  if (pgArea) pgArea.style.display = tipe === 'pilihan_ganda' ? '' : 'none';
+}
+
+function renderPilihanForm(jawabanBenar = 'A', existing = null) {
+  const keys = ['A','B','C','D','E'];
+  const container = document.getElementById('pilihan-container');
+  if (!container) return;
+  container.innerHTML = keys.map(k => {
+    const val = existing?.find(p => p.key === k)?.teks || '';
+    return `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="font-weight:700;min-width:18px">${k}.</span>
+        <input type="text" class="form-control" id="pilihan-${k}" placeholder="Opsi ${k}" value="${escHTML(val)}" style="flex:1">
+      </div>`;
+  }).join('');
+}
+
+async function simpanFormSoal() {
+  const id          = document.getElementById('form-soal-id')?.value;
+  const pertanyaan  = document.getElementById('soal-pertanyaan-input')?.value.trim();
+  const tipe        = document.getElementById('soal-tipe')?.value;
+  const bobot       = parseInt(document.getElementById('soal-bobot')?.value) || 1;
+  const jawabanBenar= document.getElementById('soal-jawaban-benar')?.value;
+
+  if (!pertanyaan) { showToast('warning','Validasi','Pertanyaan wajib diisi'); return; }
+
+  let pilihan = null;
+  if (tipe === 'pilihan_ganda') {
+    const keys = ['A','B','C','D','E'];
+    pilihan = keys
+      .map(k => ({ key: k, teks: document.getElementById(`pilihan-${k}`)?.value.trim() || '' }))
+      .filter(p => p.teks);
+    if (pilihan.length < 2) { showToast('warning','Validasi','Minimal 2 pilihan jawaban'); return; }
+  }
+
+  const data = { pertanyaan, tipe, bobot, pilihan, jawaban_benar: tipe === 'pilihan_ganda' ? jawabanBenar : null };
+  let res;
+  if (id) {
+    res = await DosenAPI.updateSoal(activeUjianId, id, data);
+  } else {
+    res = await DosenAPI.tambahSoal(activeUjianId, data);
+  }
+
+  if (res && res.ok) {
+    hideModal('modal-form-soal');
+    showToast('success','Tersimpan', id ? 'Soal berhasil diperbarui' : 'Soal berhasil ditambahkan');
+    await loadSoal();
+  } else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+}
+
+async function hapusSoalItem(id) {
+  konfirmasi('Yakin ingin menghapus soal ini?', async () => {
+    const res = await DosenAPI.hapusSoal(activeUjianId, id);
+    if (res && res.ok) { showToast('success','Dihapus','Soal berhasil dihapus'); await loadSoal(); }
+    else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+  });
+}
+
+function lihatLog(id) { window.location.href = `kelola-ujian.html?log=${id}`; }
 loadUjian();
 </script>
+
+<!-- Modal Edit Ujian -->
+<div class="modal-backdrop" id="modal-edit-ujian">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-pen" style="color:var(--navy);margin-right:8px"></i>Edit Ujian</h3>
+      <button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-ujian-id">
+      <div class="form-grid form-grid-2">
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Nama Ujian</label>
+          <input type="text" class="form-control" id="edit-ujian-nama">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipe</label>
+          <select class="form-control" id="edit-ujian-tipe">
+            <option value="Kuis">Kuis</option>
+            <option value="UTS">UTS</option>
+            <option value="UAS">UAS</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Durasi (menit)</label>
+          <input type="number" class="form-control" id="edit-ujian-durasi" min="10">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mulai</label>
+          <input type="datetime-local" class="form-control" id="edit-ujian-mulai">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Selesai</label>
+          <input type="datetime-local" class="form-control" id="edit-ujian-selesai">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Maks. Pelanggaran</label>
+          <input type="number" class="form-control" id="edit-ujian-maks" min="1" max="10">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal-close>Batal</button>
+      <button class="btn btn-primary btn-sm" onclick="simpanEditUjian()"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Kelola Soal -->
+<div class="modal-backdrop" id="modal-kelola-soal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-list-ol" style="color:var(--navy);margin-right:8px"></i>Kelola Soal — <span id="soal-ujian-nama"></span></h3>
+      <button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <span id="jumlah-soal" style="color:var(--text-secondary);font-size:0.9rem">0 soal</span>
+        <button class="btn btn-primary btn-sm" onclick="bukaFormSoal()">
+          <i class="fa-solid fa-plus"></i> Tambah Soal
+        </button>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th style="width:48px;text-align:center">No</th>
+            <th>Pertanyaan</th>
+            <th>Tipe</th>
+            <th style="width:60px;text-align:center">Bobot</th>
+            <th style="width:80px">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-soal">
+          <tr><td colspan="5" style="text-align:center;color:var(--text-secondary)">Belum ada soal</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal-close>Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Form Soal (Tambah / Edit) -->
+<div class="modal-backdrop" id="modal-form-soal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-pen-to-square" style="color:var(--navy);margin-right:8px"></i>Form Soal</h3>
+      <button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="form-soal-id">
+      <div class="form-group">
+        <label class="form-label">Pertanyaan <span class="required">*</span></label>
+        <textarea class="form-control" id="soal-pertanyaan-input" rows="4" placeholder="Tulis pertanyaan di sini..."></textarea>
+      </div>
+      <div class="form-grid form-grid-2" style="margin-top:12px">
+        <div class="form-group">
+          <label class="form-label">Tipe Soal</label>
+          <select class="form-control" id="soal-tipe" onchange="toggleTipeSoal()">
+            <option value="pilihan_ganda">Pilihan Ganda</option>
+            <option value="essay">Essay</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Bobot Nilai</label>
+          <input type="number" class="form-control" id="soal-bobot" value="1" min="1" max="10">
+        </div>
+      </div>
+      <div id="area-pilihan-ganda" style="margin-top:12px">
+        <label class="form-label">Pilihan Jawaban <span class="required">*</span></label>
+        <div id="pilihan-container"></div>
+        <div class="form-group" style="margin-top:8px">
+          <label class="form-label">Jawaban Benar</label>
+          <select class="form-control" id="soal-jawaban-benar" style="width:auto">
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+            <option value="D">D</option>
+            <option value="E">E</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal-close>Batal</button>
+      <button class="btn btn-primary btn-sm" onclick="simpanFormSoal()">
+        <i class="fa-solid fa-floppy-disk"></i> Simpan Soal
+      </button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

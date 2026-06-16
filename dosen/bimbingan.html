@@ -91,8 +91,10 @@
         </div>
       </div>
       <div id="modal-b-catatan" style="display:none">
-        <div class="alert alert-info mb-12"><i class="fa-solid fa-circle-info"></i> Belum ada catatan bimbingan untuk mahasiswa ini.</div>
-        <button class="btn btn-primary btn-sm" onclick="showToast('info','Segera','Fitur tambah catatan akan disempurnakan')"><i class="fa-solid fa-plus"></i> Tambah Catatan</button>
+        <div id="catatan-list"><div class="alert alert-info"><i class="fa-solid fa-circle-info"></i> Memuat catatan...</div></div>
+        <div style="margin-top:12px">
+          <button class="btn btn-primary btn-sm" onclick="bukaFormCatatan()"><i class="fa-solid fa-plus"></i> Tambah Catatan</button>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -131,18 +133,7 @@
 <script src="../assets/js/main.js"></script>
 <script src="../assets/js/dosen-sidebar.js"></script>
 
-<script>
-(function() {
-  const btnMore=document.getElementById('btn-more-menu'), overlay=document.getElementById('more-menu-overlay'), sheet=document.getElementById('more-menu-sheet');
-  function openMore(){overlay.classList.add('open');sheet.classList.add('open');btnMore.classList.add('open');document.body.style.overflow='hidden';}
-  function closeMore(){overlay.classList.remove('open');sheet.classList.remove('open');btnMore.classList.remove('open');document.body.style.overflow='';}
-  btnMore?.addEventListener('click',function(e){e.stopPropagation();sheet.classList.contains('open')?closeMore():openMore();});
-  overlay?.addEventListener('click',closeMore);
-  let startY=0;
-  sheet?.addEventListener('touchstart',function(e){startY=e.touches[0].clientY;},{passive:true});
-  sheet?.addEventListener('touchmove',function(e){if(e.touches[0].clientY-startY>60)closeMore();},{passive:true});
-})();
-</script>
+
 <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}</script>
 <script>
 const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
@@ -198,10 +189,58 @@ async function bukaDetail(id) {
           <td style="font-size:0.8rem">—</td>
           <td style="font-size:0.8rem">${k.kelas?.hari || '—'} ${k.kelas?.jam_mulai || ''}</td>
         </tr>`).join('');
-  // Sembunyikan tombol acc/tolak (handled di persetujuan-krs)
+
+  // Render catatan
+  renderCatatan(data.catatan || []);
+
   document.getElementById('btn-acc-krs-modal').style.display   = 'none';
   document.getElementById('btn-tolak-krs-modal').style.display = 'none';
   showModal('modal-detail-bimbingan');
+}
+
+function renderCatatan(list) {
+  const el = document.getElementById('catatan-list');
+  if (!el) return;
+  if (!list.length) {
+    el.innerHTML = `<div class="alert alert-info"><i class="fa-solid fa-circle-info"></i> Belum ada catatan bimbingan.</div>`;
+    return;
+  }
+  el.innerHTML = list.map(c => `
+    <div class="card mb-8" style="padding:12px 14px;border-left:3px solid var(--navy)">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <strong style="font-size:0.875rem">${escHTML(c.topik || 'Catatan Bimbingan')}</strong>
+        <span style="font-size:0.75rem;color:var(--text-muted)">${formatTanggal(c.created_at,'pendek')}</span>
+      </div>
+      <p style="margin:0 0 6px;font-size:0.875rem">${escHTML(c.catatan)}</p>
+      ${c.tindak_lanjut ? `<div style="font-size:0.8rem;color:var(--text-muted)"><b>Tindak lanjut:</b> ${escHTML(c.tindak_lanjut)}</div>` : ''}
+    </div>`).join('');
+}
+
+function bukaFormCatatan() {
+  document.getElementById('catatan-topik').value       = '';
+  document.getElementById('catatan-isi').value         = '';
+  document.getElementById('catatan-tindak').value      = '';
+  showModal('modal-tambah-catatan');
+}
+
+async function simpanCatatan() {
+  const topik      = document.getElementById('catatan-topik').value.trim();
+  const catatan    = document.getElementById('catatan-isi').value.trim();
+  const tindakLanjut = document.getElementById('catatan-tindak').value.trim();
+  if (!catatan) { showToast('warning','Validasi','Isi catatan wajib diisi'); return; }
+  const btn = document.getElementById('btn-simpan-catatan');
+  if (btn) { btn.disabled = true; btn.textContent = 'Menyimpan...'; }
+  const res = await DosenAPI.tambahCatatan(activeMhsId, { topik, catatan, tindak_lanjut: tindakLanjut });
+  if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Simpan'; }
+  if (res && res.ok) {
+    hideModal('modal-tambah-catatan');
+    showToast('success','Tersimpan','Catatan bimbingan berhasil disimpan');
+    // Refresh detail mahasiswa untuk tampilkan catatan baru
+    const detail = await DosenAPI.detailBimbingan(activeMhsId);
+    if (detail?.ok) renderCatatan(detail.data.data.catatan || []);
+  } else {
+    showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+  }
 }
 function applyFilter() {
   const q   = document.getElementById('search-mhs').value.toLowerCase();
@@ -224,5 +263,33 @@ const filterKrs = document.getElementById('filter-status-krs');
 if (filterKrs) filterKrs.addEventListener('change', () => renderTabel(applyFilter()));
 loadBimbingan();
 </script>
+
+<!-- Modal Tambah Catatan Bimbingan -->
+<div class="modal-backdrop" id="modal-tambah-catatan">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-pen" style="color:var(--navy);margin-right:8px"></i>Tambah Catatan Bimbingan</h3>
+      <button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Topik Bimbingan</label>
+        <input type="text" class="form-control" id="catatan-topik" placeholder="Contoh: Konsultasi KRS, Skripsi Bab 1, dll">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Catatan <span class="required">*</span></label>
+        <textarea class="form-control" id="catatan-isi" rows="4" placeholder="Tuliskan hasil bimbingan..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tindak Lanjut</label>
+        <textarea class="form-control" id="catatan-tindak" rows="2" placeholder="Apa yang harus dilakukan mahasiswa selanjutnya..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal-close>Batal</button>
+      <button class="btn btn-primary btn-sm" id="btn-simpan-catatan" onclick="simpanCatatan()"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

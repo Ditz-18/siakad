@@ -347,6 +347,13 @@ async function ajukanKRS() {
 
 loadKRS();
 
+function eksporKRSCSV() {
+  eksporTabelCSV('tabel-mk-diambil', 'KRS-' + new Date().toISOString().slice(0,10));
+}
+function eksporKRSPDF() {
+  window.print();
+}
+
 </script>
 </body>
 </html>

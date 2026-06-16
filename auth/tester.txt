@@ -1,5 +1,9 @@
 cd C:\xampp\htdocs\siakad_api
 php artisan serve
+-
+php artisan migrate
+php artisan config:clear
+php artisan route:clear
 
 -
 link pmb : https://pmb.nurhamim.com
@@ -7,7 +11,7 @@ link pmb : https://pmb.nurhamim.com
 ================================================================
   AKUN DEMO — SIAKAD STAI DILWA
   (Disimpan saat akun demo dihapus dari halaman login)
-================================================================
+============================================================= ===
 
 MAHASISWA
   Username : mhs2021001

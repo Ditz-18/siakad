@@ -950,7 +950,11 @@
       btnSubmit.disabled    = true;
 
       try {
-        const res = await fetch('http://localhost:8000/api/auth/login', {
+        const apiBase = localStorage.getItem('siakad_api_base') ||
+          (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:8000/api'
+            : window.location.origin + '/api');
+        const res = await fetch(apiBase + '/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
           body: JSON.stringify({ username: id, password: pass }),

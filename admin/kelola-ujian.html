@@ -110,12 +110,26 @@
   </div>
 </div>
 
+<div class="more-menu-overlay" id="more-menu-overlay"></div>
+<div class="more-menu-sheet" id="more-menu-sheet">
+  <div class="more-menu-handle"></div>
+  <div class="more-menu-title">Menu Lainnya</div>
+  <div class="more-menu-grid">
+    <a class="more-menu-item" href="data-dosen.html"><i class="fa-solid fa-chalkboard-teacher"></i>Data Dosen</a>
+    <a class="more-menu-item" href="mata-kuliah.html"><i class="fa-solid fa-book"></i>Mata Kuliah</a>
+    <a class="more-menu-item" href="kelola-ujian.html"><i class="fa-solid fa-file-alt"></i>Ujian</a>
+    <a class="more-menu-item" href="pembayaran.html"><i class="fa-solid fa-credit-card"></i>Pembayaran</a>
+    <a class="more-menu-item" href="pengumuman.html"><i class="fa-solid fa-bullhorn"></i>Pengumuman</a>
+    <a class="more-menu-item" href="ktm.html"><i class="fa-solid fa-id-card"></i>KTM</a>
+    <a class="more-menu-item" href="log-ujian.html"><i class="fa-solid fa-list-alt"></i>Log Ujian</a>
+  </div>
+</div>
 <nav class="bottom-nav"><div class="bottom-nav-inner">
   <a class="bottom-nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
   <a class="bottom-nav-item" href="data-mahasiswa.html"><i class="fa-solid fa-user-graduate"></i><span>Mahasiswa</span></a>
   <a class="bottom-nav-item" href="surat.html"><i class="fa-solid fa-envelope"></i><span>Surat</span></a>
-  <a class="bottom-nav-item" href="laporan.html"><i class="fa-solid fa-chart-pie"></i><span>Laporan</span></a>
-  <a class="bottom-nav-item" href="semester.html"><i class="fa-solid fa-calendar"></i><span>Semester</span></a>
+  <a class="bottom-nav-item active" href="laporan.html"><i class="fa-solid fa-chart-pie"></i><span>Laporan</span></a>
+  <button class="bottom-nav-more" id="btn-more-menu"><i class="fa-solid fa-plus"></i><span>Lainnya</span></button>
 </div></nav>
 <div class="toast-container"></div>
 <script src="../assets/js/utils.js"></script>
@@ -155,9 +169,9 @@ function renderUjian(list) {
       <td><strong>${escHTML(u.nama)}</strong></td>
       <td><span class="badge badge-primary">${u.kelas?.kode_kelas || '—'}</span></td>
       <td style="font-size:0.8375rem">${escHTML(u.dosen?.nama || '—')}</td>
-      <td style="text-align:center">—</td>
-      <td style="text-align:center">—</td>
-      <td style="text-align:center"><span class="badge badge-muted">0</span></td>
+      <td style="text-align:center">${u.tipe || '—'}</td>
+      <td style="text-align:center">${u.durasi ? u.durasi + ' mnt' : '—'}</td>
+      <td style="text-align:center"><span class="badge badge-muted">${u.max_pelanggaran || 3}</span></td>
       <td>
         ${u.status === 'Berlangsung'
           ? `<span style="display:flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:var(--success);animation:pulse 1.2s infinite"></span><span style="font-size:0.8rem;color:var(--success)">Berlangsung</span></span>`
@@ -165,6 +179,9 @@ function renderUjian(list) {
       </td>
       <td>
         <div class="table-actions">
+          ${u.status === 'Draft'
+            ? `<button class="btn btn-ghost btn-icon btn-sm" title="Edit" onclick="editUjian(${u.id})"><i class="fa-solid fa-pen"></i></button>`
+            : ''}
           ${u.status !== 'Dibatalkan' && u.status !== 'Selesai'
             ? `<button class="btn btn-outline-danger btn-sm" onclick="batalkanUjian(${u.id})"><i class="fa-solid fa-ban"></i> Batalkan</button>`
             : `<button class="btn btn-outline btn-sm" onclick="lihatLogUjian(${u.id})"><i class="fa-solid fa-shield-halved"></i> Log</button>`}
@@ -193,8 +210,74 @@ function eksporLaporanCSV() {
   ['Nama Ujian','Kelas','Dosen','Status'], 'Laporan_Ujian');
 }
 
+function editUjian(id) {
+  const u = ujianList.find(x => x.id == id);
+  if (!u) { showToast('danger','Error','Data tidak ditemukan'); return; }
+  document.getElementById('edit-ujian-id').value       = u.id;
+  document.getElementById('edit-ujian-nama').value     = u.nama || '';
+  document.getElementById('edit-ujian-tipe').value     = u.tipe || 'UTS';
+  document.getElementById('edit-ujian-durasi').value   = u.durasi || 90;
+  document.getElementById('edit-ujian-mulai').value    = u.mulai_at?.slice(0,16) || '';
+  document.getElementById('edit-ujian-selesai').value  = u.selesai_at?.slice(0,16) || '';
+  document.getElementById('edit-ujian-maks').value     = u.max_pelanggaran || 3;
+  showModal('modal-edit-ujian');
+}
+
+async function simpanEditUjian() {
+  const id     = document.getElementById('edit-ujian-id').value;
+  const status = document.getElementById('edit-ujian-status').value;
+  if (!status) { showToast('warning','Validasi','Pilih status yang ingin diterapkan'); return; }
+
+  let res;
+  if (status === 'Dibatalkan') {
+    res = await AdminAPI.batalkanUjian(id);
+  } else {
+    // Untuk update status lain gunakan PUT langsung (fallback ke batalkan)
+    res = await AdminAPI.batalkanUjian(id);
+  }
+
+  if (res && res.ok) {
+    hideModal('modal-edit-ujian');
+    showToast('success','Tersimpan','Status ujian berhasil diperbarui');
+    loadUjian();
+  } else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+}
+
 loadUjian();
 
 </script>
+
+<!-- Modal Update Status Ujian (Admin) -->
+<div class="modal-backdrop" id="modal-edit-ujian">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-shield-halved" style="color:var(--navy);margin-right:8px"></i>Kelola Status Ujian</h3>
+      <button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-ujian-id">
+      <div class="form-group">
+        <label class="form-label">Nama Ujian</label>
+        <input type="text" class="form-control" id="edit-ujian-nama" disabled>
+      </div>
+      <div class="form-group" style="margin-top:12px">
+        <label class="form-label">Ubah Status Menjadi</label>
+        <select class="form-control" id="edit-ujian-status">
+          <option value="">— Pilih aksi —</option>
+          <option value="Dibatalkan">Batalkan Ujian</option>
+        </select>
+        <p style="margin-top:6px;font-size:0.8rem;color:var(--text-secondary)">
+          <i class="fa-solid fa-circle-info"></i>
+          Untuk mengubah detail soal, waktu, atau durasi ujian silakan hubungi dosen pengampu.
+        </p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal-close>Batal</button>
+      <button class="btn btn-primary btn-sm" onclick="simpanEditUjian()"><i class="fa-solid fa-floppy-disk"></i> Terapkan</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

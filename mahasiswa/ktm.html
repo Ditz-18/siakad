@@ -331,8 +331,15 @@ function cetakKTM() {
   window.print();
 }
 
+function unduhKTMPDF() {
+  // Gunakan print dialog dengan print.css yang sudah ada
+  // Browser modern bisa save as PDF dari print dialog
+  showToast('info', 'Info', 'Gunakan tombol "Save as PDF" di dialog print yang muncul');
+  setTimeout(() => window.print(), 800);
+}
+
 function downloadKTM() {
-  showToast('info','Download','Fitur download KTM sebagai gambar segera tersedia');
+  unduhKTMPDF();
 }
 
 loadKTM();

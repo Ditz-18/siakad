@@ -191,6 +191,44 @@ const MahasiswaAPI = {
   async detailPengumuman(id) {
     return apiFetch(`/mahasiswa/pengumuman/${id}`);
   },
+  async katalogKrs() {
+    return apiFetch('/mahasiswa/krs/katalog');
+  },
+
+  async transkrip() {
+    return apiFetch('/mahasiswa/transkrip');
+  },
+
+  async soalUjian(ujianId) {
+    return apiFetch(`/mahasiswa/ujian/${ujianId}/soal`);
+  },
+
+  async jawabSoal(ujianId, soalId, jawaban, ragu = false) {
+    return apiFetch(`/mahasiswa/ujian/${ujianId}/jawab`, {
+      method: 'POST',
+      body: JSON.stringify({ soal_id: soalId, jawaban, ragu }),
+    });
+  },
+
+  async submitUjian(ujianId) {
+    return apiFetch(`/mahasiswa/ujian/${ujianId}/submit`, {
+      method: 'POST',
+    });
+  },
+
+  async laporPelanggaran(ujianId, deskripsi) {
+    return apiFetch(`/mahasiswa/ujian/${ujianId}/pelanggaran`, {
+      method: 'POST',
+      body: JSON.stringify({ deskripsi }),
+    });
+  },
+
+  async gantiPassword(data) {
+    return apiFetch('/mahasiswa/profil/password', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
 };
 
 /* ================================================================
@@ -286,6 +324,54 @@ const DosenAPI = {
 
   async hapusUjian(id) {
     return apiFetch(`/dosen/ujian/${id}`, { method: 'DELETE' });
+  },
+  async profil() {
+    return apiFetch('/dosen/profil');
+  },
+
+  async updateProfil(data) {
+    return apiFetch('/dosen/profil', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async gantiPassword(data) {
+    return apiFetch('/dosen/profil/password', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async tambahCatatan(mahasiswaId, data) {
+    return apiFetch(`/dosen/bimbingan/${mahasiswaId}/catatan`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async soalUjian(ujianId) {
+    return apiFetch(`/dosen/ujian/${ujianId}/soal`);
+  },
+
+  async tambahSoal(ujianId, data) {
+    return apiFetch(`/dosen/ujian/${ujianId}/soal`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async updateSoal(ujianId, soalId, data) {
+    return apiFetch(`/dosen/ujian/${ujianId}/soal/${soalId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async hapusSoal(ujianId, soalId) {
+    return apiFetch(`/dosen/ujian/${ujianId}/soal/${soalId}`, {
+      method: 'DELETE',
+    });
   },
 };
 

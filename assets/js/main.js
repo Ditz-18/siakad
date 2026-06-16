@@ -401,6 +401,7 @@ function initApp() {
   initTabs();
   initAccordion();
   injectModalKonfirmasi();
+  initMoreMenu();
 
   // Theme toggle buttons
   document.querySelectorAll('[data-theme-toggle]').forEach(btn => {
@@ -410,3 +411,74 @@ function initApp() {
 
 // Auto-init saat DOM siap
 document.addEventListener('DOMContentLoaded', initApp);
+/* ================================================================
+   BOTTOM NAV — "LAINNYA" MORE MENU
+   Berlaku global untuk semua panel (mahasiswa, dosen, admin)
+   ================================================================ */
+function initMoreMenu() {
+  const btnMore = document.getElementById('btn-more-menu');
+  const overlay = document.getElementById('more-menu-overlay');
+  const sheet   = document.getElementById('more-menu-sheet');
+  if (!btnMore || !overlay || !sheet) return;
+
+  function openMore() {
+    overlay.classList.add('open');
+    sheet.classList.add('open');
+    btnMore.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeMore() {
+    overlay.classList.remove('open');
+    sheet.classList.remove('open');
+    btnMore.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  btnMore.addEventListener('click', function(e) {
+    e.stopPropagation();
+    sheet.classList.contains('open') ? closeMore() : openMore();
+  });
+
+  overlay.addEventListener('click', closeMore);
+
+  // Swipe down to close (touch)
+  let startY = 0;
+  sheet.addEventListener('touchstart', function(e) {
+    startY = e.touches[0].clientY;
+  }, { passive: true });
+  sheet.addEventListener('touchmove', function(e) {
+    if (e.touches[0].clientY - startY > 60) closeMore();
+  }, { passive: true });
+}
+
+/* ================================================================
+   PRINT / EKSPOR GLOBAL
+   window.print() dengan print.css yang sudah ada
+   ================================================================ */
+function cetakHalaman() {
+  window.print();
+}
+
+function eksporTabelCSV(tableId, filename) {
+  const table = document.getElementById(tableId);
+  if (!table) { showToast('warning', 'Tidak Ditemukan', 'Tabel tidak ditemukan'); return; }
+  const rows = table.querySelectorAll('tr');
+  const csv  = [];
+  rows.forEach(row => {
+    const cols = row.querySelectorAll('th, td');
+    const line = Array.from(cols).map(c => {
+      let t = c.innerText.replace(/"/g, '""').trim();
+      return `"${t}"`;
+    });
+    csv.push(line.join(','));
+  });
+  const blob = new Blob(['\uFEFF' + csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = (filename || 'export') + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('success', 'Berhasil', 'File CSV berhasil diunduh');
+}
