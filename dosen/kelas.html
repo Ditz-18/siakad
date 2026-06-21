@@ -96,7 +96,7 @@ const kelasColors = [
 async function loadKelas() {
   const res = await DosenAPI.kelas();
   if (!res || !res.ok) { showToast('danger','Error','Gagal memuat kelas'); return; }
-  const list = res.data.data || [];
+  const list = res.data.data?.kelas || [];
   const grid = document.getElementById('kelas-grid');
   if (!grid) return;
   if (list.length === 0) {

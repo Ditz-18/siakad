@@ -180,6 +180,7 @@
   <div class="more-menu-grid">
     <a class="more-menu-item" href="data-dosen.html"><i class="fa-solid fa-chalkboard-teacher"></i>Data Dosen</a>
     <a class="more-menu-item" href="mata-kuliah.html"><i class="fa-solid fa-book"></i>Mata Kuliah</a>
+    <a class="more-menu-item" href="kelas.html"><i class="fa-solid fa-chalkboard"></i>Kelas</a>
     <a class="more-menu-item" href="kelola-ujian.html"><i class="fa-solid fa-file-alt"></i>Ujian</a>
     <a class="more-menu-item" href="pembayaran.html"><i class="fa-solid fa-credit-card"></i>Pembayaran</a>
     <a class="more-menu-item" href="pengumuman.html"><i class="fa-solid fa-bullhorn"></i>Pengumuman</a>
@@ -300,6 +301,12 @@ async function loadDashboard() {
 }
 
 loadDashboard();
+
+// Polling ringan agar statistik dashboard (jumlah mahasiswa, KRS menunggu,
+// pembayaran, surat) tetap real-time tanpa refresh manual
+setInterval(() => {
+  if (!document.hidden) loadDashboard();
+}, 30000);
 </script>
 </body>
 </html>

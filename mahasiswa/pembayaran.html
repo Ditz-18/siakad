@@ -105,7 +105,7 @@
         <div class="tagihan-bottom">
           <div class="tagihan-due" id="tagihan-due"><i class="fa-solid fa-calendar-xmark"></i> —</div>
           <span id="tagihan-status-badge"></span>
-          <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.2)" onclick="bukaBukti()">
+          <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.2)" onclick="unduhBukti()">
             <i class="fa-solid fa-receipt"></i> Lihat Bukti
           </button>
         </div>
@@ -175,7 +175,6 @@
 </nav>
 <div class="toast-container"></div>
 
-<script src="../assets/js/api.js"></script>
 <script src="../assets/js/utils.js"></script>
 <script src="../assets/js/api.js"></script>
 <script src="../assets/js/mahasiswa-integration.js"></script>
@@ -193,53 +192,62 @@
 const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
 if (!_s || _s.role !== 'mahasiswa') window.location.href = '../auth/login.html';
 
-let pembayaranList = [];
+let pembayaranList = []; // riwayat (array)
+let tagihanAktif   = null;
+let mahasiswaNama  = _s?.profil?.nama || '—';
+let mahasiswaNim   = _s?.profil?.nim  || '—';
 
 async function loadPembayaran() {
   const res = await MahasiswaAPI.pembayaran();
   if (!res || !res.ok) { showToast('danger','Error','Gagal memuat data pembayaran'); return; }
-  pembayaranList = res.data.data || [];
+  const d = res.data.data;
+  tagihanAktif    = d.tagihan_aktif || null;
+  pembayaranList  = d.riwayat || [];
   renderPembayaran(pembayaranList);
-  updateStats(pembayaranList);
+  updateStats(tagihanAktif);
 }
 
-function updateStats(list) {
-  const aktif = list.find(p => p.semester?.status === 'Aktif');
-  if (aktif) {
-    const statusEl = document.getElementById('status-bayar') || document.querySelector('[id*="status"]');
-    if (statusEl) statusEl.innerHTML = aktif.status === 'Lunas'
-      ? '<span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Lunas</span>'
-      : '<span class="badge badge-danger"><i class="fa-solid fa-triangle-exclamation"></i> Menunggak</span>';
-    const nominalEl = document.getElementById('nominal-bayar') || document.querySelector('[id*="nominal"]');
-    if (nominalEl) nominalEl.textContent = formatRupiah(aktif.nominal);
+function updateStats(aktif) {
+  const statusEl  = document.getElementById('status-bayar') || document.querySelector('[id*="status"]');
+  const nominalEl = document.getElementById('nominal-bayar') || document.querySelector('[id*="nominal"]');
+  if (!aktif) {
+    if (statusEl) statusEl.innerHTML = '<span class="badge badge-muted">Belum Ada Tagihan</span>';
+    if (nominalEl) nominalEl.textContent = '—';
+    return;
   }
+  if (statusEl) statusEl.innerHTML = aktif.status === 'Lunas'
+    ? '<span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Lunas</span>'
+    : '<span class="badge badge-danger"><i class="fa-solid fa-triangle-exclamation"></i> Menunggak</span>';
+  if (nominalEl) nominalEl.textContent = formatRupiah(aktif.nominal);
 }
 
 function renderPembayaran(list) {
   const tbody = document.getElementById('tbody-pembayaran') || document.querySelector('tbody');
   if (!tbody) return;
-  if (list.length === 0) {
+  if (!list.length) {
     tbody.innerHTML = `<tr><td colspan="99"><div class="empty-state"><h3 class="empty-state-title">Belum ada data pembayaran</h3></div></td></tr>`;
     return;
   }
   tbody.innerHTML = list.map(p => `
     <tr>
-      <td>${escHTML(p.semester?.nama || '—')}</td>
+      <td>${escHTML(p.semester || '—')}</td>
       <td><strong>${formatRupiah(p.nominal)}</strong></td>
       <td><span class="badge ${p.status==='Lunas'?'badge-success':'badge-danger'}">${p.status}</span></td>
       <td>${p.tanggal_bayar ? formatTanggal(p.tanggal_bayar,'pendek') : '—'}</td>
       <td>${p.no_referensi || '—'}</td>
       <td>
         ${p.status === 'Lunas'
-          ? `<button class="btn btn-outline btn-sm" onclick="showToast('info','Kwitansi','Fitur unduh kwitansi segera tersedia')"><i class="fa-solid fa-download"></i> Kwitansi</button>`
-          : `<button class="btn btn-primary btn-sm" data-modal-target="modal-bayar" onclick="prepBayar(${p.id})"><i class="fa-solid fa-credit-card"></i> Bayar</button>`}
+          ? `<button class="btn btn-outline btn-sm" onclick="cetakKwitansi(${p.id})"><i class="fa-solid fa-download"></i> Kwitansi</button>`
+          : `<button class="btn btn-primary btn-sm" onclick="prepBayar()"><i class="fa-solid fa-credit-card"></i> Bayar</button>`}
       </td>
     </tr>`).join('');
 }
 
-let bayarId = null;
-function prepBayar(id) {
-  bayarId = id;
+function prepBayar() {
+  if (tagihanAktif) {
+    const inputNominal = document.getElementById('input-nominal');
+    if (inputNominal) inputNominal.value = tagihanAktif.nominal;
+  }
   showModal('modal-bayar');
 }
 
@@ -251,26 +259,61 @@ async function submitBayar() {
   if (res && res.ok) {
     hideModal('modal-bayar');
     showToast('success','Terkirim','Bukti pembayaran berhasil dikirim. Menunggu konfirmasi admin.');
-    loadPembayaran();
+    loadPembayaran(); // real-time update
   } else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
 }
 
-loadPembayaran();
+// ── KWITANSI (cetak via window.print dengan layout khusus) ─────
+function cetakKwitansi(pembayaranId) {
+  const p = pembayaranList.find(x => x.id === pembayaranId);
+  if (!p) { showToast('danger','Error','Data pembayaran tidak ditemukan'); return; }
+
+  const win = window.open('', '_blank');
+  win.document.write(`
+    <!DOCTYPE html><html><head><title>Kwitansi Pembayaran</title>
+    <style>
+      body { font-family: Arial, sans-serif; padding: 40px; color: #1a1a1a; }
+      .kwitansi { max-width: 600px; margin: 0 auto; border: 2px solid #1B3A6B; border-radius: 12px; padding: 32px; }
+      .header { text-align: center; border-bottom: 2px solid #1B3A6B; padding-bottom: 16px; margin-bottom: 24px; }
+      .header h1 { font-size: 1.4rem; color: #1B3A6B; margin: 0 0 4px; }
+      .header p { margin: 0; color: #666; font-size: 0.875rem; }
+      .row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #ddd; }
+      .row label { color: #666; font-size: 0.9rem; }
+      .row span { font-weight: 600; }
+      .total { background: #1B3A6B; color: #fff; padding: 16px; border-radius: 8px; text-align: center; margin-top: 20px; }
+      .total .amount { font-size: 1.6rem; font-weight: 800; }
+      .footer { text-align: center; margin-top: 24px; font-size: 0.8rem; color: #999; }
+      @media print { body { padding: 0; } }
+    </style></head>
+    <body>
+      <div class="kwitansi">
+        <div class="header">
+          <h1>KWITANSI PEMBAYARAN</h1>
+          <p>SIAKAD STAI DILWA</p>
+        </div>
+        <div class="row"><label>Nama Mahasiswa</label><span>${escHTML(mahasiswaNama)}</span></div>
+        <div class="row"><label>NIM</label><span>${escHTML(mahasiswaNim)}</span></div>
+        <div class="row"><label>Semester</label><span>${escHTML(p.semester || '—')}</span></div>
+        <div class="row"><label>Tanggal Bayar</label><span>${p.tanggal_bayar ? formatTanggal(p.tanggal_bayar,'panjang') : '—'}</span></div>
+        <div class="row"><label>No. Referensi</label><span>${escHTML(p.no_referensi || '—')}</span></div>
+        <div class="row"><label>Status</label><span>${escHTML(p.status)}</span></div>
+        <div class="total">
+          <div style="font-size:0.8rem;opacity:0.8">Total Dibayar</div>
+          <div class="amount">${formatRupiah(p.nominal)}</div>
+        </div>
+        <div class="footer">Kwitansi ini dicetak otomatis oleh sistem SIAKAD pada ${new Date().toLocaleDateString('id-ID')}</div>
+      </div>
+      <script>window.onload = () => window.print();</script>
+    </body></html>
+  `);
+  win.document.close();
+}
 
 function eksporRiwayatCSV() {
-  const tbl = document.querySelector('#tbody-riwayat')?.closest('table')
-            || document.querySelector('table');
-  if (!tbl) { showToast('warning','Error','Tabel tidak ditemukan'); return; }
-  // Buat CSV manual dari pembayaranList
+  if (!pembayaranList.length) { showToast('warning','Tidak Ada Data','Belum ada riwayat untuk diekspor'); return; }
   const rows = [['Semester','Nominal','Status','Tanggal Bayar','No. Referensi']];
   pembayaranList.forEach(p => {
-    rows.push([
-      p.semester?.nama || '—',
-      p.nominal || 0,
-      p.status || '—',
-      p.tanggal_bayar || '—',
-      p.no_referensi || '—',
-    ]);
+    rows.push([p.semester || '—', p.nominal || 0, p.status || '—', p.tanggal_bayar || '—', p.no_referensi || '—']);
   });
   const csv  = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -286,18 +329,17 @@ function eksporRiwayatPDF() {
 }
 
 function unduhBukti() {
-  const aktif = pembayaranList.find(p => p.semester?.status === 'Aktif');
-  if (!aktif || !aktif.no_referensi) {
+  if (!tagihanAktif || !tagihanAktif.no_referensi) {
     showToast('warning','Tidak Ada','Bukti pembayaran tidak tersedia'); return;
   }
-  // Jika no_referensi adalah URL, buka di tab baru
-  if (aktif.no_referensi.startsWith('http')) {
-    window.open(aktif.no_referensi, '_blank');
+  if (tagihanAktif.no_referensi.startsWith('http')) {
+    window.open(tagihanAktif.no_referensi, '_blank');
   } else {
-    // Tampilkan sebagai teks (no referensi bank)
-    showToast('info', 'No. Referensi', aktif.no_referensi);
+    showToast('info', 'No. Referensi', tagihanAktif.no_referensi);
   }
 }
+
+loadPembayaran();
 
 </script>
 </body>

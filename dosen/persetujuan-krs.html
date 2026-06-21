@@ -209,6 +209,11 @@ async function prosesLangsung(id, mode, catatan='') {
   } else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
 }
 loadKRS();
+
+// Polling ringan agar ajuan KRS baru dari mahasiswa langsung muncul tanpa refresh manual
+setInterval(() => {
+  if (!document.hidden) loadKRS();
+}, 30000);
 </script>
 </body>
 </html>

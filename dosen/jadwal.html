@@ -128,10 +128,11 @@ let jadwalDosen = [];
 async function loadJadwal() {
   const res = await DosenAPI.kelas();
   if (!res || !res.ok) { showToast('danger','Error','Gagal memuat jadwal'); return; }
-  jadwalDosen = (res.data.data || []).map(k => ({
+  const list = res.data.data?.kelas || [];
+  jadwalDosen = list.map(k => ({
     id:         k.id,
-    kode:       k.mata_kuliah?.kode || '—',
-    nama:       k.mata_kuliah?.nama || '—',
+    kode:       k.kode_kelas || '—',
+    nama:       k.mata_kuliah || '—',
     kelas:      k.kode_kelas,
     hari:       k.hari,
     jamMulai:   k.jam_mulai,
@@ -140,11 +141,11 @@ async function loadJadwal() {
     jmlMhs:     k.terisi ?? 0,
     warna:      '#1B3A6B',
   }));
-  // Update subtitle semester
-  const semRes = await AdminAPI.semester ? AdminAPI.semester() : null;
-  if (semRes && semRes.ok) {
-    const aktif = (semRes.data.data || []).find(s => s.status === 'Aktif');
-    if (aktif) document.querySelector('.page-header p').textContent = aktif.nama;
+  // Update subtitle semester (sudah didapat dari respons yang sama)
+  const semAktif = res.data.data?.semester || null;
+  if (semAktif) {
+    const headerP = document.querySelector('.page-header p');
+    if (headerP) headerP.textContent = semAktif.nama;
   }
   if (window.innerWidth < 768) { buildList(); setView('list'); }
   else { buildGrid(); }

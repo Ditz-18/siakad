@@ -182,7 +182,7 @@ async function loadDashboard() {
   // Load kelas hari ini
   const kelasRes = await DosenAPI.kelas();
   if (kelasRes && kelasRes.ok) {
-    const kelasList = kelasRes.data.data || [];
+    const kelasList = kelasRes.data.data?.kelas || [];
     const hariSkrg  = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][new Date().getDay()];
     const hariIni   = kelasList.filter(k => k.hari === hariSkrg);
     const listEl    = document.getElementById('kelas-hari-ini') || document.querySelector('[id*="kelas-list"]');
@@ -195,7 +195,7 @@ async function loadDashboard() {
               <i class="fa-solid fa-chalkboard" style="font-size:0.9rem"></i>
             </div>
             <div style="flex:1;min-width:0">
-              <div style="font-size:0.875rem;font-weight:700;color:var(--text-primary)">${escHTML(k.mata_kuliah?.nama || k.kode_kelas)}</div>
+              <div style="font-size:0.875rem;font-weight:700;color:var(--text-primary)">${escHTML(k.mata_kuliah || k.kode_kelas)}</div>
               <div style="font-size:0.775rem;color:var(--text-muted)">${k.kode_kelas} &bull; ${k.jam_mulai}–${k.jam_selesai} &bull; ${k.ruangan || '—'}</div>
             </div>
             <span class="badge badge-success">Aktif</span>

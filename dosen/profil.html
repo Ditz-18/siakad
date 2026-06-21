@@ -53,11 +53,12 @@
         <!-- Kiri -->
         <div class="profil-left-card">
           <div class="profil-top">
-            <div class="profil-avatar-wrap"><i class="fa-solid fa-chalkboard-user"></i></div>
+            <div class="profil-avatar-wrap" id="profil-avatar-wrap"><i class="fa-solid fa-chalkboard-user"></i></div>
             <h3 id="pl-nama">—</h3>
             <p id="pl-jabatan">—</p>
             <p style="margin-top:4px"><span class="badge" style="background:rgba(212,160,23,0.2);color:#E8BB40;border:1px solid rgba(212,160,23,0.3)"><i class="fa-solid fa-circle-check"></i> Aktif</span></p>
-            <button class="profil-foto-btn" onclick="showToast('info','Fitur Upload','Tersedia di Stage 2')"><i class="fa-solid fa-camera"></i> Ubah Foto</button>
+            <input type="file" id="input-foto-profil" accept="image/jpeg,image/png,image/jpg" style="display:none" onchange="uploadFotoProfil(this)">
+            <button class="profil-foto-btn" onclick="document.getElementById('input-foto-profil').click()"><i class="fa-solid fa-camera"></i> Ubah Foto</button>
           </div>
           <div class="profil-menu">
             <a class="profil-menu-item" href="dashboard.html"><i class="fa-solid fa-house"></i> Dashboard</a>
@@ -163,6 +164,16 @@ async function loadProfil() {
   if (!res || !res.ok) { showToast('danger','Error','Gagal memuat profil'); return; }
   const dosen = res.data.data;
 
+  // Tampilkan foto profil jika ada
+  if (dosen.foto) {
+    const avatarWrap = document.getElementById('profil-avatar-wrap');
+    if (avatarWrap) {
+      const fotoUrl = dosen.foto.startsWith('http') ? dosen.foto :
+        (API_BASE.replace('/api','') + '/storage/' + dosen.foto);
+      avatarWrap.innerHTML = `<img src="${fotoUrl}" alt="Foto Profil" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+    }
+  }
+
   // Hero
   const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val || '—'; };
   setEl('pl-nama',    dosen.nama);
@@ -244,6 +255,29 @@ async function gantiPassword(e) {
     if (el) { el.textContent = res?.data?.message || 'Kata sandi lama tidak sesuai.'; el.classList.remove('d-none'); }
   }
 }
+async function uploadFotoProfil(input) {
+  const file = input.files?.[0];
+  if (!file) return;
+
+  if (file.size > 2 * 1024 * 1024) {
+    showToast('warning','Validasi','Ukuran foto maksimal 2MB'); input.value = ''; return;
+  }
+
+  showToast('info','Mengunggah','Sedang mengunggah foto profil...');
+  const res = await DosenAPI.uploadFotoProfil(file);
+
+  if (res && res.ok) {
+    showToast('success','Berhasil','Foto profil berhasil diperbarui');
+    const avatarWrap = document.getElementById('profil-avatar-wrap');
+    if (avatarWrap && res.data.data?.foto_url) {
+      avatarWrap.innerHTML = `<img src="${res.data.data.foto_url}" alt="Foto Profil" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+    }
+  } else {
+    showToast('danger','Gagal', res?.data?.message || 'Gagal mengunggah foto');
+  }
+  input.value = '';
+}
+
 loadProfil();
 </script>
 </body>

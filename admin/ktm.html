@@ -90,6 +90,7 @@
   <div class="more-menu-grid">
     <a class="more-menu-item" href="data-dosen.html"><i class="fa-solid fa-chalkboard-teacher"></i>Data Dosen</a>
     <a class="more-menu-item" href="mata-kuliah.html"><i class="fa-solid fa-book"></i>Mata Kuliah</a>
+    <a class="more-menu-item" href="kelas.html"><i class="fa-solid fa-chalkboard"></i>Kelas</a>
     <a class="more-menu-item" href="kelola-ujian.html"><i class="fa-solid fa-file-alt"></i>Ujian</a>
     <a class="more-menu-item" href="pembayaran.html"><i class="fa-solid fa-credit-card"></i>Pembayaran</a>
     <a class="more-menu-item" href="pengumuman.html"><i class="fa-solid fa-bullhorn"></i>Pengumuman</a>
@@ -125,11 +126,12 @@ async function loadKTM() {
   if (!res || !res.ok) { showToast('danger','Error','Gagal memuat data KTM'); return; }
   ktmList = (res.data.data?.data || res.data.data || []).map(m => ({
     ...m,
-    ktmStatus: 'Aktif',
-    berlakuHingga: '2025-08-31'
+    ktmStatus: m.ktm_aktif ? 'Aktif' : 'Belum Digenerate',
+    berlakuHingga: m.ktm_berlaku_hingga || null,
   }));
   // Update stat cards
-  document.querySelector('.stat-card:nth-child(1) .stat-card-value').textContent = ktmList.length;
+  const aktifCount = ktmList.filter(m => m.ktm_aktif).length;
+  document.querySelector('.stat-card:nth-child(1) .stat-card-value').textContent = aktifCount;
   renderTabel(ktmList);
 }
 
@@ -153,11 +155,13 @@ function renderTabel(list) {
       <td><strong>${escHTML(m.nama)}</strong></td>
       <td style="font-size:0.8375rem">${escHTML(m.program_studi?.nama || '—')}</td>
       <td>${m.angkatan}</td>
-      <td><span class="badge badge-success">${m.ktmStatus}</span></td>
+      <td><span class="badge ${m.ktm_aktif ? 'badge-success' : 'badge-muted'}">${m.ktmStatus}</span></td>
       <td>${m.berlakuHingga ? formatTanggal(m.berlakuHingga,'pendek') : '—'}</td>
       <td>
         <div class="table-actions">
-          <button class="btn btn-outline btn-sm" onclick="generateSatu(${m.id},'${escHTML(m.nim)}')"><i class="fa-solid fa-circle-play"></i> Generate</button>
+          <button class="btn btn-outline btn-sm" onclick="generateSatu(${m.id},'${escHTML(m.nim)}')">
+            <i class="fa-solid fa-circle-play"></i> ${m.ktm_aktif ? 'Perpanjang' : 'Generate'}
+          </button>
         </div>
       </td>
     </tr>`).join('');
@@ -165,15 +169,32 @@ function renderTabel(list) {
 
 async function generateSatu(id, nim) {
   const res = await AdminAPI.generateKtm(id);
-  if (res && res.ok) showToast('success','KTM Digenerate',`KTM untuk ${nim} berhasil digenerate`);
-  else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+  if (res && res.ok) {
+    showToast('success','KTM Digenerate',`KTM untuk ${nim} berhasil digenerate`);
+    loadKTM(); // real-time update
+  } else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
 }
 
-function generateMassal() {
+async function generateMassal() {
   const berlaku = document.getElementById('gen-berlaku').value;
   if (!berlaku) { showToast('warning','Validasi','Pilih tanggal berlaku hingga'); return; }
+
+  const btn = document.querySelector('#modal-generate-massal .btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = `Memproses 0/${ktmList.length}...`; }
+
+  let sukses = 0, gagal = 0;
+  for (let i = 0; i < ktmList.length; i++) {
+    const m = ktmList[i];
+    const res = await AdminAPI.generateKtm(m.id, berlaku);
+    if (res && res.ok) sukses++; else gagal++;
+    if (btn) btn.textContent = `Memproses ${i + 1}/${ktmList.length}...`;
+  }
+
+  if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Generate Semua'; }
   hideModal('modal-generate-massal');
-  showToast('success','Generate Berhasil',`${ktmList.length} KTM berhasil digenerate`);
+  showToast(gagal === 0 ? 'success' : 'warning', 'Generate Selesai',
+    `${sukses} KTM berhasil digenerate${gagal > 0 ? `, ${gagal} gagal` : ''}`);
+  loadKTM(); // real-time update
 }
 
 function eksporKTMCSV() {

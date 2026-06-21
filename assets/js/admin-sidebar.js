@@ -4,6 +4,9 @@
    ================================================================ */
 (function() {
   const currentPage = window.location.pathname.split('/').pop();
+  const session     = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+  const namaSb      = session?.profil?.nama || session?.username || 'Admin';
+  const subSb       = session?.profil?.jabatan || 'Administrator';
   const nav = [
     { label:'Utama', type:'section' },
     { href:'dashboard.html',    icon:'fa-house',            label:'Dashboard' },
@@ -11,6 +14,7 @@
     { href:'data-mahasiswa.html',icon:'fa-user-graduate',   label:'Data Mahasiswa' },
     { href:'data-dosen.html',   icon:'fa-chalkboard-user',  label:'Data Dosen' },
     { href:'mata-kuliah.html',  icon:'fa-book',             label:'Mata Kuliah' },
+    { href:'kelas.html',        icon:'fa-chalkboard',       label:'Kelas' },
     { href:'semester.html',     icon:'fa-calendar-check',   label:'Kelola Semester' },
     { label:'Akademik', type:'section' },
     { href:'kelola-ujian.html', icon:'fa-file-circle-check',label:'Kelola Ujian' },
@@ -44,8 +48,8 @@
       <div class="sidebar-profile" id="sidebar-profile-btn">
         <div class="sidebar-avatar" style="background:var(--danger);color:white"><i class="fa-solid fa-user-shield"></i></div>
         <div class="sidebar-profile-info">
-          <strong>Siska Permatasari</strong>
-          <small>Kepala Bagian Akademik</small>
+          <strong id="sb-nama">Admin</strong>
+          <small id="sb-sub">Administrator</small>
         </div>
         <i class="fa-solid fa-chevron-up sidebar-profile-chevron"></i>
       </div>
@@ -58,4 +62,18 @@
 
   const target = document.getElementById('admin-sidebar-placeholder');
   if (target) target.outerHTML = html;
+})();
+
+// Update nama setelah sidebar diinject
+(function updateAdminSidebarName() {
+  const session = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+  if (!session) return;
+  const nama = session?.profil?.nama || session?.username || 'Admin';
+  const sub  = session?.profil?.jabatan || 'Administrator';
+  requestAnimationFrame(() => {
+    const elNama = document.getElementById('sb-nama');
+    const elSub  = document.getElementById('sb-sub');
+    if (elNama) elNama.textContent = nama;
+    if (elSub)  elSub.textContent  = sub;
+  });
 })();

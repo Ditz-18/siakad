@@ -218,7 +218,7 @@ function renderUjianList(list) {
         ${berlangsung
           ? `<button class="btn btn-primary btn-sm" onclick="bukaBriefing(${u.id})"><i class="fa-solid fa-play"></i> Kerjakan</button>`
           : selesai
-          ? `<button class="btn btn-outline btn-sm" onclick="showToast('info','Pembahasan','Fitur lihat pembahasan segera tersedia')"><i class="fa-solid fa-eye"></i> Lihat Pembahasan</button>`
+          ? `<a class="btn btn-outline btn-sm" href="ujian-pembahasan.html?id=${u.id}"><i class="fa-solid fa-eye"></i> Lihat Pembahasan</a>`
           : `<button class="btn btn-ghost btn-sm" disabled><i class="fa-solid fa-lock"></i> Belum Dimulai</button>`}
       </div>
     </div>`;

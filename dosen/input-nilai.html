@@ -138,11 +138,11 @@ let nilaiList = [];
 async function loadKelasOptions() {
   const res = await DosenAPI.kelas();
   if (!res || !res.ok) return;
-  const list = res.data.data || [];
+  const list = res.data.data?.kelas || [];
   const sel  = document.getElementById('select-kelas');
   if (!sel) return;
   sel.innerHTML = '<option value="">— Pilih Kelas —</option>' +
-    list.map(k => `<option value="${k.id}">${escHTML(k.mata_kuliah?.nama || '—')} (${k.kode_kelas})</option>`).join('');
+    list.map(k => `<option value="${k.id}">${escHTML(k.mata_kuliah || '—')} (${k.kode_kelas})</option>`).join('');
   // Auto-select dari URL param
   const params = new URLSearchParams(window.location.search);
   if (params.get('kelas')) { sel.value = params.get('kelas'); loadNilai(params.get('kelas')); }
@@ -207,6 +207,48 @@ async function updateNilai(nilaiId, tipe, val) {
     }
   }
 }
+// ── SIMPAN SEMUA NILAI ───────────────────────────────────────
+async function simpanSemuaNilai() {
+  if (!nilaiList.length) { showToast('warning','Tidak Ada Data','Belum ada data nilai untuk disimpan'); return; }
+
+  let sukses = 0, gagal = 0;
+  for (const n of nilaiList) {
+    const data = {
+      nilai_tugas: n.nilai_tugas, nilai_uts: n.nilai_uts, nilai_uas: n.nilai_uas,
+    };
+    const res = await DosenAPI.updateNilai(selectedKelasId, n.id, data);
+    if (res && res.ok) { Object.assign(n, res.data.data); sukses++; } else gagal++;
+  }
+
+  renderNilai(nilaiList);
+  showToast(gagal === 0 ? 'success' : 'warning', 'Selesai',
+    `${sukses} nilai berhasil disimpan${gagal > 0 ? `, ${gagal} gagal` : ''}`);
+}
+
+// ── EXPORT ───────────────────────────────────────────────────
+function eksporNilaiCSV() {
+  if (!nilaiList.length) { showToast('warning','Tidak Ada Data','Belum ada data untuk diekspor'); return; }
+  const rows = [['NIM','Nama','Tugas','UTS','UAS','Nilai Akhir','Grade','Status']];
+  nilaiList.forEach(n => {
+    rows.push([
+      n.mahasiswa?.nim || '—', n.mahasiswa?.nama || '—',
+      n.nilai_tugas ?? '—', n.nilai_uts ?? '—', n.nilai_uas ?? '—',
+      n.nilai_akhir ?? '—', n.grade || '—', n.status || '—',
+    ]);
+  });
+  const csv  = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'Nilai-' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click(); URL.revokeObjectURL(url);
+  showToast('success','Berhasil','File CSV berhasil diunduh');
+}
+
+function eksporNilaiPDF() {
+  window.print();
+}
+
 loadKelasOptions();
 </script>
 </body>

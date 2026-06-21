@@ -50,7 +50,7 @@
       </div>
       <div class="flex gap-8 mb-20 flex-wrap" id="kelas-chips"></div>
       <div class="flex gap-8 mb-20">
-        <button class="btn btn-primary" data-modal-target="modal-catat-pertemuan">
+        <button class="btn btn-primary" onclick="bukaModalCatatPertemuan()">
           <i class="fa-solid fa-plus"></i> Catat Pertemuan Baru
         </button>
         <div style="font-size:0.8125rem;color:var(--text-muted);display:flex;align-items:center;gap:8px">
@@ -135,11 +135,11 @@ let absensiList = [];
 async function loadKelasOptions() {
   const res = await DosenAPI.kelas();
   if (!res || !res.ok) return;
-  const list = res.data.data || [];
+  const list = res.data.data?.kelas || [];
   const sel  = document.getElementById('select-kelas');
   if (!sel) return;
   sel.innerHTML = '<option value="">— Pilih Kelas —</option>' +
-    list.map(k => `<option value="${k.id}">${escHTML(k.mata_kuliah?.nama || '—')} (${k.kode_kelas})</option>`).join('');
+    list.map(k => `<option value="${k.id}">${escHTML(k.mata_kuliah || '—')} (${k.kode_kelas})</option>`).join('');
   const params = new URLSearchParams(window.location.search);
   if (params.get('kelas')) { sel.value = params.get('kelas'); loadAbsensi(params.get('kelas')); }
   sel.addEventListener('change', () => { if (sel.value) loadAbsensi(sel.value); });
@@ -207,6 +207,72 @@ async function simpanAbsensi(absensiId) {
     loadAbsensi(selectedKelasId);
   } else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
 }
+// ── CATAT PERTEMUAN BARU ─────────────────────────────────────
+function bukaModalCatatPertemuan() {
+  if (!selectedKelasId) { showToast('warning','Pilih Kelas','Pilih kelas terlebih dahulu'); return; }
+  if (!absensiList.length) { showToast('warning','Tidak Ada Data','Belum ada mahasiswa terdaftar di kelas ini'); return; }
+
+  document.getElementById('input-tgl-pertemuan').value = new Date().toISOString().slice(0,10);
+
+  document.getElementById('tbody-catat').innerHTML = absensiList.map(a => `
+    <tr>
+      <td class="font-mono" style="font-size:0.8rem">${escHTML(a.nim)}</td>
+      <td>${escHTML(a.mahasiswa)}</td>
+      <td>
+        <select class="form-control" data-mhs-id="${a.mahasiswa_id}" style="width:auto">
+          <option value="Hadir" selected>Hadir</option>
+          <option value="Izin">Izin</option>
+          <option value="Sakit">Sakit</option>
+          <option value="Alpha">Alpha</option>
+        </select>
+      </td>
+    </tr>
+  `).join('');
+
+  showModal('modal-catat-pertemuan');
+}
+
+async function simpanPertemuan() {
+  const tanggal = document.getElementById('input-tgl-pertemuan')?.value;
+  if (!tanggal) { showToast('warning','Validasi','Pilih tanggal pertemuan'); return; }
+
+  const kehadiran = Array.from(document.querySelectorAll('#tbody-catat select')).map(sel => ({
+    mahasiswa_id: parseInt(sel.dataset.mhsId),
+    status: sel.value,
+  }));
+
+  if (!kehadiran.length) { showToast('warning','Tidak Ada Data','Tidak ada mahasiswa untuk dicatat'); return; }
+
+  const res = await DosenAPI.catatPertemuan(selectedKelasId, tanggal, kehadiran);
+  if (res && res.ok) {
+    hideModal('modal-catat-pertemuan');
+    showToast('success','Tersimpan', res.data.message || 'Kehadiran pertemuan berhasil dicatat');
+    loadAbsensi(selectedKelasId); // real-time update — rekap langsung terbarui
+  } else {
+    showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+  }
+}
+
+// ── EXPORT ───────────────────────────────────────────────────
+function eksporAbsensiCSV() {
+  if (!absensiList.length) { showToast('warning','Tidak Ada Data','Belum ada data untuk diekspor'); return; }
+  const rows = [['NIM','Nama','Total Pertemuan','Hadir','Izin','Sakit','Alpha','Persentase']];
+  absensiList.forEach(a => {
+    rows.push([a.nim, a.mahasiswa, a.total_pertemuan, a.hadir, a.izin, a.sakit, a.alpha, a.persentase + '%']);
+  });
+  const csv  = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'Absensi-' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click(); URL.revokeObjectURL(url);
+  showToast('success','Berhasil','File CSV berhasil diunduh');
+}
+
+function eksporAbsensiPDF() {
+  window.print();
+}
+
 loadKelasOptions();
 </script>
 </body>

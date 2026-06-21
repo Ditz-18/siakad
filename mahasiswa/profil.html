@@ -65,11 +65,12 @@
         <!-- Kiri -->
         <div class="profil-left-card">
           <div class="profil-top">
-            <div class="profil-avatar-wrap"><i class="fa-solid fa-user"></i></div>
+            <div class="profil-avatar-wrap" id="profil-avatar-wrap"><i class="fa-solid fa-user"></i></div>
             <h3 id="pl-nama">—</h3>
             <p id="pl-nim">—</p>
             <p style="margin-top:4px"><span class="badge" style="background:rgba(200,146,42,0.2);color:#DFB050;border:1px solid rgba(200,146,42,0.3)"><i class="fa-solid fa-circle-check"></i> Aktif</span></p>
-            <button class="profil-foto-btn" onclick="showToast('info','Fitur Upload','Fitur upload foto akan tersedia di Stage 2')"><i class="fa-solid fa-camera"></i> Ubah Foto</button>
+            <input type="file" id="input-foto-profil" accept="image/jpeg,image/png,image/jpg" style="display:none" onchange="uploadFotoProfil(this)">
+            <button class="profil-foto-btn" onclick="document.getElementById('input-foto-profil').click()"><i class="fa-solid fa-camera"></i> Ubah Foto</button>
           </div>
           <div class="profil-menu">
             <a class="profil-menu-item" href="dashboard.html"><i class="fa-solid fa-house"></i> Dashboard</a>
@@ -214,10 +215,28 @@
 const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
 if (!_s || _s.role !== 'mahasiswa') window.location.href = '../auth/login.html';
 
+function switchTab(tab, el) {
+  document.querySelectorAll('#profil-tabs .tab-item').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  const target = document.getElementById('tab-' + tab);
+  if (target) target.classList.add('active');
+}
+
 async function loadProfil() {
   const res = await MahasiswaAPI.profil();
   if (!res || !res.ok) { showToast('danger','Error','Gagal memuat data profil'); return; }
   const m = res.data.data;
+
+  // Tampilkan foto profil jika ada
+  if (m.foto) {
+    const avatarWrap = document.getElementById('profil-avatar-wrap');
+    if (avatarWrap) {
+      const fotoUrl = m.foto.startsWith('http') ? m.foto :
+        (API_BASE.replace('/api','') + '/storage/' + m.foto);
+      avatarWrap.innerHTML = `<img src="${fotoUrl}" alt="Foto Profil" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+    }
+  }
 
   // Akademik (read only) — pakai ID yang ada di HTML
   const roMap = {
@@ -355,6 +374,29 @@ async function gantiPassword(e) {
     const el = document.getElementById('err-pass-lama');
     if (el) { el.textContent = res?.data?.message || 'Kata sandi lama tidak sesuai.'; el.classList.remove('d-none'); }
   }
+}
+
+async function uploadFotoProfil(input) {
+  const file = input.files?.[0];
+  if (!file) return;
+
+  if (file.size > 2 * 1024 * 1024) {
+    showToast('warning','Validasi','Ukuran foto maksimal 2MB'); input.value = ''; return;
+  }
+
+  showToast('info','Mengunggah','Sedang mengunggah foto profil...');
+  const res = await MahasiswaAPI.uploadFotoProfil(file);
+
+  if (res && res.ok) {
+    showToast('success','Berhasil','Foto profil berhasil diperbarui');
+    const avatarWrap = document.getElementById('profil-avatar-wrap');
+    if (avatarWrap && res.data.data?.foto_url) {
+      avatarWrap.innerHTML = `<img src="${res.data.data.foto_url}" alt="Foto Profil" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+    }
+  } else {
+    showToast('danger','Gagal', res?.data?.message || 'Gagal mengunggah foto');
+  }
+  input.value = '';
 }
 
 loadProfil();

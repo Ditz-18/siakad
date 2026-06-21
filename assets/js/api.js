@@ -30,8 +30,9 @@ function clearSession() {
 /* ── HELPER: fetch wrapper dengan auth header ── */
 async function apiFetch(endpoint, options = {}) {
   const token = getToken();
+  const isFormData = options.body instanceof FormData;
   const headers = {
-    'Content-Type': 'application/json',
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     'Accept': 'application/json',
     ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
     ...(options.headers || {}),
@@ -223,10 +224,23 @@ const MahasiswaAPI = {
     });
   },
 
+  async pembahasanUjian(ujianId) {
+    return apiFetch(`/mahasiswa/ujian/${ujianId}/pembahasan`);
+  },
+
   async gantiPassword(data) {
     return apiFetch('/mahasiswa/profil/password', {
       method: 'PUT',
       body: JSON.stringify(data),
+    });
+  },
+
+  async uploadFotoProfil(file) {
+    const formData = new FormData();
+    formData.append('foto', file);
+    return apiFetch('/mahasiswa/profil/foto', {
+      method: 'POST',
+      body: formData,
     });
   },
 };
@@ -274,6 +288,13 @@ const DosenAPI = {
     return apiFetch(`/dosen/kelas/${kelasId}/absensi/${absensiId}`, {
       method: 'PUT',
       body: JSON.stringify(data),
+    });
+  },
+
+  async catatPertemuan(kelasId, tanggal, kehadiran) {
+    return apiFetch(`/dosen/kelas/${kelasId}/absensi/catat-pertemuan`, {
+      method: 'POST',
+      body: JSON.stringify({ tanggal, kehadiran }),
     });
   },
 
@@ -343,6 +364,15 @@ const DosenAPI = {
     });
   },
 
+  async uploadFotoProfil(file) {
+    const formData = new FormData();
+    formData.append('foto', file);
+    return apiFetch('/dosen/profil/foto', {
+      method: 'POST',
+      body: formData,
+    });
+  },
+
   async tambahCatatan(mahasiswaId, data) {
     return apiFetch(`/dosen/bimbingan/${mahasiswaId}/catatan`, {
       method: 'POST',
@@ -372,6 +402,10 @@ const DosenAPI = {
     return apiFetch(`/dosen/ujian/${ujianId}/soal/${soalId}`, {
       method: 'DELETE',
     });
+  },
+
+  async hasilUjian(ujianId) {
+    return apiFetch(`/dosen/ujian/${ujianId}/hasil`);
   },
 };
 
@@ -458,6 +492,34 @@ const AdminAPI = {
 
   async hapusMataKuliah(id) {
     return apiFetch(`/admin/mata-kuliah/${id}`, { method: 'DELETE' });
+  },
+
+  // Kelas (jadwal kuliah)
+  async kelas(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    return apiFetch(`/admin/kelas${query ? '?' + query : ''}`);
+  },
+
+  async detailKelas(id) {
+    return apiFetch(`/admin/kelas/${id}`);
+  },
+
+  async tambahKelas(data) {
+    return apiFetch('/admin/kelas', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async updateKelas(id, data) {
+    return apiFetch(`/admin/kelas/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async hapusKelas(id) {
+    return apiFetch(`/admin/kelas/${id}`, { method: 'DELETE' });
   },
 
   // Semester
@@ -555,8 +617,11 @@ const AdminAPI = {
     return apiFetch(`/admin/ktm/${mahasiswaId}`);
   },
 
-  async generateKtm(mahasiswaId) {
-    return apiFetch(`/admin/ktm/${mahasiswaId}/generate`, { method: 'POST' });
+  async generateKtm(mahasiswaId, berlakuHingga = null) {
+    return apiFetch(`/admin/ktm/${mahasiswaId}/generate`, {
+      method: 'POST',
+      body: JSON.stringify(berlakuHingga ? { berlaku_hingga: berlakuHingga } : {}),
+    });
   },
 
   // Laporan

@@ -131,6 +131,7 @@
   <div class="more-menu-grid">
     <a class="more-menu-item" href="data-dosen.html"><i class="fa-solid fa-chalkboard-teacher"></i>Data Dosen</a>
     <a class="more-menu-item" href="mata-kuliah.html"><i class="fa-solid fa-book"></i>Mata Kuliah</a>
+    <a class="more-menu-item" href="kelas.html"><i class="fa-solid fa-chalkboard"></i>Kelas</a>
     <a class="more-menu-item" href="kelola-ujian.html"><i class="fa-solid fa-file-alt"></i>Ujian</a>
     <a class="more-menu-item" href="pembayaran.html"><i class="fa-solid fa-credit-card"></i>Pembayaran</a>
     <a class="more-menu-item" href="pengumuman.html"><i class="fa-solid fa-bullhorn"></i>Pengumuman</a>
@@ -283,6 +284,14 @@ async function editMhs(id) {
   const res = await AdminAPI.detailMahasiswa(id);
   if (!res || !res.ok) { showToast('danger','Error','Gagal memuat data'); return; }
   const m = res.data.data;
+
+  // Generate dropdown semester 1-14 (statis, bukan dari API)
+  const selSem = document.getElementById('edit-mhs-semester');
+  if (selSem) {
+    selSem.innerHTML = Array.from({ length: 14 }, (_, i) => i + 1)
+      .map(n => `<option value="${n}">Semester ${n}</option>`).join('');
+  }
+
   document.getElementById('edit-mhs-id').value       = m.id;
   document.getElementById('edit-mhs-nama').value     = m.nama || '';
   document.getElementById('edit-mhs-status').value   = m.status || 'Aktif';
@@ -336,9 +345,7 @@ async function simpanEditMhs() {
           </select>
         </div>
         <div class="form-group"><label class="form-label">Semester</label>
-          <select class="form-control" id="edit-mhs-semester">
-            ${[1,2,3,4,5,6,7,8,9,10,11,12,13,14].map(n=>`<option value="${n}">Semester ${n}</option>`).join('')}
-          </select>
+          <select class="form-control" id="edit-mhs-semester"></select>
         </div>
         <div class="form-group"><label class="form-label">Angkatan</label><input type="number" class="form-control" id="edit-mhs-angkatan" min="2000" max="2030"></div>
         <div class="form-group"><label class="form-label">No. HP</label><input type="tel" class="form-control" id="edit-mhs-hp" placeholder="08xxxxxxxxxx"></div>

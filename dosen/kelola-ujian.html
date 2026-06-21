@@ -82,14 +82,19 @@
                   <label class="form-label">Pilih Kelas <span class="required">*</span></label>
                   <select class="form-control" id="ujian-kelas">
                     <option value="">— Pilih kelas —</option>
-                    <option value="KLS-001">Kecerdasan Buatan — IF-7A</option>
-                    <option value="KLS-002">Seminar Proposal — IF-7B</option>
-                    <option value="KLS-003">Skripsi — IF-8A</option>
                   </select>
                 </div>
                 <div class="form-group">
                   <label class="form-label">Nama Ujian <span class="required">*</span></label>
                   <input type="text" class="form-control" id="ujian-nama" placeholder="Contoh: UTS Kecerdasan Buatan">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Tipe Ujian <span class="required">*</span></label>
+                  <select class="form-control" id="ujian-tipe">
+                    <option value="Kuis">Kuis</option>
+                    <option value="UTS">UTS</option>
+                    <option value="UAS">UAS</option>
+                  </select>
                 </div>
                 <div class="form-group">
                   <label class="form-label">Tanggal & Waktu Mulai <span class="required">*</span></label>
@@ -99,13 +104,17 @@
                   <label class="form-label">Durasi (menit) <span class="required">*</span></label>
                   <input type="number" class="form-control" id="ujian-durasi" placeholder="Contoh: 90" min="15" max="240">
                 </div>
+                <div class="form-group">
+                  <label class="form-label">Maks. Pelanggaran <span class="required">*</span></label>
+                  <input type="number" class="form-control" id="ujian-max-pel" value="3" min="1" max="10">
+                </div>
                 <div class="form-group" style="grid-column:1/-1">
                   <label class="form-label">Deskripsi <span style="color:var(--text-muted);font-weight:400">(opsional)</span></label>
                   <textarea class="form-control" id="ujian-deskripsi" rows="2" placeholder="Materi yang diujikan, catatan untuk mahasiswa..."></textarea>
                 </div>
               </div>
               <div class="flex" style="justify-content:flex-end;margin-top:8px">
-                <button class="btn btn-primary" onclick="goStep(2)">Lanjut: Input Soal <i class="fa-solid fa-arrow-right"></i></button>
+                <button class="btn btn-primary" onclick="gotoStep2()">Lanjut: Input Soal <i class="fa-solid fa-arrow-right"></i></button>
               </div>
             </div>
             <!-- Step 2: Soal -->
@@ -232,6 +241,7 @@ function renderUjian(list) {
       <td>
         <div class="table-actions">
           <button class="btn btn-ghost btn-sm" onclick="kelolasoal(${u.id})" title="Kelola Soal"><i class="fa-solid fa-list-ol"></i> Soal</button>
+          ${u.status==='Selesai'?`<button class="btn btn-outline btn-sm" onclick="lihatHasil(${u.id},'${escHTML(u.nama)}')"><i class="fa-solid fa-chart-simple"></i> Hasil</button>`:''}
           ${u.status==='Draft'?`
             <button class="btn btn-ghost btn-icon btn-sm" onclick="editUjian(${u.id})" title="Edit"><i class="fa-solid fa-pen"></i></button>
             <button class="btn btn-outline-danger btn-icon btn-sm" onclick="hapusUjian(${u.id})" title="Hapus"><i class="fa-solid fa-trash"></i></button>`:''}
@@ -240,24 +250,182 @@ function renderUjian(list) {
       </td>
     </tr>`).join('');
 }
-async function simpanUjian() {
+// ── WIZARD BUAT UJIAN ────────────────────────────────────────────
+let draftUjianId  = null; // id ujian yang baru dibuat (status Draft) selama wizard berjalan
+let soalFormList  = [];   // daftar soal yang sedang diinput di step 2
+
+function showBuatUjian() {
+  document.getElementById('ujian-dosen-list').parentElement.style.display = 'none';
+  document.getElementById('view-buat-ujian').style.display = '';
+  resetWizard();
+  loadKelasUntukWizard();
+}
+
+function showListUjian() {
+  document.getElementById('view-buat-ujian').style.display = 'none';
+  document.getElementById('ujian-dosen-list').parentElement.style.display = '';
+  loadUjian();
+}
+
+function resetWizard() {
+  draftUjianId = null;
+  soalFormList = [];
+  ['ujian-kelas','ujian-nama','ujian-tanggal','ujian-durasi','ujian-deskripsi'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('ujian-max-pel').value = 3;
+  document.getElementById('ujian-tipe').value = 'Kuis';
+  goStep(1);
+}
+
+async function loadKelasUntukWizard() {
+  const sel = document.getElementById('ujian-kelas');
+  sel.innerHTML = '<option value="">Memuat kelas...</option>';
+  const res = await DosenAPI.kelas();
+  if (!res || !res.ok) { sel.innerHTML = '<option value="">Gagal memuat kelas</option>'; return; }
+  const list = res.data.data?.kelas || [];
+  if (!list.length) { sel.innerHTML = '<option value="">Tidak ada kelas tersedia</option>'; return; }
+  sel.innerHTML = '<option value="">— Pilih kelas —</option>' +
+    list.map(k => `<option value="${k.id}">${escHTML(k.mata_kuliah)} — ${escHTML(k.kode_kelas)}</option>`).join('');
+}
+
+function goStep(step) {
+  for (let i = 1; i <= 3; i++) {
+    document.getElementById('step-content-' + i).style.display = i === step ? '' : 'none';
+    document.getElementById('step-' + i).classList.toggle('active', i === step);
+    document.getElementById('sc-' + i).classList.toggle('active', i <= step);
+  }
+  if (step === 2) renderSoalForm();
+  if (step === 3) renderKonfirmasi();
+}
+
+async function gotoStep2() {
   const kelasId = document.getElementById('ujian-kelas')?.value;
   const nama    = document.getElementById('ujian-nama')?.value.trim();
   const tipe    = document.getElementById('ujian-tipe')?.value;
+  const tanggal = document.getElementById('ujian-tanggal')?.value;
   const durasi  = parseInt(document.getElementById('ujian-durasi')?.value);
-  const mulai   = document.getElementById('ujian-mulai')?.value;
-  const selesai = document.getElementById('ujian-selesai')?.value;
   const maxPel  = parseInt(document.getElementById('ujian-max-pel')?.value) || 3;
-  if (!kelasId||!nama||!tipe||!durasi||!mulai||!selesai) {
-    showToast('warning','Validasi','Lengkapi semua field'); return;
+
+  if (!kelasId || !nama || !tanggal || !durasi) {
+    showToast('warning','Validasi','Lengkapi semua field wajib'); return;
   }
-  const res = await DosenAPI.buatUjian({ nama, kelas_id: parseInt(kelasId), tipe, durasi, mulai_at: mulai, selesai_at: selesai, max_pelanggaran: maxPel });
-  if (res && res.ok) {
-    const modal = document.querySelector('.modal-backdrop.open');
-    if (modal) hideModal(modal.id);
-    showToast('success','Berhasil','Ujian berhasil dibuat');
-    loadUjian();
-  } else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+
+  // Buat ujian sebagai Draft jika belum dibuat sebelumnya di sesi wizard ini
+  if (!draftUjianId) {
+    const mulaiDate   = new Date(tanggal);
+    const selesaiDate = new Date(mulaiDate.getTime() + durasi * 60000);
+    const res = await DosenAPI.buatUjian({
+      nama, kelas_id: parseInt(kelasId), tipe, durasi,
+      mulai_at: tanggal,
+      selesai_at: selesaiDate.toISOString().slice(0,16),
+      max_pelanggaran: maxPel,
+    });
+    if (!res || !res.ok) { showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan'); return; }
+    draftUjianId = res.data.data.id;
+  }
+
+  goStep(2);
+}
+
+function renderSoalForm() {
+  const container = document.getElementById('soal-list-form');
+  if (!soalFormList.length) {
+    container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted)">Belum ada soal. Klik "Tambah Soal" untuk mulai.</div>`;
+    return;
+  }
+  container.innerHTML = soalFormList.map((s, idx) => `
+    <div class="card mb-12" style="background:var(--bg-secondary)">
+      <div class="card-body" style="padding:14px 18px">
+        <div class="flex-between mb-8">
+          <strong style="font-size:0.85rem">Soal ${idx + 1}</strong>
+          <button class="btn btn-outline-danger btn-icon btn-sm" onclick="hapusSoalForm(${idx})"><i class="fa-solid fa-trash"></i></button>
+        </div>
+        <textarea class="form-control mb-8" rows="2" placeholder="Tulis pertanyaan..." onchange="updateSoalForm(${idx},'pertanyaan',this.value)">${escHTML(s.pertanyaan)}</textarea>
+        <div class="form-grid form-grid-2" style="gap:8px">
+          ${['A','B','C','D'].map(k => `
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-weight:700;min-width:16px">${k}.</span>
+              <input type="text" class="form-control" placeholder="Opsi ${k}" value="${escHTML(s.pilihan?.[k] || '')}" onchange="updateSoalPilihan(${idx},'${k}',this.value)">
+            </div>
+          `).join('')}
+        </div>
+        <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
+          <label style="font-size:0.8rem;color:var(--text-secondary)">Jawaban Benar:</label>
+          <select class="form-control" style="width:auto" onchange="updateSoalForm(${idx},'jawaban_benar',this.value)">
+            ${['A','B','C','D'].map(k => `<option value="${k}" ${s.jawaban_benar===k?'selected':''}>${k}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function tambahSoal() {
+  soalFormList.push({ pertanyaan: '', tipe: 'pilihan_ganda', pilihan: { A:'', B:'', C:'', D:'' }, jawaban_benar: 'A', bobot: 1 });
+  renderSoalForm();
+}
+
+function hapusSoalForm(idx) {
+  soalFormList.splice(idx, 1);
+  renderSoalForm();
+}
+
+function updateSoalForm(idx, field, value) {
+  if (soalFormList[idx]) soalFormList[idx][field] = value;
+}
+
+function updateSoalPilihan(idx, key, value) {
+  if (soalFormList[idx]) soalFormList[idx].pilihan[key] = value;
+}
+
+function renderKonfirmasi() {
+  document.getElementById('konfirm-nama').textContent    = document.getElementById('ujian-nama')?.value || '—';
+  document.getElementById('konfirm-kelas').textContent   = document.getElementById('ujian-kelas')?.selectedOptions[0]?.textContent || '—';
+  document.getElementById('konfirm-tanggal').textContent = document.getElementById('ujian-tanggal')?.value
+    ? formatTanggal(document.getElementById('ujian-tanggal').value, 'panjang') : '—';
+  document.getElementById('konfirm-durasi').textContent  = (document.getElementById('ujian-durasi')?.value || '—') + ' menit';
+  document.getElementById('konfirm-soal').textContent    = soalFormList.length + ' soal';
+}
+
+async function simpanUjian(mode) {
+  if (!draftUjianId) { showToast('danger','Error','Ujian belum dibuat. Ulangi dari Step 1.'); return; }
+
+  if (!soalFormList.length) {
+    showToast('warning','Validasi','Tambahkan minimal 1 soal sebelum menyimpan'); return;
+  }
+
+  // Validasi semua soal terisi lengkap
+  for (const s of soalFormList) {
+    if (!s.pertanyaan.trim() || !s.pilihan.A || !s.pilihan.B || !s.pilihan.C || !s.pilihan.D) {
+      showToast('warning','Validasi','Lengkapi semua pertanyaan dan pilihan jawaban'); return;
+    }
+  }
+
+  // Kirim semua soal ke backend satu per satu
+  for (const s of soalFormList) {
+    const pilihanArr = ['A','B','C','D'].map(k => ({ key: k, teks: s.pilihan[k] }));
+    const res = await DosenAPI.tambahSoal(draftUjianId, {
+      pertanyaan: s.pertanyaan,
+      tipe: 'pilihan_ganda',
+      pilihan: pilihanArr,
+      jawaban_benar: s.jawaban_benar,
+      bobot: s.bobot,
+    });
+    if (!res || !res.ok) {
+      showToast('danger','Gagal Menyimpan Soal', res?.data?.message || 'Terjadi kesalahan'); return;
+    }
+  }
+
+  // Jika mode jadwal, ubah status jadi Berlangsung-ready (tetap Draft sampai waktunya, status diatur otomatis nanti)
+  if (mode === 'jadwal') {
+    showToast('success','Ujian Dijadwalkan','Ujian beserta soal berhasil disimpan dan siap dijadwalkan');
+  } else {
+    showToast('success','Draft Disimpan','Ujian beserta soal berhasil disimpan sebagai draft');
+  }
+
+  showListUjian();
+}
 }
 async function hapusUjian(id) {
   konfirmasi('Yakin ingin menghapus ujian ini? Hanya ujian berstatus Draft yang bisa dihapus.', async () => {
@@ -434,7 +602,56 @@ async function hapusSoalItem(id) {
 }
 
 function lihatLog(id) { window.location.href = `kelola-ujian.html?log=${id}`; }
+
+// ── HASIL UJIAN ──────────────────────────────────────────────
+let hasilUjianData = null;
+
+async function lihatHasil(ujianId, nama) {
+  document.getElementById('modal-hasil-judul').textContent = `Hasil Ujian — ${nama}`;
+  document.getElementById('modal-hasil-tbody').innerHTML =
+    `<tr><td colspan="6" style="text-align:center;padding:20px">Memuat data...</td></tr>`;
+  showModal('modal-hasil');
+
+  const res = await DosenAPI.hasilUjian(ujianId);
+  if (!res || !res.ok) {
+    document.getElementById('modal-hasil-tbody').innerHTML =
+      `<tr><td colspan="6" style="text-align:center;color:var(--danger)">Gagal memuat hasil ujian</td></tr>`;
+    return;
+  }
+
+  hasilUjianData = res.data.data;
+  const list = hasilUjianData.hasil || [];
+
+  if (!list.length) {
+    document.getElementById('modal-hasil-tbody').innerHTML =
+      `<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">Belum ada mahasiswa yang mengerjakan ujian ini</td></tr>`;
+    return;
+  }
+
+  document.getElementById('modal-hasil-tbody').innerHTML = list.map(h => `
+    <tr>
+      <td class="font-mono" style="font-size:0.8rem">${escHTML(h.nim)}</td>
+      <td>${escHTML(h.nama)}</td>
+      <td style="text-align:center"><strong>${h.nilai ?? '—'}</strong></td>
+      <td style="text-align:center">—</td>
+      <td><span class="badge ${h.status==='Selesai'?'badge-success':h.status==='Dibatalkan'?'badge-danger':'badge-muted'}">${h.status}</span></td>
+      <td style="text-align:center">${h.pelanggaran}</td>
+    </tr>
+  `).join('');
+}
+
+function eksporHasilUjianPDF() {
+  if (!hasilUjianData) { showToast('warning','Tidak Ada Data','Data hasil ujian belum dimuat'); return; }
+  window.print();
+}
 loadUjian();
+
+// Polling ringan agar status ujian (Berlangsung/Selesai) dan jumlah pelanggaran
+// ter-update otomatis tanpa refresh manual, hanya saat di tampilan daftar (bukan wizard)
+setInterval(() => {
+  const sedangWizard = document.getElementById('view-buat-ujian')?.style.display !== 'none';
+  if (!document.hidden && !sedangWizard) loadUjian();
+}, 30000);
 </script>
 
 <!-- Modal Edit Ujian -->

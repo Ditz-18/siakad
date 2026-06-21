@@ -66,7 +66,7 @@
           <select class="form-control" id="mk-sks"><option>1</option><option>2</option><option selected>3</option><option>4</option></select>
         </div>
         <div class="form-group"><label class="form-label">Semester Anjuran</label>
-          <select class="form-control" id="mk-sem">${[1,2,3,4,5,6,7,8].map(n=>`<option>${n}</option>`).join('')}</select>
+          <select class="form-control" id="mk-sem"></select>
         </div>
       </div>
       <div class="form-group mb-0"><label class="form-label">Program Studi</label>
@@ -89,7 +89,7 @@
         <table class="table"><thead><tr><th>Kode Kelas</th><th>Dosen Pengampu</th><th>Jadwal</th><th>Ruangan</th><th style="text-align:center">Kuota</th><th style="text-align:center">Terisi</th><th>Aksi</th></tr></thead>
         <tbody id="modal-kelas-tbody"></tbody></table>
       </div>
-      <button class="btn btn-outline btn-sm" onclick="showToast('info','Tambah Kelas','Form tambah kelas akan muncul')"><i class="fa-solid fa-plus"></i> Tambah Kelas Baru</button>
+      <button class="btn btn-outline btn-sm" onclick="bukaFormTambahKelasMK()"><i class="fa-solid fa-plus"></i> Tambah Kelas Baru</button>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost btn-sm" data-modal-close>Tutup</button></div>
   </div>
@@ -157,7 +157,7 @@ function renderMK(list) {
       <td><span class="badge badge-success">${mk.status}</span></td>
       <td>
         <div class="table-actions">
-          <button class="btn btn-outline btn-sm" onclick="bukaKelasMK('${mk.kode}','${escHTML(mk.nama)}')"><i class="fa-solid fa-chalkboard"></i> Kelas</button>
+          <button class="btn btn-outline btn-sm" onclick="bukaKelasMK(${mk.id},'${mk.kode}','${escHTML(mk.nama)}')"><i class="fa-solid fa-chalkboard"></i> Kelas</button>
           <button class="btn btn-ghost btn-icon btn-sm" title="Edit" onclick="editMK(${mk.id})"><i class="fa-solid fa-pen"></i></button>
           <button class="btn btn-outline-danger btn-icon btn-sm" title="Hapus" onclick="hapusMK(${mk.id})"><i class="fa-solid fa-trash"></i></button>
         </div>
@@ -165,10 +165,57 @@ function renderMK(list) {
     </tr>`).join('');
 }
 
-function bukaKelasMK(kode, nama) {
+let activeMkId = null;
+let activeMkNama = null;
+
+async function bukaKelasMK(id, kode, nama) {
+  activeMkId   = id;
+  activeMkNama = nama;
   document.getElementById('modal-kelas-judul').textContent = `Kelas — ${nama} (${kode})`;
-  document.getElementById('modal-kelas-tbody').innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted)">Data kelas tersedia di semester aktif</td></tr>`;
+  document.getElementById('modal-kelas-tbody').innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted)">Memuat data kelas...</td></tr>`;
   showModal('modal-kelas-mk');
+  await loadKelasMK();
+}
+
+async function loadKelasMK() {
+  if (!activeMkId) return;
+  const res = await AdminAPI.kelas({ mata_kuliah_id: activeMkId, per_page: 50 });
+  const tbody = document.getElementById('modal-kelas-tbody');
+  if (!res || !res.ok) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--danger)">Gagal memuat data kelas</td></tr>`;
+    return;
+  }
+  const list = res.data.data?.data || res.data.data || [];
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted)">Belum ada kelas untuk mata kuliah ini di semester aktif</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(k => `
+    <tr>
+      <td><strong>${escHTML(k.kode_kelas)}</strong></td>
+      <td>${escHTML(k.dosen?.nama || '—')}</td>
+      <td>${escHTML(k.hari)}, ${k.jam_mulai}–${k.jam_selesai}</td>
+      <td>${escHTML(k.ruangan || '—')}</td>
+      <td style="text-align:center">${k.kuota}</td>
+      <td style="text-align:center">${k.terisi ?? 0}</td>
+      <td>
+        <button class="btn btn-outline-danger btn-icon btn-sm" onclick="hapusKelasMK(${k.id})" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function hapusKelasMK(kelasId) {
+  konfirmasi('Yakin ingin menghapus kelas ini?', async () => {
+    const res = await AdminAPI.hapusKelas(kelasId);
+    if (res && res.ok) { showToast('success','Dihapus','Kelas berhasil dihapus'); loadKelasMK(); }
+    else showToast('danger','Gagal', res?.data?.message || 'Tidak dapat menghapus kelas ini');
+  });
+}
+
+function bukaFormTambahKelasMK() {
+  // Arahkan ke halaman Kelas dengan mata kuliah sudah terisi via query param
+  window.location.href = `kelas.html?mata_kuliah_id=${activeMkId}`;
 }
 
 async function hapusMK(id) {
@@ -202,8 +249,17 @@ function resetFilterMK() {
   loadMataKuliah();
 }
 
+// Generate dropdown semester anjuran 1-8 (statis)
+function populateSemesterAnjuran(selectId, selected = 1) {
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+  sel.innerHTML = Array.from({ length: 8 }, (_, i) => i + 1)
+    .map(n => `<option value="${n}" ${n == selected ? 'selected' : ''}>Semester ${n}</option>`).join('');
+}
+
 async function bukaModalTambahMK() {
   await loadProdiOptions('mk-prodi');
+  populateSemesterAnjuran('mk-sem');
   showModal('modal-tambah-mk');
 }
 
@@ -226,11 +282,11 @@ loadProdiFilter();
 function editMK(id) {
   const mk = mkList.find(x => x.id == id);
   if (!mk) { showToast('danger','Error','Data tidak ditemukan'); return; }
+  populateSemesterAnjuran('edit-mk-sem', mk.semester_anjuran || 1);
   document.getElementById('edit-mk-id').value     = mk.id;
   document.getElementById('edit-mk-kode').value   = mk.kode || '';
   document.getElementById('edit-mk-nama').value   = mk.nama || '';
   document.getElementById('edit-mk-sks').value    = mk.sks || 3;
-  document.getElementById('edit-mk-sem').value    = mk.semester_anjuran || 1;
   document.getElementById('edit-mk-status').value = mk.status || 'Aktif';
   showModal('modal-edit-mk');
 }
@@ -274,9 +330,7 @@ async function simpanEditMK() {
           </select>
         </div>
         <div class="form-group"><label class="form-label">Semester Anjuran</label>
-          <select class="form-control" id="edit-mk-sem">
-            ${[1,2,3,4,5,6,7,8].map(n=>`<option value="${n}">Semester ${n}</option>`).join('')}
-          </select>
+          <select class="form-control" id="edit-mk-sem"></select>
         </div>
       </div>
       <div class="form-group mb-0"><label class="form-label">Status</label>

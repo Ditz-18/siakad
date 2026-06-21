@@ -144,7 +144,7 @@
       <div class="card mb-24">
         <div class="card-header">
           <h3><i class="fa-solid fa-list-check" style="color:var(--success);margin-right:8px"></i>Mata Kuliah Diambil</h3>
-          <button class="btn btn-primary btn-sm" data-modal-target="modal-tambah-mk">
+          <button class="btn btn-primary btn-sm" onclick="bukaModalTambahMK()">
             <i class="fa-solid fa-plus"></i> Tambah MK
           </button>
         </div>
@@ -237,7 +237,7 @@
     <div class="modal-body">
       <div class="form-group">
         <label class="form-label">Pilih Mata Kuliah</label>
-        <select class="form-control" id="select-mk-tambah">
+        <select class="form-control" id="select-mk-tambah" onchange="previewMK()">
           <option value="">— Pilih mata kuliah —</option>
         </select>
       </div>
@@ -248,25 +248,6 @@
     <div class="modal-footer">
       <button class="btn btn-ghost btn-sm" data-modal-close>Batal</button>
       <button class="btn btn-primary btn-sm" onclick="tambahMK()"><i class="fa-solid fa-plus"></i> Tambahkan</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Konfirmasi Hapus -->
-<div class="modal-backdrop" id="modal-hapus-mk">
-  <div class="modal modal-sm">
-    <div class="modal-header">
-      <h3><i class="fa-solid fa-trash" style="margin-right:8px;color:var(--danger)"></i>Hapus Mata Kuliah</h3>
-      <button class="modal-close" data-modal-close><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <div class="modal-body">
-      <p style="color:var(--text-secondary);line-height:1.6">
-        Yakin ingin menghapus <strong id="hapus-mk-nama">—</strong> dari KRS?
-      </p>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost btn-sm" data-modal-close>Batal</button>
-      <button class="btn btn-danger btn-sm" onclick="konfirmasiHapusMK()"><i class="fa-solid fa-trash"></i> Hapus</button>
     </div>
   </div>
 </div>
@@ -341,8 +322,69 @@ async function hapusKRS(id) {
   });
 }
 
-async function ajukanKRS() {
-  showToast('info','Info','KRS akan diajukan ke dosen PA untuk persetujuan');
+// ── TAMBAH MATA KULIAH (dari katalog) ───────────────────────────
+let katalogList = [];
+
+async function bukaModalTambahMK() {
+  const sel = document.getElementById('select-mk-tambah');
+  sel.innerHTML = '<option value="">Memuat katalog...</option>';
+  document.getElementById('mk-preview').style.display = 'none';
+  showModal('modal-tambah-mk');
+
+  const res = await MahasiswaAPI.katalogKrs();
+  if (!res || !res.ok) {
+    sel.innerHTML = '<option value="">— Gagal memuat katalog —</option>';
+    showToast('danger','Error', res?.data?.message || 'Gagal memuat katalog mata kuliah');
+    return;
+  }
+
+  const d = res.data.data;
+  katalogList = d.katalog || [];
+
+  if (!d.krs_open) {
+    showToast('warning','Periode KRS Tutup','Saat ini bukan periode pengisian KRS');
+  }
+
+  const tersedia = katalogList.filter(k => !k.sudah_diambil && k.sisa_kuota > 0);
+  if (!tersedia.length) {
+    sel.innerHTML = '<option value="">— Tidak ada mata kuliah tersedia —</option>';
+    return;
+  }
+
+  sel.innerHTML = '<option value="">— Pilih mata kuliah —</option>' +
+    tersedia.map(k => `<option value="${k.id}">${escHTML(k.kode_mk)} — ${escHTML(k.mata_kuliah)} (${k.sks} SKS) — ${escHTML(k.kode_kelas)}</option>`).join('');
+}
+
+function previewMK() {
+  const id = document.getElementById('select-mk-tambah').value;
+  const previewBox = document.getElementById('mk-preview');
+  const previewInfo = document.getElementById('mk-preview-info');
+  if (!id) { previewBox.style.display = 'none'; return; }
+
+  const k = katalogList.find(x => x.id == id);
+  if (!k) { previewBox.style.display = 'none'; return; }
+
+  previewInfo.innerHTML = `
+    <strong>${escHTML(k.mata_kuliah)}</strong> (${k.sks} SKS)<br>
+    Dosen: ${escHTML(k.dosen)}<br>
+    Jadwal: ${escHTML(k.hari)}, ${k.jam_mulai}–${k.jam_selesai} &bull; Ruang ${escHTML(k.ruangan || '—')}<br>
+    Kuota: ${k.terisi}/${k.kuota} (sisa ${k.sisa_kuota})
+  `;
+  previewBox.style.display = '';
+}
+
+async function tambahMK() {
+  const kelasId = document.getElementById('select-mk-tambah').value;
+  if (!kelasId) { showToast('warning','Validasi','Pilih mata kuliah terlebih dahulu'); return; }
+
+  const res = await MahasiswaAPI.tambahKrs(kelasId);
+  if (res && res.ok) {
+    hideModal('modal-tambah-mk');
+    showToast('success','Berhasil','Mata kuliah berhasil ditambahkan ke KRS');
+    loadKRS(); // real-time update — tidak perlu refresh
+  } else {
+    showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+  }
 }
 
 loadKRS();

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pembahasan Ujian — SIAKAD STAI DILWA</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/responsive-patch.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body { background: var(--bg-secondary); }
+    .pembahasan-header {
+      background: var(--navy); color: #fff; padding: 20px 16px;
+      text-align: center; position: sticky; top: 0; z-index: 50;
+    }
+    .pembahasan-nilai { font-size: 2.4rem; font-weight: 800; line-height: 1; }
+    .pembahasan-container { max-width: 720px; margin: 0 auto; padding: 20px 16px 60px; }
+    .soal-review {
+      background: var(--bg-primary); border-radius: 14px;
+      border: 1px solid var(--border-color); padding: 22px; margin-bottom: 16px;
+    }
+    .soal-review-header { display:flex; justify-content:space-between; align-items:center; margin-bottom: 14px; }
+    .soal-review-nomor { font-weight: 700; font-size: 0.85rem; color: var(--text-secondary); }
+    .badge-benar { background:#22c55e22; color:#16a34a; border-radius:6px; padding:3px 10px; font-size:0.75rem; font-weight:600; }
+    .badge-salah { background:#ef444422; color:#dc2626; border-radius:6px; padding:3px 10px; font-size:0.75rem; font-weight:600; }
+    .badge-essay { background:#6366f122; color:#4f46e5; border-radius:6px; padding:3px 10px; font-size:0.75rem; font-weight:600; }
+    .pertanyaan-text { font-size: 0.95rem; line-height: 1.6; margin-bottom: 16px; }
+    .pilihan-review { display:flex; align-items:flex-start; gap:10px; padding:10px 14px; border-radius:8px; margin-bottom:8px; border:2px solid var(--border-color); }
+    .pilihan-review.benar { border-color:#22c55e; background:#22c55e0d; }
+    .pilihan-review.salah-dipilih { border-color:#ef4444; background:#ef44440d; }
+    .pilihan-key { min-width:26px; height:26px; border-radius:50%; background:var(--bg-secondary); border:2px solid var(--border-color); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.75rem; flex-shrink:0; }
+    .pilihan-review.benar .pilihan-key { background:#22c55e; color:#fff; border-color:#22c55e; }
+    .pilihan-review.salah-dipilih .pilihan-key { background:#ef4444; color:#fff; border-color:#ef4444; }
+    .jawaban-essay-box { background:var(--bg-secondary); border-radius:8px; padding:12px 14px; font-size:0.9rem; line-height:1.5; }
+  </style>
+</head>
+<body>
+
+<div class="pembahasan-header">
+  <div style="font-size:0.85rem;opacity:0.85;margin-bottom:4px" id="ph-nama-ujian">Memuat...</div>
+  <div class="pembahasan-nilai" id="ph-nilai">—</div>
+  <div style="font-size:0.8rem;opacity:0.8;margin-top:2px">Nilai Akhir</div>
+</div>
+
+<div class="pembahasan-container" id="pembahasan-container">
+  <div style="text-align:center;padding:40px;color:var(--text-secondary)">
+    <i class="fa-solid fa-spinner fa-spin fa-2x"></i>
+    <p style="margin-top:12px">Memuat pembahasan...</p>
+  </div>
+</div>
+
+<div style="position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:60">
+  <a href="ujian.html" class="btn btn-primary"><i class="fa-solid fa-arrow-left"></i> Kembali ke Daftar Ujian</a>
+</div>
+
+<div class="toast-container"></div>
+
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/main.js"></script>
+
+<script>
+const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+if (!_s || _s.role !== 'mahasiswa') window.location.href = '../auth/login.html';
+
+const ujianId = new URLSearchParams(location.search).get('id');
+if (!ujianId) window.location.href = 'ujian.html';
+
+async function loadPembahasan() {
+  const res = await MahasiswaAPI.pembahasanUjian(ujianId);
+  const container = document.getElementById('pembahasan-container');
+
+  if (!res || !res.ok) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:40px;color:var(--text-secondary)">
+        <i class="fa-solid fa-circle-xmark fa-2x" style="color:#ef4444"></i>
+        <p style="margin-top:12px">${res?.data?.message || 'Gagal memuat pembahasan'}</p>
+      </div>`;
+    return;
+  }
+
+  const d = res.data.data;
+  document.getElementById('ph-nama-ujian').textContent = d.ujian?.nama || 'Ujian';
+  document.getElementById('ph-nilai').textContent       = d.nilai ?? '—';
+
+  if (!d.pembahasan?.length) {
+    container.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-secondary)">Tidak ada soal untuk ditampilkan</div>`;
+    return;
+  }
+
+  container.innerHTML = d.pembahasan.map(s => {
+    let badgeHTML = '';
+    let bodyHTML  = '';
+
+    if (s.tipe === 'pilihan_ganda') {
+      badgeHTML = s.benar
+        ? '<span class="badge-benar"><i class="fa-solid fa-check"></i> Benar</span>'
+        : '<span class="badge-salah"><i class="fa-solid fa-xmark"></i> Salah</span>';
+
+      bodyHTML = (s.pilihan || []).map(p => {
+        const isBenar      = p.key === s.jawaban_benar;
+        const isDipilihSaya= p.key === s.jawaban_saya;
+        let cls = '';
+        if (isBenar) cls = 'benar';
+        else if (isDipilihSaya && !isBenar) cls = 'salah-dipilih';
+        return `
+          <div class="pilihan-review ${cls}">
+            <div class="pilihan-key">${p.key}</div>
+            <div style="flex:1">
+              ${escHTML(p.teks)}
+              ${isDipilihSaya ? '<div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px">Jawaban Anda</div>' : ''}
+              ${isBenar && !isDipilihSaya ? '<div style="font-size:0.75rem;color:#16a34a;margin-top:2px">Jawaban Benar</div>' : ''}
+            </div>
+          </div>`;
+      }).join('');
+    } else {
+      badgeHTML = '<span class="badge-essay"><i class="fa-solid fa-pen"></i> Essay</span>';
+      bodyHTML = `
+        <div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:6px">Jawaban Anda:</div>
+        <div class="jawaban-essay-box">${s.jawaban_saya ? escHTML(s.jawaban_saya) : '<em>Tidak dijawab</em>'}</div>
+      `;
+    }
+
+    return `
+      <div class="soal-review">
+        <div class="soal-review-header">
+          <span class="soal-review-nomor">Soal ${s.nomor}</span>
+          ${badgeHTML}
+        </div>
+        <div class="pertanyaan-text">${escHTML(s.pertanyaan)}</div>
+        ${bodyHTML}
+      </div>`;
+  }).join('');
+}
+
+function escHTML(str) {
+  const d = document.createElement('div');
+  d.textContent = str ?? '';
+  return d.innerHTML;
+}
+
+loadPembahasan();
+</script>
+</body>
+</html>
