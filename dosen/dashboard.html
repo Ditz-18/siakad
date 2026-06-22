@@ -78,10 +78,10 @@
         </div>
       </div>
       <div class="grid grid-4 mb-24">
-        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value">3</div><div class="stat-card-label">Kelas Diampu</div></div><div class="stat-card-icon stat-icon-navy"><i class="fa-solid fa-chalkboard"></i></div></div><div class="stat-card-sub">Semester ini</div></div>
-        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value">75</div><div class="stat-card-label">Total Mahasiswa</div></div><div class="stat-card-icon stat-icon-gold"><i class="fa-solid fa-users"></i></div></div><div class="stat-card-sub">Dari 3 kelas</div></div>
-        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value">6</div><div class="stat-card-label">Mhs. Bimbingan</div></div><div class="stat-card-icon stat-icon-success"><i class="fa-solid fa-user-graduate"></i></div></div><div class="stat-card-sub">PA aktif</div></div>
-        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value" style="color:var(--warning)">3</div><div class="stat-card-label">KRS Menunggu</div></div><div class="stat-card-icon stat-icon-warning"><i class="fa-solid fa-file-pen"></i></div></div><div class="stat-card-sub">Perlu persetujuan</div></div>
+        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value" id="stat-kelas">—</div><div class="stat-card-label">Kelas Diampu</div></div><div class="stat-card-icon stat-icon-navy"><i class="fa-solid fa-chalkboard"></i></div></div><div class="stat-card-sub">Semester ini</div></div>
+        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value" id="stat-total-mhs">—</div><div class="stat-card-label">Total Mahasiswa</div></div><div class="stat-card-icon stat-icon-gold"><i class="fa-solid fa-users"></i></div></div><div class="stat-card-sub" id="stat-total-mhs-sub">Dari kelas yang diampu</div></div>
+        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value" id="stat-bimbingan">—</div><div class="stat-card-label">Mhs. Bimbingan</div></div><div class="stat-card-icon stat-icon-success"><i class="fa-solid fa-user-graduate"></i></div></div><div class="stat-card-sub">PA aktif</div></div>
+        <div class="stat-card"><div class="stat-card-top"><div><div class="stat-card-value" id="stat-krs-menunggu" style="color:var(--warning)">—</div><div class="stat-card-label">KRS Menunggu</div></div><div class="stat-card-icon stat-icon-warning"><i class="fa-solid fa-file-pen"></i></div></div><div class="stat-card-sub">Perlu persetujuan</div></div>
       </div>
       <div class="grid grid-2 mb-24">
         <div class="card">
@@ -168,12 +168,14 @@ async function loadDashboard() {
   if (d.semester_aktif) {
     document.querySelectorAll('.hero-semester, [id*="semester-nama"]').forEach(el => el.textContent = d.semester_aktif.nama || '');
   }
-  // Update stat cards
-  const cards = document.querySelectorAll('.stat-card .stat-card-value');
-  if (cards[0]) cards[0].textContent = d.total_kelas ?? '0';
-  if (cards[1]) cards[1].textContent = d.total_mahasiswa_bimbingan ?? '0';
-  if (cards[2]) cards[2].textContent = d.total_krs_menunggu ?? '0';
-  if (cards[3]) cards[3].textContent = d.ujian_berlangsung ?? '0';
+  // Update stat cards — pakai ID langsung, bukan index serampangan
+  const setStat = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setStat('stat-kelas',        d.total_kelas ?? '0');
+  setStat('stat-total-mhs',    d.total_mahasiswa ?? '0');
+  setStat('stat-bimbingan',    d.total_mahasiswa_bimbingan ?? '0');
+  setStat('stat-krs-menunggu', d.total_krs_menunggu ?? '0');
+  const subEl = document.getElementById('stat-total-mhs-sub');
+  if (subEl) subEl.textContent = `Dari ${d.total_kelas ?? 0} kelas`;
   // Update sidebar profil
   const nameEl = document.querySelector('.sidebar-profile-info strong');
   const subEl  = document.querySelector('.sidebar-profile-info small');

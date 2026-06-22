@@ -506,10 +506,29 @@ async function loadDashboard() {
   const heroSem = document.getElementById('hero-semester');
   if (heroSem && d.semester_aktif) heroSem.textContent = d.semester_aktif.nama || '';
 
-  // Update stat values
-  const statCards = document.querySelectorAll('.stat-card .stat-card-value');
-  if (statCards[0]) statCards[0].textContent = d.total_sks ?? '0';
-  if (statCards[1]) statCards[1].textContent = d.ipk ?? '0.00';
+  // Update stat values — pakai ID langsung, bukan index serampangan
+  const setStat = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setStat('stat-ipk',       (d.ipk ?? 0).toFixed(2));
+  setStat('stat-ips',       (d.ips ?? 0).toFixed(2));
+  setStat('stat-sks-lulus', d.total_sks_lulus ?? 0);
+  setStat('stat-sks-ambil', d.total_sks ?? 0);
+
+  // Progres studi — dihitung dinamis dari data nyata, bukan hardcode
+  const sksLulus = d.total_sks_lulus ?? 0;
+  const sksWajib = d.total_sks_wajib ?? 144;
+  const persen   = sksWajib > 0 ? Math.min(100, Math.round((sksLulus / sksWajib) * 100)) : 0;
+
+  const persenEl = document.getElementById('progress-persen');
+  if (persenEl) persenEl.textContent = persen + '%';
+  const barEl = document.getElementById('progress-bar');
+  if (barEl) barEl.style.width = persen + '%';
+  const subEl = document.getElementById('progress-sub');
+  if (subEl) subEl.textContent = `${sksLulus} SKS lulus dari ${sksWajib} SKS wajib kelulusan`;
+
+  // Update label "Dari X SKS wajib" di stat card SKS Lulus agar konsisten
+  document.querySelectorAll('.stat-card-sub').forEach(el => {
+    if (el.textContent.includes('SKS wajib')) el.textContent = `Dari ${sksWajib} SKS wajib`;
+  });
 
   // Pembayaran status
   const bayarEl = document.getElementById('status-pembayaran') || document.querySelector('[id*="pembayaran"]');

@@ -192,10 +192,13 @@
 const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
 if (!_s || _s.role !== 'mahasiswa') window.location.href = '../auth/login.html';
 
+let khsDataGlobal = { ipk: 0, total_sks: 0, per_semester: [] };
+
 async function loadKHS() {
   const res = await MahasiswaAPI.khs();
   if (!res || !res.ok) { showToast('danger','Error','Gagal memuat KHS'); return; }
   const d = res.data.data;
+  khsDataGlobal = d;
 
   // Update IPK & SKS
   const ipkEl = document.getElementById('ipk-value') || document.querySelector('[id*="ipk"]');
@@ -243,7 +246,67 @@ function renderPerSemester(list) {
 }
 
 function eksporKHSPDF() {
-  window.print();
+  if (!khsDataGlobal.per_semester?.length) {
+    showToast('warning','Tidak Ada Data','Belum ada data nilai untuk diekspor'); return;
+  }
+
+  const session = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+  const profil  = session?.profil || {};
+
+  const semesterAktif = khsDataGlobal.per_semester[khsDataGlobal.per_semester.length - 1];
+
+  const headerInfo = `
+    <div style="display:flex;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <div style="color:var(--text-muted);font-size:0.8rem">Nama</div>
+        <div style="font-weight:700">${escHTML(profil.nama || '—')}</div>
+      </div>
+      <div>
+        <div style="color:var(--text-muted);font-size:0.8rem">NIM</div>
+        <div style="font-weight:700">${escHTML(profil.nim || '—')}</div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <div style="color:var(--text-muted);font-size:0.8rem">Prodi</div>
+        <div style="font-weight:700">${escHTML(profil.program_studi?.nama || '—')}</div>
+      </div>
+      <div>
+        <div style="color:var(--text-muted);font-size:0.8rem">Semester</div>
+        <div style="font-weight:700">${escHTML(semesterAktif?.semester?.nama || '—')}</div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:20px">
+      <div>
+        <div style="color:var(--text-muted);font-size:0.8rem">IPS</div>
+        <div style="font-weight:700">${semesterAktif?.ips ?? '—'}</div>
+      </div>
+      <div>
+        <div style="color:var(--text-muted);font-size:0.8rem">IPK</div>
+        <div style="font-weight:700">${khsDataGlobal.ipk ?? '—'}</div>
+      </div>
+    </div>
+  `;
+
+  const rows = (semesterAktif?.nilai || []).map(n => `
+    <tr>
+      <td>${escHTML(n.kelas?.mata_kuliah?.kode || '—')}</td>
+      <td>${escHTML(n.kelas?.mata_kuliah?.nama || '—')}</td>
+      <td style="text-align:center">${n.kelas?.mata_kuliah?.sks ?? '—'}</td>
+      <td style="text-align:center">${n.nilai_akhir ?? '—'}</td>
+      <td style="text-align:center">${n.grade || '—'}</td>
+      <td style="text-align:center">${n.bobot ?? '—'}</td>
+      <td>${n.status || '—'}</td>
+    </tr>`).join('');
+
+  const tabel = `
+    <h3 style="margin-bottom:12px">Daftar Nilai</h3>
+    <table>
+      <thead><tr><th>Kode</th><th>Nama MK</th><th>SKS</th><th>Nilai</th><th>Grade</th><th>Bobot</th><th>Status</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+
+  eksporPDF(`KHS ${semesterAktif?.semester?.nama || ''}`, headerInfo + tabel);
 }
 
 function eksporKHSCSV() {

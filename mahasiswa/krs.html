@@ -271,10 +271,13 @@
 const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
 if (!_s || _s.role !== 'mahasiswa') window.location.href = '../auth/login.html';
 
+let krsDataGlobal = { semester: null, total_sks: 0, krs: [] };
+
 async function loadKRS() {
   const res = await MahasiswaAPI.krs();
   if (!res || !res.ok) { showToast('danger','Error','Gagal memuat KRS'); return; }
   const d = res.data.data;
+  krsDataGlobal = d;
 
   // Update semester info
   const semEl = document.querySelector('[id*="semester"], .semester-nama');
@@ -393,7 +396,55 @@ function eksporKRSCSV() {
   eksporTabelCSV('tabel-mk-diambil', 'KRS-' + new Date().toISOString().slice(0,10));
 }
 function eksporKRSPDF() {
-  window.print();
+  if (!krsDataGlobal.krs?.length) {
+    showToast('warning','Tidak Ada Data','Belum ada mata kuliah di KRS untuk diekspor'); return;
+  }
+
+  const session = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+  const profil  = session?.profil || {};
+
+  const headerInfo = `
+    <div style="display:flex;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <div style="color:var(--text-muted);font-size:0.8rem">Nama</div>
+        <div style="font-weight:700">${escHTML(profil.nama || '—')}</div>
+      </div>
+      <div>
+        <div style="color:var(--text-muted);font-size:0.8rem">NIM</div>
+        <div style="font-weight:700">${escHTML(profil.nim || '—')}</div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:20px">
+      <div>
+        <div style="color:var(--text-muted);font-size:0.8rem">Semester</div>
+        <div style="font-weight:700">${escHTML(krsDataGlobal.semester?.nama || '—')}</div>
+      </div>
+      <div>
+        <div style="color:var(--text-muted);font-size:0.8rem">Total SKS</div>
+        <div style="font-weight:700">${krsDataGlobal.total_sks ?? '—'}</div>
+      </div>
+    </div>
+  `;
+
+  const rows = krsDataGlobal.krs.map((k, i) => `
+    <tr>
+      <td style="text-align:center">${i + 1}</td>
+      <td>${escHTML(k.kelas?.mata_kuliah?.kode || '—')}</td>
+      <td>${escHTML(k.kelas?.mata_kuliah?.nama || '—')}</td>
+      <td style="text-align:center">${k.kelas?.mata_kuliah?.sks ?? '—'}</td>
+      <td>${escHTML(k.kelas?.dosen?.nama || '—')}</td>
+      <td>${escHTML(k.kelas?.hari || '—')} ${k.kelas?.jam_mulai || ''}-${k.kelas?.jam_selesai || ''}</td>
+      <td>${k.status}</td>
+    </tr>`).join('');
+
+  const tabel = `
+    <h3 style="margin-bottom:12px">Kartu Rencana Studi (KRS)</h3>
+    <table>
+      <thead><tr><th>No</th><th>Kode</th><th>Nama MK</th><th>SKS</th><th>Dosen</th><th>Jadwal</th><th>Status</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+
+  eksporPDF(`KRS ${krsDataGlobal.semester?.nama || ''}`, headerInfo + tabel);
 }
 
 </script>

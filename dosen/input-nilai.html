@@ -246,7 +246,48 @@ function eksporNilaiCSV() {
 }
 
 function eksporNilaiPDF() {
-  window.print();
+  if (!nilaiList.length) {
+    showToast('warning','Tidak Ada Data','Belum ada data nilai untuk diekspor'); return;
+  }
+
+  const kelasNama = document.getElementById('select-kelas')?.selectedOptions[0]?.textContent || '—';
+  const session   = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+  const dosenNama = session?.profil?.nama || '—';
+
+  const headerInfo = `
+    <div style="display:flex;justify-content:space-between;margin-bottom:20px">
+      <div>
+        <div style="color:var(--text-muted);font-size:0.8rem">Kelas</div>
+        <div style="font-weight:700">${escHTML(kelasNama)}</div>
+      </div>
+      <div>
+        <div style="color:var(--text-muted);font-size:0.8rem">Dosen Pengampu</div>
+        <div style="font-weight:700">${escHTML(dosenNama)}</div>
+      </div>
+    </div>
+  `;
+
+  const rows = nilaiList.map((n, i) => `
+    <tr>
+      <td style="text-align:center">${i + 1}</td>
+      <td>${escHTML(n.mahasiswa?.nim || '—')}</td>
+      <td>${escHTML(n.mahasiswa?.nama || '—')}</td>
+      <td style="text-align:center">${n.nilai_tugas ?? '—'}</td>
+      <td style="text-align:center">${n.nilai_uts ?? '—'}</td>
+      <td style="text-align:center">${n.nilai_uas ?? '—'}</td>
+      <td style="text-align:center">${n.nilai_akhir ?? '—'}</td>
+      <td style="text-align:center">${n.grade || '—'}</td>
+      <td>${n.status || '—'}</td>
+    </tr>`).join('');
+
+  const tabel = `
+    <h3 style="margin-bottom:12px">Daftar Nilai Mahasiswa</h3>
+    <table>
+      <thead><tr><th>No</th><th>NIM</th><th>Nama</th><th>Tugas</th><th>UTS</th><th>UAS</th><th>Nilai Akhir</th><th>Grade</th><th>Status</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+
+  eksporPDF(`Daftar Nilai — ${kelasNama}`, headerInfo + tabel);
 }
 
 loadKelasOptions();

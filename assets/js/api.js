@@ -115,6 +115,10 @@ const MahasiswaAPI = {
     return apiFetch('/mahasiswa/profil');
   },
 
+  async ktm() {
+    return apiFetch('/mahasiswa/ktm');
+  },
+
   async updateProfil(data) {
     return apiFetch('/mahasiswa/profil', {
       method: 'PUT',

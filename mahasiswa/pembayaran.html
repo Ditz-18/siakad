@@ -87,6 +87,10 @@
     </header>
 
     <main class="page-content">
+      <!-- Kop surat — hanya tampil saat print/ekspor PDF -->
+      <div class="print-header">
+        <img src="../assets/img/kop-surat.png" alt="Kop Surat STAI DILWA">
+      </div>
       <div class="page-header">
         <div class="page-header-top">
           <div><h1>Pembayaran UKT</h1><p>Uang Kuliah Tunggal — STAI DILWA</p></div>
@@ -182,8 +186,12 @@
 <script src="../assets/js/main.js"></script>
 
 <script>
+  // Bersihkan service worker lama yang mungkin masih ter-install di browser
+  // (sw.js sudah dihapus dari proyek ini untuk menghindari masalah cache stale)
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js');
+    navigator.serviceWorker.getRegistrations().then(regs => {
+      regs.forEach(reg => reg.unregister());
+    });
   }
 </script>
 

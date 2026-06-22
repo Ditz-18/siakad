@@ -224,7 +224,7 @@ function renderSurat(list) {
       <td data-label="Status"><span class="badge ${statusMap[s.status]||'badge-muted'}">${s.status}</span></td>
       <td data-label="">
         ${s.status==='Selesai'
-          ? `<button class="btn btn-success btn-sm" onclick="showToast('success','Mengunduh','File surat sedang diunduh...')"><i class="fa-solid fa-download"></i> Unduh</button>`
+          ? `<button class="btn btn-success btn-sm" onclick="unduhSurat(${s.id})"><i class="fa-solid fa-download"></i> Unduh</button>`
           : `<span style="font-size:0.775rem;color:var(--text-muted)">Menunggu proses</span>`}
       </td>
     </tr>`).join('');
@@ -249,6 +249,41 @@ async function ajukanSurat() {
     showToast('success','Berhasil', `${jenis} berhasil diajukan`);
     loadSurat();
   } else showToast('danger','Gagal', res?.data?.message || 'Terjadi kesalahan');
+}
+
+async function unduhSurat(id) {
+  const res = await MahasiswaAPI.detailSurat(id);
+  if (!res || !res.ok) {
+    showToast('danger','Gagal', res?.data?.message || 'Gagal memuat data surat'); return;
+  }
+
+  const s = res.data.data;
+  const session = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+  const profil  = session?.profil || {};
+
+  const isiSurat = `
+    <div style="text-align:center;margin-bottom:24px">
+      <h3 style="margin:0">${escHTML(s.jenis_surat)}</h3>
+      <p style="color:var(--text-muted);font-size:0.85rem;margin-top:4px">No. ${escHTML(s.no_pengajuan)}</p>
+    </div>
+    <p style="line-height:1.8;text-align:justify">
+      Yang bertanda tangan di bawah ini menerangkan bahwa:
+    </p>
+    <table style="margin:16px 0;border:none">
+      <tr><td style="border:none;padding:4px 0;width:160px;color:var(--text-muted)">Nama</td><td style="border:none;padding:4px 0">: <strong>${escHTML(profil.nama || '—')}</strong></td></tr>
+      <tr><td style="border:none;padding:4px 0;color:var(--text-muted)">NIM</td><td style="border:none;padding:4px 0">: <strong>${escHTML(profil.nim || '—')}</strong></td></tr>
+      <tr><td style="border:none;padding:4px 0;color:var(--text-muted)">Program Studi</td><td style="border:none;padding:4px 0">: <strong>${escHTML(profil.program_studi?.nama || '—')}</strong></td></tr>
+    </table>
+    <p style="line-height:1.8;text-align:justify">
+      adalah benar mahasiswa aktif di STAI Darul Ilmi Wadda'wah (DILWA). Surat ini diterbitkan untuk keperluan:
+      <strong>${escHTML(s.keperluan)}</strong>.
+    </p>
+    <p style="line-height:1.8;text-align:justify;margin-top:16px">
+      Demikian surat ini dibuat dengan sebenar-benarnya untuk dapat dipergunakan sebagaimana mestinya.
+    </p>
+  `;
+
+  eksporPDF(s.jenis_surat, isiSurat);
 }
 
 loadSurat();

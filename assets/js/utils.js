@@ -145,10 +145,16 @@ function generateKodeVerifikasi(judul) {
   return 'SIAKAD-' + kode.slice(0, 4) + '-' + kode.slice(4, 8);
 }
 
-function eksporPDF(judul, kontenHTML) {
+function eksporPDF(judul, kontenHTML, opsi = {}) {
   const win  = window.open('', '_blank');
   const tgl  = formatTanggal(new Date().toISOString(), 'panjang');
   const kode = generateKodeVerifikasi(judul);
+
+  // Penandatangan dokumen — bisa di-override per pemanggilan via parameter opsi,
+  // default mengikuti pejabat Kepala Bagian Akademik
+  const ttdJabatan = opsi.jabatan || 'Kepala Bagian Akademik';
+  const ttdNama    = opsi.nama    || 'Siska Permatasari, S.Pd., M.M.';
+  const ttdNip     = opsi.nip     || '197808142005012003';
 
   // Data QR: kode verifikasi + judul + tanggal
   const qrData = encodeURIComponent(`SIAKAD-STAIDILWA | ${judul} | ${tgl} | ${kode}`);
@@ -235,10 +241,10 @@ function eksporPDF(judul, kontenHTML) {
       <div class="ttd-section">
         <div class="ttd-box">
           <div class="ttd-kota">Bandung, ${tgl}</div>
-          <div class="ttd-kota">Kepala Bagian Akademik</div>
+          <div class="ttd-kota">${ttdJabatan}</div>
           <div class="ttd-space"></div>
-          <div class="ttd-nama">Siska Permatasari, S.Pd., M.M.</div>
-          <div class="ttd-jabatan">NIP. 197808142005012003</div>
+          <div class="ttd-nama">${ttdNama}</div>
+          <div class="ttd-jabatan">NIP. ${ttdNip}</div>
         </div>
       </div>
 

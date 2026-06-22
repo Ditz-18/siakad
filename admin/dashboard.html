@@ -85,11 +85,11 @@
           <div class="stat-card-sub">Aktif mengajar</div>
         </div>
         <div class="stat-card" style="cursor:pointer" onclick="location.href='mata-kuliah.html'">
-          <div class="stat-card-top"><div><div class="stat-card-value">94</div><div class="stat-card-label">Mata Kuliah</div></div><div class="stat-card-icon stat-icon-success"><i class="fa-solid fa-book"></i></div></div>
+          <div class="stat-card-top"><div><div class="stat-card-value" id="stat-mk">—</div><div class="stat-card-label">Mata Kuliah</div></div><div class="stat-card-icon stat-icon-success"><i class="fa-solid fa-book"></i></div></div>
           <div class="stat-card-sub">Semester ini</div>
         </div>
         <div class="stat-card" style="cursor:pointer" onclick="location.href='pembayaran.html'">
-          <div class="stat-card-top"><div><div class="stat-card-value" style="color:var(--success)">87%</div><div class="stat-card-label">UKT Terbayar</div></div><div class="stat-card-icon stat-icon-info"><i class="fa-solid fa-credit-card"></i></div></div>
+          <div class="stat-card-top"><div><div class="stat-card-value" id="stat-ukt-persen" style="color:var(--success)">—</div><div class="stat-card-label">UKT Terbayar</div></div><div class="stat-card-icon stat-icon-info"><i class="fa-solid fa-credit-card"></i></div></div>
           <div class="stat-card-sub">Semester ini</div>
         </div>
       </div>
@@ -234,15 +234,14 @@ async function loadDashboard() {
 
   const data = res.data.data;
 
-  // Update stat cards
+  // Update stat cards — pakai ID langsung, bukan nth-child yang rapuh terhadap perubahan layout
+  const setStat = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
   document.querySelector('.stat-card:nth-child(1) .stat-card-value').textContent =
     data.total_mahasiswa?.toLocaleString('id-ID') || '0';
   document.querySelector('.stat-card:nth-child(2) .stat-card-value').textContent =
     data.total_dosen?.toLocaleString('id-ID') || '0';
-  document.querySelector('.stat-card:nth-child(4) .stat-card-value').textContent =
-    data.total_pembayaran_menunggak > 0
-      ? Math.round(100 - (data.total_pembayaran_menunggak / data.total_mahasiswa * 100)) + '%'
-      : '100%';
+  setStat('stat-mk', data.total_mata_kuliah?.toLocaleString('id-ID') || '0');
+  setStat('stat-ukt-persen', (data.rekap_pembayaran?.persentase_ukt ?? 0) + '%');
 
   // Update semester aktif di hero
   if (data.semester_aktif) {

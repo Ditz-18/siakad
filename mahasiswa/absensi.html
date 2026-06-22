@@ -193,10 +193,13 @@
 const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
 if (!_s || _s.role !== 'mahasiswa') window.location.href = '../auth/login.html';
 
+let absensiDataGlobal = { semester: null, absensi: [] };
+
 async function loadAbsensi() {
   const res = await MahasiswaAPI.absensi();
   if (!res || !res.ok) { showToast('danger','Error','Gagal memuat absensi'); return; }
   const d = res.data.data;
+  absensiDataGlobal = d;
 
   if (d.semester) {
     const semEl = document.querySelector('.page-header p, [id*="semester"]');
@@ -252,7 +255,51 @@ function eksporAbsensiCSV() {
   eksporTabelCSV('tabel-absensi', 'Absensi-' + new Date().toISOString().slice(0,10));
 }
 function eksporAbsensiPDF() {
-  window.print();
+  if (!absensiDataGlobal.absensi?.length) {
+    showToast('warning','Tidak Ada Data','Belum ada data absensi untuk diekspor'); return;
+  }
+
+  const session = JSON.parse(localStorage.getItem('siakad_user') || 'null');
+  const profil  = session?.profil || {};
+
+  const headerInfo = `
+    <div style="display:flex;justify-content:space-between;margin-bottom:20px">
+      <div>
+        <div style="color:var(--text-muted);font-size:0.8rem">Nama</div>
+        <div style="font-weight:700">${escHTML(profil.nama || '—')}</div>
+      </div>
+      <div>
+        <div style="color:var(--text-muted);font-size:0.8rem">NIM</div>
+        <div style="font-weight:700">${escHTML(profil.nim || '—')}</div>
+      </div>
+      <div>
+        <div style="color:var(--text-muted);font-size:0.8rem">Semester</div>
+        <div style="font-weight:700">${escHTML(absensiDataGlobal.semester?.nama || '—')}</div>
+      </div>
+    </div>
+  `;
+
+  const rows = absensiDataGlobal.absensi.map((a, i) => `
+    <tr>
+      <td style="text-align:center">${i + 1}</td>
+      <td>${escHTML(a.mata_kuliah)}</td>
+      <td>${escHTML(a.dosen)}</td>
+      <td style="text-align:center">${a.total_pertemuan}</td>
+      <td style="text-align:center">${a.hadir}</td>
+      <td style="text-align:center">${a.izin}</td>
+      <td style="text-align:center">${a.sakit}</td>
+      <td style="text-align:center">${a.alpha}</td>
+      <td style="text-align:center">${a.persentase ?? 0}%</td>
+    </tr>`).join('');
+
+  const tabel = `
+    <h3 style="margin-bottom:12px">Rekap Absensi</h3>
+    <table>
+      <thead><tr><th>No</th><th>Mata Kuliah</th><th>Dosen</th><th>Total</th><th>Hadir</th><th>Izin</th><th>Sakit</th><th>Alpha</th><th>Persentase</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+
+  eksporPDF(`Rekap Absensi ${absensiDataGlobal.semester?.nama || ''}`, headerInfo + tabel);
 }
 
 </script>

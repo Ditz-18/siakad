@@ -279,7 +279,6 @@
 
 <script src="../assets/js/api.js"></script>
 <script src="../assets/js/utils.js"></script>
-<script src="../assets/js/api.js"></script>
 <script src="../assets/js/mahasiswa-integration.js"></script>
 <script src="../assets/js/mahasiswa-sidebar.js"></script>
 <script src="../assets/js/main.js"></script>
@@ -290,41 +289,70 @@ const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
 if (!_s || _s.role !== 'mahasiswa') window.location.href = '../auth/login.html';
 
 async function loadKTM() {
-  // Coba dari session dulu (sudah ada saat login)
-  const session = JSON.parse(localStorage.getItem('siakad_user') || 'null');
-  const profil  = session?.profil || {};
-  
-  let m = {
-    nama:          profil.nama || session?.username || '—',
-    nim:           profil.nim  || '—',
-    program_studi: profil.program_studi || {},
-    angkatan:      profil.angkatan || '—',
-    status:        profil.status || 'Aktif',
-  };
+  const res = await MahasiswaAPI.ktm();
+  if (!res || !res.ok) {
+    showToast('danger', 'Gagal', res?.data?.message || 'Gagal memuat data KTM');
+    return;
+  }
 
-  // Refresh dari API untuk data terbaru
-  const res = await MahasiswaAPI.profil();
-  if (res && res.ok) m = res.data.data;
+  const m = res.data.data;
 
+  // Kartu depan
   const fields = {
-    'ktm-nama':    m.nama,
-    'ktm-nim':     m.nim,
-    'ktm-prodi':   m.program_studi?.nama,
-    'ktm-fakultas':m.program_studi?.fakultas,
-    'ktm-angkatan':m.angkatan,
-    'ktm-status':  m.status,
+    'ktm-nama':     m.nama,
+    'ktm-nim':      m.nim,
+    'ktm-prodi':    m.program_studi?.nama,
+    'ktm-fakultas': m.program_studi?.fakultas,
+    'ktm-angkatan': m.angkatan,
+    'ktm-status':   m.status,
   };
   Object.entries(fields).forEach(([id, val]) => {
     const el = document.getElementById(id);
     if (el) el.textContent = val || '—';
   });
-  
-  // Update tahun berlaku otomatis
+
+  // Berlaku hingga — tampilkan tahun ajaran (contoh: 2025/2026) di kartu
+  const berlakuDate = m.berlaku_hingga ? new Date(m.berlaku_hingga) : null;
   const tahunEl = document.getElementById('ktm-berlaku');
   if (tahunEl) {
-    const now = new Date();
-    tahunEl.textContent = now.getFullYear() + '/' + (now.getFullYear() + 1);
+    tahunEl.textContent = berlakuDate
+      ? `${berlakuDate.getFullYear() - 1}/${berlakuDate.getFullYear()}`
+      : '—';
   }
+
+  // Tabel "Informasi Kartu"
+  const infoFields = {
+    'info-nomor-ktm': m.nomor_ktm,
+    'info-nama':      m.nama,
+    'info-nim':       m.nim,
+    'info-prodi':     m.program_studi?.nama,
+    'info-terbit':    m.tanggal_terbit ? formatTanggal(m.tanggal_terbit, 'pendek') : '—',
+    'info-berlaku':   m.berlaku_hingga ? formatTanggal(m.berlaku_hingga, 'pendek') : '—',
+  };
+  Object.entries(infoFields).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val || '—';
+  });
+
+  // Render barcode visual sederhana + nomor di bagian belakang kartu
+  renderBarcode(m.nomor_ktm || m.nim);
+}
+
+function renderBarcode(kode) {
+  const container = document.getElementById('ktm-barcode');
+  const numEl      = document.getElementById('ktm-barcode-num');
+  if (!container || !kode) return;
+
+  const bars = String(kode).split('').map(ch => {
+    const code = ch.charCodeAt(0);
+    return (code % 3) + 1;
+  });
+
+  container.innerHTML = bars.map(w =>
+    `<div class="ktm-barcode-bar" style="width:${w}px;height:100%"></div>`
+  ).join('');
+
+  if (numEl) numEl.textContent = kode;
 }
 
 function cetakKTM() {
@@ -332,8 +360,6 @@ function cetakKTM() {
 }
 
 function unduhKTMPDF() {
-  // Gunakan print dialog dengan print.css yang sudah ada
-  // Browser modern bisa save as PDF dari print dialog
   showToast('info', 'Info', 'Gunakan tombol "Save as PDF" di dialog print yang muncul');
   setTimeout(() => window.print(), 800);
 }

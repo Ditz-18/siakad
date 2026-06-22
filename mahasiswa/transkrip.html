@@ -186,10 +186,6 @@
     </header>
 
     <main class="page-content">
-      <!-- Kop surat — hanya tampil saat print/ekspor PDF -->
-      <div class="print-header">
-        <img src="../assets/img/kop-surat.png" alt="Kop Surat STAI DILWA">
-      </div>
       <div class="page-header">
         <div class="page-header-top">
           <div><h1>Transkrip Nilai</h1><p>Riwayat lengkap nilai akademik seluruh semester</p></div>
@@ -297,6 +293,8 @@
 const _s = JSON.parse(localStorage.getItem('siakad_user') || 'null');
 if (!_s || _s.role !== 'mahasiswa') window.location.href = '../auth/login.html';
 
+let transkripDataGlobal = { profil: {}, ipk: 0, total_sks: 0, per_semester: [] };
+
 async function loadTranskrip() {
   const [profilRes, khsRes] = await Promise.all([
     MahasiswaAPI.profil(),
@@ -305,6 +303,7 @@ async function loadTranskrip() {
 
   if (profilRes && profilRes.ok) {
     const m = profilRes.data.data;
+    transkripDataGlobal.profil = m;
     const fields = {
       'tr-nama':    m.nama,
       'tr-nim':     m.nim,
@@ -320,6 +319,10 @@ async function loadTranskrip() {
 
   if (khsRes && khsRes.ok) {
     const d = khsRes.data.data;
+    transkripDataGlobal.ipk          = d.ipk;
+    transkripDataGlobal.total_sks    = d.total_sks;
+    transkripDataGlobal.per_semester = d.per_semester || [];
+
     const ipkEl = document.getElementById('tr-ipk') || document.querySelector('[id*="ipk"]');
     if (ipkEl) ipkEl.textContent = d.ipk ?? '0.00';
     const sksEl = document.getElementById('tr-sks') || document.querySelector('[id*="sks"]');
@@ -349,7 +352,69 @@ function renderTranskrip(list) {
 }
 
 function eksporTranskripPDF() {
-  window.print();
+  if (!transkripDataGlobal.per_semester?.length) {
+    showToast('warning','Tidak Ada Data','Belum ada data nilai untuk diekspor'); return;
+  }
+
+  const m = transkripDataGlobal.profil;
+
+  const headerInfo = `
+    <div style="display:flex;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <div style="color:var(--text-muted);font-size:0.8rem">Nama</div>
+        <div style="font-weight:700">${escHTML(m.nama || '—')}</div>
+      </div>
+      <div>
+        <div style="color:var(--text-muted);font-size:0.8rem">NIM</div>
+        <div style="font-weight:700">${escHTML(m.nim || '—')}</div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <div style="color:var(--text-muted);font-size:0.8rem">Program Studi</div>
+        <div style="font-weight:700">${escHTML(m.program_studi?.nama || '—')}</div>
+      </div>
+      <div>
+        <div style="color:var(--text-muted);font-size:0.8rem">Angkatan</div>
+        <div style="font-weight:700">${escHTML(m.angkatan || '—')}</div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:20px">
+      <div>
+        <div style="color:var(--text-muted);font-size:0.8rem">Total SKS</div>
+        <div style="font-weight:700">${transkripDataGlobal.total_sks ?? '—'}</div>
+      </div>
+      <div>
+        <div style="color:var(--text-muted);font-size:0.8rem">IPK</div>
+        <div style="font-weight:700">${transkripDataGlobal.ipk ?? '—'}</div>
+      </div>
+    </div>
+  `;
+
+  let no = 1;
+  const rows = transkripDataGlobal.per_semester.flatMap(s =>
+    (s.nilai || []).map(n => `
+      <tr>
+        <td style="text-align:center">${no++}</td>
+        <td>${escHTML(n.kelas?.mata_kuliah?.kode || '—')}</td>
+        <td>${escHTML(n.kelas?.mata_kuliah?.nama || '—')}</td>
+        <td style="text-align:center">${n.kelas?.mata_kuliah?.sks ?? '—'}</td>
+        <td style="text-align:center">${escHTML(s.semester?.nama || '—')}</td>
+        <td style="text-align:center">${n.nilai_akhir ?? '—'}</td>
+        <td style="text-align:center">${n.grade || '—'}</td>
+        <td style="text-align:center">${n.bobot ?? '—'}</td>
+        <td>${n.status || '—'}</td>
+      </tr>`)
+  ).join('');
+
+  const tabel = `
+    <h3 style="margin-bottom:12px">Transkrip Nilai</h3>
+    <table>
+      <thead><tr><th>No</th><th>Kode</th><th>Nama MK</th><th>SKS</th><th>Semester</th><th>Nilai</th><th>Grade</th><th>Bobot</th><th>Status</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+
+  eksporPDF('Transkrip Nilai', headerInfo + tabel);
 }
 
 loadTranskrip();
