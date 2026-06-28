@@ -317,13 +317,13 @@
         <div class="welcome-card">
           <div class="welcome-avatar"><i class="fa-solid fa-user"></i></div>
           <div class="welcome-text">
-            <h2>Selamat Datang, Rizki!</h2>
-            <p id="welcome-prodi">Teknik Informatika &middot; Semester 7</p>
+            <h2 id="hero-nama">Selamat Datang!</h2>
+            <p id="welcome-prodi">—</p>
           </div>
           <div class="welcome-right">
             <div class="semester-badge">
               <i class="fa-solid fa-calendar"></i>
-              <span id="welcome-semester">Ganjil 2024/2025</span>
+              <span id="welcome-semester">—</span>
             </div>
           </div>
         </div>
@@ -332,12 +332,12 @@
         <div class="progress-card">
           <div class="progress-info">
             <h4><i class="fa-solid fa-chart-line" style="color:var(--navy);margin-right:6px"></i>Progres Studi</h4>
-            <span id="progress-persen">75%</span>
+            <span id="progress-persen">—</span>
           </div>
           <div class="progress">
             <div class="progress-bar" id="progress-bar" style="width:0%"></div>
           </div>
-          <div class="progress-sub" id="progress-sub">108 SKS lulus dari 144 SKS wajib kelulusan</div>
+          <div class="progress-sub" id="progress-sub">Memuat data...</div>
         </div>
       </div>
 
@@ -499,12 +499,12 @@ async function loadDashboard() {
   if (subEl)  subEl.textContent  = m.nim || '';
 
   // Update hero stats
-  const heroNama = document.getElementById('hero-nama') || document.querySelector('.hero-nama');
-  if (heroNama) heroNama.textContent = m.nama || '';
-  const heroProdi = document.getElementById('hero-prodi') || document.querySelector('.hero-prodi');
-  if (heroProdi) heroProdi.textContent = (m.program_studi?.nama || '') + ' · Semester ' + (m.semester || '');
-  const heroSem = document.getElementById('hero-semester');
-  if (heroSem && d.semester_aktif) heroSem.textContent = d.semester_aktif.nama || '';
+  const heroNama = document.getElementById('hero-nama');
+  if (heroNama) heroNama.textContent = 'Selamat Datang, ' + (m.nama?.split(' ')[0] || _s.username || '') + '!';
+  const heroProdi = document.getElementById('welcome-prodi');
+  if (heroProdi) heroProdi.textContent = (m.program_studi?.nama || '—') + ' · Semester ' + (m.semester || '—');
+  const heroSem = document.getElementById('welcome-semester');
+  if (heroSem && d.semester_aktif) heroSem.textContent = d.semester_aktif.nama || '—';
 
   // Update stat values — pakai ID langsung, bukan index serampangan
   const setStat = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
@@ -530,26 +530,44 @@ async function loadDashboard() {
     if (el.textContent.includes('SKS wajib')) el.textContent = `Dari ${sksWajib} SKS wajib`;
   });
 
-  // Pembayaran status
-  const bayarEl = document.getElementById('status-pembayaran') || document.querySelector('[id*="pembayaran"]');
-  if (bayarEl && d.pembayaran) {
-    bayarEl.innerHTML = d.pembayaran.status === 'Lunas'
-      ? '<span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Lunas</span>'
-      : '<span class="badge badge-danger"><i class="fa-solid fa-triangle-exclamation"></i> Menunggak</span>';
+  // Pembayaran status — ditampilkan di halaman Pembayaran UKT, bukan di dashboard ini
+
+
+  // Jadwal hari ini
+  const jadwalEl = document.getElementById('jadwal-container');
+  if (jadwalEl) {
+    if (d.jadwal_hari_ini?.length) {
+      jadwalEl.innerHTML = d.jadwal_hari_ini.map(j => `
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border-light)">
+          <div style="width:40px;height:40px;border-radius:8px;background:var(--navy-bg);color:var(--navy);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="fa-solid fa-chalkboard" style="font-size:0.9rem"></i>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:0.875rem;font-weight:700;color:var(--text-primary)">${escHTML(j.mata_kuliah)}</div>
+            <div style="font-size:0.775rem;color:var(--text-muted)">${j.jam_mulai}–${j.jam_selesai} &bull; ${escHTML(j.ruangan || '—')}</div>
+          </div>
+        </div>`).join('');
+    } else {
+      jadwalEl.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:0.875rem"><i class="fa-solid fa-circle-check" style="color:var(--success);margin-right:6px"></i>Tidak ada kelas hari ini</div>`;
+    }
   }
 
   // Pengumuman terbaru
-  const pengEl = document.getElementById('pengumuman-list');
-  if (pengEl && d.pengumuman?.length) {
-    pengEl.innerHTML = d.pengumuman.slice(0,3).map(p => `
-      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light)">
-        <div style="width:8px;height:8px;border-radius:50%;background:${p.penting?'var(--danger)':'var(--navy)'};margin-top:5px;flex-shrink:0"></div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:0.8375rem;font-weight:600;color:var(--text-primary)">${escHTML(p.judul)}</div>
-          <div style="font-size:0.75rem;color:var(--text-muted)">${formatTanggal(p.created_at,'pendek')}</div>
-        </div>
-        ${p.penting ? '<span class="badge badge-warning" style="font-size:0.6rem">Penting</span>' : ''}
-      </div>`).join('');
+  const pengEl = document.getElementById('pengumuman-container');
+  if (pengEl) {
+    if (d.pengumuman?.length) {
+      pengEl.innerHTML = d.pengumuman.slice(0,3).map(p => `
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light)">
+          <div style="width:8px;height:8px;border-radius:50%;background:${p.penting?'var(--danger)':'var(--navy)'};margin-top:5px;flex-shrink:0"></div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:0.8375rem;font-weight:600;color:var(--text-primary)">${escHTML(p.judul)}</div>
+            <div style="font-size:0.75rem;color:var(--text-muted)">${formatTanggal(p.created_at,'pendek')}</div>
+          </div>
+          ${p.penting ? '<span class="badge badge-warning" style="font-size:0.6rem">Penting</span>' : ''}
+        </div>`).join('');
+    } else {
+      pengEl.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:0.875rem">Belum ada pengumuman</div>`;
+    }
   }
 }
 
